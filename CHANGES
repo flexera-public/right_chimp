@@ -1,0 +1,88 @@
+Version 0.2.0
+--------------
+* Initial non-alpha release
+
+Version 0.2.2
+-------------
+* Feature: you can now specify a --script via its URI
+* Feature: initial release of chimpd
+
+Version 0.2.3
+-------------
+* Bugfix: chimpd job id management was broken in some places
+
+Version 0.3.0
+-------------
+* Feature: New --dry-run option
+* Feature: Array instance execution now includes error checking (requires API 0.1)
+* Change:  The work queue is now sorted by server name initially
+* Change:  Refactored chimp and chimpd scripts into Real Ruby Objects
+
+Version 0.4.0
+-------------
+* Feature: "chimpd --exit" can be used to stop a chimpd server
+* Feature: chimp will now display a list of scripts to choose from
+
+Version 0.4.1
+-------------
+* Feature: specify --script via numerical script id instead of full href
+* Bugfix:  fixed --script href bug
+* Bugfix:  fix chimpd submission from chimp exit code
+
+Version 0.4.2
+-------------
+* Bugfix:  fixed chimpd submission
+* Feature: Improved ability to ignore runaway tasks in chimpd
+
+Version 0.4.3
+-------------
+* Feature: If ServerArrays cannot be found, print a warning instead of failing
+
+Version 0.4.5
+-------------
+* Feature: add support for setting inputs when executing RightScripts (--input)
+* Feature: add ignore-errors command line flag
+* Feature: now using the USER environment variable for ssh jobs
+
+Version 0.4.6
+-------------
+* Bugfix: add --ssh-user flag to replace buggy USER env. variable feature
+
+Version 0.4.8
+-------------
+* Bugfix: chimpd --verbose
+
+Version 0.4.9
+-------------
+* Feature: log actions to file
+* Feature: retry/cancel all button added to chimpd
+
+Version 0.5.0
+-------------
+* Feature: rewrite of queue system to support task grouping
+* Feature: detailed execution time reporting
+* Feature: new chimpd web interface skin
+* Feature: retry failed and cancel running
+* Feature: improved logging in chimpd
+
+Version 0.5.1
+-------------
+* Feature: move run_script_on_instances from API 0.1 to API 1.0 (rest_connection 06df205d7f)
+
+Version 0.5.2
+-------------
+* Feature: --noverify flag disables interactive verification of errors
+
+Version 0.5.3
+-------------
+* Bugfix: non-operational array instances are no longer operated upon
+
+Version 0.5.4
+-------------
+* Bugfix:  reduce log output during reporting
+* Feature: The --report flag now sets quiet mode and concurrency=5 by default
+
+Version 0.5.5
+-------------
+* Bugfix: --limit flag wasn't sorting servers before executing
+

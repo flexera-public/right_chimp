@@ -1,0 +1,25 @@
+INSTALLING FROM GEM
+-------------------
+
+This is the easiest way to get up and running with chimp. Make sure you have
+Ruby and RubyGems installed. You can then install on your system by using the
+following command:
+
+        gem install chimp-<version>.gem
+
+INSTALLING FROM SOURCE
+----------------------
+
+If you want to hack on chimp or just run unstable code, then you've come to
+the right place! To install chimp from source, first make sure you have 
+all the required gems installed. Change to the chimp source directory and
+execute:
+
+        bundle install
+
+Chimp uses a rakefile to perform most common operations. For a complete list
+of rake targets, please see "rake -T". To build and install the gem:
+
+        rake build
+        rake install
+

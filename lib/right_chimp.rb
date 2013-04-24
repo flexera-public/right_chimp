@@ -1,0 +1,32 @@
+require 'rubygems'
+require 'bundler'
+
+require 'getoptlong'
+require 'thread'
+require 'webrick'
+require 'singleton'
+require 'base64'
+require 'rake'
+
+require 'rest_connection'
+require 'rest-client'
+require 'progressbar'
+require 'json'
+
+module Chimp
+  require 'chimp/version'
+  require 'chimp/Chimp'
+  require 'chimp/Log'
+  require 'chimp/IDManager'
+  require 'chimp/daemon/ChimpDaemon'
+  require 'chimp/daemon/ChimpDaemonClient'
+  require 'chimp/queue/ChimpQueue'
+  require 'chimp/queue/QueueWorker'
+  require 'chimp/queue/ExecutionGroup'
+  require 'chimp/exec/Executor'
+  require 'chimp/exec/ExecArray'
+  require 'chimp/exec/ExecRightScript'
+  require 'chimp/exec/ExecSSH'
+  require 'chimp/exec/ExecReport'
+  require 'chimp/exec/ExecNoop'
+end

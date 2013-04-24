@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+#
+# Chimp - a command-line tool for the RightScale Platform
+#
+# Copyright (c) 2011-2012 RightScale Inc.
+#
+
+require 'rubygems'
+require 'bundler'
+require 'chimp'
+
+Chimp::Chimp.new.run

@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+#
+# chimpd -- the chimp daemon
+#
+# Copyright (c) 2011 RightScale Inc.
+#
+
+require 'rubygems'
+require 'bundler'
+require 'chimp'
+
+Chimp::ChimpDaemon.instance.run
