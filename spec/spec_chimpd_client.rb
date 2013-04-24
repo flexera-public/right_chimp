@@ -2,7 +2,7 @@
 # Test chimpd client
 #
 $LOAD_PATH << File.dirname(__FILE__) + "/.."
-require 'lib/chimp.rb'
+require 'lib/right_chimp.rb'
 require 'rspec'
 require 'pp'
 

@@ -2,7 +2,7 @@
 # Test ChimpQueue
 #
 
-require 'lib/chimp.rb'
+require 'lib/right_chimp.rb'
 require 'rspec'
 
 include Chimp
