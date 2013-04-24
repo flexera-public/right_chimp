@@ -5,21 +5,28 @@ This is the easiest way to get up and running with chimp. Make sure you have
 Ruby and RubyGems installed. You can then install on your system by using the
 following command:
 
-        gem install chimp-<version>.gem
+        gem install right_chimp
 
-INSTALLING FROM SOURCE
-----------------------
+Once you have the right_chimp gem installed, you'll need to get up your API
+creds. First create a directory for the configuration file:
 
-If you want to hack on chimp or just run unstable code, then you've come to
-the right place! To install chimp from source, first make sure you have 
-all the required gems installed. Change to the chimp source directory and
-execute:
+  mkdir ~/.rest_connection
 
-        bundle install
+Next create the configuration file. Name it rest_api_config.yaml and place it in the 
+.rest_connection folder. Use the following YAML as a template, replacing <email>, <password> 
+and <account> with your email address, RightScale password, and account number.
 
-Chimp uses a rakefile to perform most common operations. For a complete list
-of rake targets, please see "rake -T". To build and install the gem:
+  --- 
+  :ssh_keys: 
+  - ~/.ssh/id_rsa
+  :pass: <password>
+  :user: <email>
+  :api_url: https://my.rightscale.com/api/acct/<account>
+  :common_headers: 
+    X_API_VERSION: "1.0"
 
-        rake build
-        rake install
+Now you're ready to run a test query. The following chimp command should return
+a list of all the operational servers in your account:
+
+  chimp --tag="rs_monitoring:state=active"
 
