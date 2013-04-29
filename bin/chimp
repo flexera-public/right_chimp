@@ -7,6 +7,6 @@
 
 require 'rubygems'
 require 'bundler'
-require 'chimp'
+require 'right_chimp'
 
 Chimp::Chimp.new.run

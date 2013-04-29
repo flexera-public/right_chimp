@@ -3,7 +3,7 @@ require 'bundler/gem_tasks'
 
 desc "Open an irb session preloaded with Chimp"
 task :console do
-  sh "irb -rubygems -I lib -r lib/chimp.rb"
+  sh "irb -rubygems -I lib -r lib/right_chimp.rb"
 end
 
 desc "Run rspec tests"
