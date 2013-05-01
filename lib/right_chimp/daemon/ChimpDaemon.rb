@@ -383,9 +383,9 @@ module Chimp
 
         if not @template
           if ENV['CHIMP_TEST'] != 'TRUE'
-            template_file_name = File.join(Gem.dir, 'gems', 'chimp-' + VERSION, 'lib/chimp/templates/all_jobs.erb')
+            template_file_name = File.join(Gem.dir, 'gems', 'right_chimp-' + VERSION, 'lib/right_chimp/templates/all_jobs.erb')
           else
-            template_file_name = 'lib/chimp/templates/all_jobs.erb'
+            template_file_name = 'lib/right_chimp/templates/all_jobs.erb'
           end
           
           @template = ERB.new(File.read(template_file_name), nil, ">")
