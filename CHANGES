@@ -86,3 +86,10 @@ Version 0.5.5
 -------------
 * Bugfix: --limit flag wasn't sorting servers before executing
 
+Version 1.0
+-----------
+* Initial open source release
+
+Version 1.0.1
+-------------
+* Add missing ERB template for chimpd
