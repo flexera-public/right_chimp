@@ -96,5 +96,8 @@ Version 1.0.1
 
 Version 1.0.2
 -------------
-* Add support for specifying inputs on the command line when working with arrays
+* Feature: Add support for specifying inputs on the command line when working with arrays
 
+Version 1.0.3
+-------------
+* Bugfix: fix race condition in chimpd serial groups

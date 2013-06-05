@@ -273,5 +273,4 @@ module Chimp
       "P"
     end
   end
-  
 end
