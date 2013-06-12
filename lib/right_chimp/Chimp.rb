@@ -901,7 +901,6 @@ module Chimp
           # load up remote chimpd jobs into the local queue
           # this makes all the standard queue control methods available to us
           #
-          retry_count = 1
           while true
             local_queue.reset!
 
@@ -909,18 +908,8 @@ module Chimp
               puts "Waiting for chimpd jobs to complete for group #{@group}..."
               all = ChimpDaemonClient.retrieve_group_info(@chimpd_host, @chimpd_port, @group, :all)
             rescue RestClient::ResourceNotFound
-              if retry_count > 0
-                retry_count -= 1
-                sleep 5
-                retry
-              end
-
-              if @ignore_errors
-                exit 0
-              else
-                $stderr.puts "ERROR: Group \"#{group}\" not found!"
-                exit 1
-              end
+              sleep 5
+              retry
             end
 
             ChimpQueue.instance.create_group(@group)
