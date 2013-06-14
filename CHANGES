@@ -104,4 +104,7 @@ Version 1.0.3
 
 Version 1.0.4
 -------------
-* Feature: chimp --chimpd-wait-until done now blocks until a group has completed > 1 job
+* Feature: chimp --chimpd-wait-until-done now blocks until a group has completed > 1 job
+* Feature: chimp --chimpd-wait-until-done now returns immediately during a dry run
+* Feature: chimpd client now log errors better, retries on failure
+* Feature: chimp output when using chimpd is better behaved
