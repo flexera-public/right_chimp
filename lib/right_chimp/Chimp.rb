@@ -892,9 +892,10 @@ module Chimp
     #
     def chimpd_wait_until_done
       local_queue = ChimpQueue.instance
+      $stdout.print "Waiting for chimpd jobs to complete for group #{@group}..."
 
       begin
-        while true
+        while !@dry_run
           local_queue = ChimpQueue.instance
 
           #
@@ -905,7 +906,6 @@ module Chimp
             local_queue.reset!
 
             begin
-              puts "Waiting for chimpd jobs to complete for group #{@group}..."
               all = ChimpDaemonClient.retrieve_group_info(@chimpd_host, @chimpd_port, @group, :all)
             rescue RestClient::ResourceNotFound
               sleep 5
