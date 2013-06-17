@@ -1,5 +1,5 @@
 module Chimp
-  
+
   #
   # Factory
   #
@@ -14,7 +14,7 @@ module Chimp
       end
     end
   end
-  
+
   #
   # An ExecutionGroup contains a set of Executors to be processed
   #
@@ -24,7 +24,7 @@ module Chimp
   class ExecutionGroup
     attr_accessor :group_id, :description, :concurrency
     attr_reader   :time_start, :time_end
-    
+
     def initialize(new_group_id=nil)
       @group_id = new_group_id
       @queue = []
@@ -34,18 +34,18 @@ module Chimp
       @time_end = nil
       @concurrency = 1
     end
-        
+
     #
     # Add something to the work queue
-    #  
+    #
     def push(j)
-      raise "invalid work" if j == nil 
+      raise "invalid work" if j == nil
       j.job_id = IDManager.get if j.job_id == nil
       j.group = self
       @queue.push(j)
       @jobs_by_id[j.job_id] = j
     end
-    
+
     #
     # Take something from the queue
     #
@@ -54,7 +54,7 @@ module Chimp
       @time_start = Time.now if @time_start == nil
       return x
     end
-    
+
     #
     # Return a hash of the results
     #
@@ -62,7 +62,7 @@ module Chimp
       return self.get_jobs.map do |task|
         next if task == nil
         next if task.server == nil
-        
+
         {
           :job_id => task.job_id,
           :name   => task.info,
@@ -76,14 +76,14 @@ module Chimp
         }
       end
     end
-    
+
     #
     # Size of the active queue
     #
     def size
       return @queue.size
     end
-    
+
     #
     # Sort queue by server nickname
     #
@@ -94,35 +94,35 @@ module Chimp
         end
       end
     end
-    
+
     #
     # Reset the queue
     #
     def reset!
       @queue = []
     end
-    
+
     #
     # Get all jobs
     #
     def get_jobs
       @jobs_by_id.values
     end
-    
+
     #
     # Get all job ids
     #
     def get_job_ids
       @jobs_by_id.keys
     end
-    
+
     #
     # Get a particular job
     #
     def get_job(i)
       @jobs_by_id[i]
     end
-    
+
     #
     # Get jobs by status
     #
@@ -133,11 +133,11 @@ module Chimp
       end
       return r
     end
-    
+
     def job_completed
       @time_end = Time.now
     end
-    
+
     #
     # Reset all jobs and bulk set them
     #
@@ -147,7 +147,7 @@ module Chimp
         self.push(job)
       end
     end
-    
+
     #
     # An execution group is "ready" if it has work that can be done;
     # see implementation in child classes.
@@ -155,19 +155,24 @@ module Chimp
     def ready?
       raise "unimplemented"
     end
-    
+
     #
     # An execution group is "done" if nothing is queued or running
+    # and at least one job has completed.
     #
     def done?
-      return (get_jobs_by_status(Executor::STATUS_NONE).size == 0 && get_jobs_by_status(Executor::STATUS_RUNNING).size == 0)
+      return (
+        get_jobs_by_status(Executor::STATUS_NONE).size == 0 &&
+        get_jobs_by_status(Executor::STATUS_RUNNING).size == 0 &&
+         get_jobs_by_status(Executor::STATUS_DONE).size > 0
+        )
     end
-    
+
     #
     # Is this execution group running anything?
     #
     def running?
-      total_jobs_running = get_jobs_by_status(Executor::STATUS_NONE).size + 
+      total_jobs_running = get_jobs_by_status(Executor::STATUS_NONE).size +
           get_jobs_by_status(Executor::STATUS_RUNNING).size +
           get_jobs_by_status(Executor::STATUS_RETRYING).size
       return(total_jobs_running > 0)
@@ -193,7 +198,7 @@ module Chimp
       job.time_end = nil
       self.push(job)
     end
-    
+
     #
     # Cancel a job by id
     #
@@ -205,7 +210,7 @@ module Chimp
       job.time_end = Time.now
       @queue.delete(job)
     end
-    
+
     #
     # Return total execution time
     #
@@ -218,18 +223,18 @@ module Chimp
         return @time_end.to_i- @time_start.to_i
       end
     end
-    
+
     #
     # Print out ExecutionGroup information
     #
     def to_s
       return "#{self.class}[#{group_id}]: ready=#{self.ready?} total_jobs=#{@jobs_by_id.size} queued_jobs=#{self.size}"
     end
-    
+
     ###################################
     protected
     ###################################
-    
+
     #
     # Return total execution time or -1 for errors
     #
@@ -238,7 +243,7 @@ module Chimp
     end
 
   end
-  
+
   #
   # SerialExecutionGroup: run only one job at a time
   #
@@ -246,12 +251,12 @@ module Chimp
     def ready?
       return get_jobs_by_status(Executor::STATUS_RUNNING).size == 0 && get_jobs_by_status(Executor::STATUS_NONE).size > 0
     end
-    
+
     def short_name
       "S"
     end
   end
-  
+
   #
   # ParallelExecutionGroup: run multiple jobs at once
   #
@@ -260,7 +265,7 @@ module Chimp
       super(new_group_id)
       @concurrency = 25
     end
-    
+
     #
     # FIXME - we're not currently using the @concurrency setting to limit execution
     #         due to an unknown bug...
@@ -268,7 +273,7 @@ module Chimp
     def ready?
       return (get_jobs_by_status(Executor::STATUS_NONE).size > 0) # and get_jobs_by_status(Executor::STATUS_RUNNING).size < @concurrency)
     end
-    
+
     def short_name
       "P"
     end
