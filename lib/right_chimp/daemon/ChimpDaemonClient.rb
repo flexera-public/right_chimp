@@ -17,15 +17,36 @@ module Chimp
         if response.code > 199 and response.code < 300
           id = YAML::load(response.body)['id']
         else
-          $stderr.puts "error submitting to chimpd! response code: #{reponse.code}"
+          $stderr.puts "WARNING: error submitting to chimpd! response code: #{reponse.code}"
           return false
         end
-      rescue RestClient::InternalServerError => ex
-        Log.error "Error submitting job #{chimp_object.script} on " +
-                  "#{chimp_object.tags}: #{ex.message}"
+
+      rescue RestClient::RequestTimeout => ex
+        $stderr.puts "WARNING: Request timeout talking to chimpd for job #{chimp_object.script}: #{ex.message} (#{ex.http_code})"
         sleep 5
         attempts -= 1
         retry if attempts > 0
+        return false
+
+      rescue RestClient::InternalServerError => ex
+
+        ex.response =~ /Internal Server Error<\/H1>(.*)<HR>/mi
+        error_message = $1.squeeze(" ").gsub("\n", "")
+
+        if error_message =~ /Unable to locate ServerTemplate/
+          $stderr.puts "WARNING: Unable to locate ServerTemplate"
+          return false
+        end
+
+        $stderr.puts "WARNING: Error submitting job to chimpd: #{chimp_object.script}: #{error_message}"
+        sleep 5
+        attempts -= 1
+        retry if attempts > 0
+        return false
+
+      rescue RestClient::Exception => ex
+        $stderr.puts "WARNING: Error submitting job to chimpd #{chimp_object.script}: #{ex.message}"
+        return false
       end
 
       return true
