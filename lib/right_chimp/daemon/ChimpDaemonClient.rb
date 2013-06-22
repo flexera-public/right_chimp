@@ -23,29 +23,30 @@ module Chimp
 
       rescue RestClient::RequestTimeout => ex
         $stderr.puts "WARNING: Request timeout talking to chimpd for job #{chimp_object.script}: #{ex.message} (#{ex.http_code})"
-        sleep 5
         attempts -= 1
-        retry if attempts > 0
+        sleep 5 and retry if attempts > 0
         return false
 
       rescue RestClient::InternalServerError => ex
-
-        ex.response =~ /Internal Server Error<\/H1>(.*)<HR>/mi
-        error_message = $1.squeeze(" ").gsub("\n", "")
-
-        if error_message =~ /Unable to locate ServerTemplate/
-          $stderr.puts "WARNING: Unable to locate ServerTemplate"
-          return false
-        end
-
-        $stderr.puts "WARNING: Error submitting job to chimpd: #{chimp_object.script}: #{error_message}"
-        sleep 5
+        $stderr.puts "WARNING: Error submitting job to chimpd: #{error_message}, retrying..."
         attempts -= 1
-        retry if attempts > 0
+        sleep 5 and retry if attempts > 0
         return false
 
       rescue RestClient::Exception => ex
-        $stderr.puts "WARNING: Error submitting job to chimpd #{chimp_object.script}: #{ex.message}"
+        $stderr.puts "ERROR: Error submitting job to chimpd #{chimp_object.script}: #{ex.message}"
+        return false
+
+      rescue Errno::ECONNRESET => ex
+        $stderr.puts "ERROR: Connection reset by peer, aborting"
+        return false
+
+      rescue Errno::EPIPE => ex
+        $stderr.puts "ERROR: broken pipe, aborting"
+        return false
+
+      rescue Errno::ECONNREFUSED => ex
+        $stderr.puts "ERROR: connection refused, aborting"
         return false
       end
 
