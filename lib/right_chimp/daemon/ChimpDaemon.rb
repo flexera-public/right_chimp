@@ -116,8 +116,9 @@ module Chimp
       opts = {
         :BindAddress  => "localhost",
         :Port         => @port,
-        :MaxClients   => 50,
-        :RequestTimeout => 60
+        :MaxClients   => 500,
+        :RequestTimeout => 120,
+        :DoNotReverseLookup => true
       }
 
       if not @verbose
@@ -181,6 +182,22 @@ module Chimp
     #
     def spawn_chimpd_submission_processor
       n = @concurrency/4
+      n = 10 if n < 10
+      Log.debug "Logging into API..."
+
+      #
+      # There is a race condition logging in with rest_connection.
+      # As a workaround, do a tag query first thing when chimpd starts.
+      #
+      begin
+        c = Chimp.new
+        c.interactive = false
+        c.quiet = true
+        c.tags = ["bogus:tag=true"]
+        c.run
+      rescue StandardError
+      end
+
       Log.debug "Spawning #{n} submission processing threads"
       (1..n).each do |n|
         @threads ||=[]
