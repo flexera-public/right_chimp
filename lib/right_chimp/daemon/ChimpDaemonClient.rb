@@ -16,6 +16,7 @@ module Chimp
 
         if response.code > 199 and response.code < 300
           id = YAML::load(response.body)['id']
+          return true
         else
           $stderr.puts "WARNING: error submitting to chimpd! response code: #{reponse.code}"
           return false
@@ -33,24 +34,26 @@ module Chimp
         sleep 5 and retry if attempts > 0
         return false
 
-      rescue RestClient::Exception => ex
-        $stderr.puts "ERROR: Error submitting job to chimpd #{chimp_object.script}: #{ex.message}"
-        return false
-
       rescue Errno::ECONNRESET => ex
-        $stderr.puts "ERROR: Connection reset by peer, aborting"
+        $stderr.puts "WARNING: Connection reset by peer, retrying..."
+        attempts -= 1
+        sleep 5 and retry if attempts > 0
         return false
 
       rescue Errno::EPIPE => ex
-        $stderr.puts "ERROR: broken pipe, aborting"
+        $stderr.puts "WARNING: broken pipe, retrying..."
+        attempts -= 1
+        sleep 5 and retry if attempts > 0
         return false
 
       rescue Errno::ECONNREFUSED => ex
         $stderr.puts "ERROR: connection refused, aborting"
         return false
-      end
 
-      return true
+      rescue RestClient::Exception => ex
+        $stderr.puts "ERROR: Error submitting job to chimpd #{chimp_object.script}: #{ex.message}"
+        return false
+      end
     end
 
     #
