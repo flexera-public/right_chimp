@@ -116,8 +116,9 @@ module Chimp
       opts = {
         :BindAddress  => "localhost",
         :Port         => @port,
-        :MaxClients   => 50,
-        :RequestTimeout => 60
+        :MaxClients   => 500,
+        :RequestTimeout => 120,
+        :DoNotReverseLookup => true
       }
 
       if not @verbose
