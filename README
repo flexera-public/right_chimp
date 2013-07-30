@@ -1,6 +1,6 @@
 Chimp: a command-line tool for remote command execution using the RightScale platform
 
-The goal of the Chimp is to provide a simple command line utility for 
+The goal of the Chimp is to provide a simple command line utility for
 performing bulk operations on servers managed on the RightScale platform.
 
 EXAMPLE USAGE
@@ -18,7 +18,7 @@ Run a shell command on servers with a specific tag:
 
   chimp --tag="service:myservice=true" --ssh="uptime"
 
-Run a report: 
+Run a report:
 
   bin/chimp --tag="service:myservice=true" --report="nickname,ip-address,tag=myservice:version"
 
@@ -39,13 +39,13 @@ Would include both the server nickname and ip address to the report:
   server1-4.rightscale.com,192.168.0.4
 
 Any field present on a rest_connection Server object can be queried. This
-includes: 
+includes:
 
   Field                               Example
   ----------------------------------- ----------------------------
   aws-id                              i-12345
   aws-platform                        Linux/Unix
-  cloud_id                              
+  cloud_id
   created_at
   current_instance_href
   deployment_href
@@ -77,4 +77,4 @@ Additionally you can report on instance tags:
 
 OBLIGATORY MAINTENANCE STRING
 -----------------------------
-maintained by Red_Team
+Maintained by the RightScale Red_Team
