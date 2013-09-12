@@ -434,35 +434,51 @@ module Chimp
     #
     class DisplayServlet < GenericServlet
       def do_GET(req, resp)
-        job_filter = self.get_verb(req) || "running"
+        #
+        # First determine the path to the files to serve
+        #
+        if ENV['CHIMP_TEST'] != 'TRUE'
+          template_path = File.join(Gem.dir, 'gems', 'right_chimp-' + VERSION, 'lib/right_chimp/templates')
+        else
+          template_path = 'lib/right_chimp/templates'
+        end
 
-        if not @template
-          if ENV['CHIMP_TEST'] != 'TRUE'
-            template_file_name = File.join(Gem.dir, 'gems', 'right_chimp-' + VERSION, 'lib/right_chimp/templates/all_jobs.erb')
-          else
-            template_file_name = 'lib/right_chimp/templates/all_jobs.erb'
+        #
+        # Check for static CSS files and serve them
+        #
+        if req.request_uri.path =~ /\.(css|js)$/
+          filename = req.request_uri.path.split('/').last
+          resp.body = File.read(File.join(template_path, filename))
+          raise WEBrick::HTTPStatus::OK
+        else
+
+          #
+          # Otherwise process ERB template
+          #
+          job_filter = self.get_verb(req) || "running"
+
+          if not @template
+            @template = ERB.new(File.read(File.join(template_path, "all_jobs.erb")), nil, ">")
           end
 
-          @template = ERB.new(File.read(template_file_name), nil, ">")
+          queue = ChimpQueue.instance
+          jobs = queue.get_jobs
+          group_name = nil
+
+          if job_filter == "group"
+            group_name = req.request_uri.path.split('/')[-1]
+            g = ChimpQueue[group_name.to_sym]
+            jobs = g.get_jobs if g
+          end
+
+          count_jobs_running = queue.get_jobs_by_status(:running).size
+          count_jobs_queued  = queue.get_jobs_by_status(:none).size
+          count_jobs_failed  = queue.get_jobs_by_status(:error).size
+          count_jobs_done    = queue.get_jobs_by_status(:done).size
+
+          resp.body = @template.result(binding)
+          raise WEBrick::HTTPStatus::OK
         end
-
-        queue = ChimpQueue.instance
-        jobs = queue.get_jobs
-        group_name = nil
-
-        if job_filter == "group"
-          group_name = req.request_uri.path.split('/')[-1]
-          g = ChimpQueue[group_name.to_sym]
-          jobs = g.get_jobs if g
-        end
-
-        count_jobs_running = queue.get_jobs_by_status(:running).size
-        count_jobs_queued  = queue.get_jobs_by_status(:none).size
-        count_jobs_failed  = queue.get_jobs_by_status(:error).size
-        count_jobs_done    = queue.get_jobs_by_status(:done).size
-
-        resp.body = @template.result(binding)
-        raise WEBrick::HTTPStatus::OK
       end
     end # DisplayServlet
   end # ChimpDaemon
