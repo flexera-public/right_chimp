@@ -1,83 +1,22 @@
 <html><head>
 <title>chimpd</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 <meta http-equiv="refresh" content="5">
-<style type="text/css">
-  body {
-    color: #088A29;
-    background-color: black;
-    font-family: monospace;
-    font-size: 10px;
-    margin: 0;
+<link rel="stylesheet" href="default.css" title="default" />
+<link rel="alternate stylesheet" href="greenscreen.css" title="greenscreen" />
+<link rel="alternate stylesheet" href="hotdogstand.css" title="hotdogstand" />
+<script src="styleswitcher.js"></script>
+
+<script type="text/javascript">
+
+  function chimpd_job_control(obj, url) {
+    obj.style.color = "red";
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", url, true);
+    xmlhttp.send();
   }
-  
-  h3 {
-    font-weight: bold;
-    border-bottom: 2px solid #088A29;
-  }
-  
-  ol, ul {
-    list-style-type: none;
-  }
-  
-  ol {
-    padding-left: 10px;
-  }
-  
-  ul {
-    padding-bottom: 5px;
-    border-bottom: solid #088A29 2px;
-  }
-  
-  div#stats {
-    background-color: black; /* #002A5C */
-    color: #088A29;
-    float: left;
-    border-right: solid 2px #088A29;
-    position: fixed;
-    height: 100%;
-    padding: 5px;
-    padding-right: 15px;
-  }
-  
-  div#jobs {
-    position: absolute;
-    left: 375px;
-    top: 10px;
-    width: 500px;
-    padding-left: 20px;
-    color: #088A29;
-  }
-  
-  div#groups {
-    color: #088A29;
-    background-color: black;
-  }
-  
-  div#groups a {
-    color: #088A29;
-    background-color: black;
-  }
-  
-  .highlight {
-    background-color: #088A29;
-    color: black;
-  }
-  
-  td {
-    padding-right: 10px;
-  }
-  
-  a {
-    text-decoration: underline;
-    color: #088A29;
-    font-weight: bold;
-  }
-  
-  a:hover, ol a:hover {
-    text-decoration: underline;
-  }
-  
-</style>
+
+</script>
 
 </head><body>
 
@@ -106,12 +45,12 @@ SINCE 2012</p>
 </table>
 
 <h3>Job Groups</h3>
-<div id="groups" width="90%" style="border: solid 1px #088A29; overflow-y: auto; height: 150px; background: black; color: #088A29;">
+<div id="groups" width="90%" >
   <ol style="margin: 0; padding: 3px;">
   <% queue.group.values.each do |g| %>
     <li>
       [<%= sprintf( "%03d", g.get_jobs_by_status(:running).size) %>/<%= sprintf( "%03d", g.get_job_ids.size) %> <%= g.short_name  %>] <% if group_name == g.group_id %><span class="highlight"><%=g.group_id%></span><% else %><a href="/display/group/<%=g.group_id%>"><%= g.group_id %></a><% end %>
-      
+
     </li>
   <% end %>
   </ol>
@@ -120,19 +59,26 @@ SINCE 2012</p>
 
 <h3>Filter Results</h3>
 
-<p>[ 
-<% if job_filter == 'running' or job_filter == nil %>running jobs <% else %><a href="/display/running">running jobs</a><% end %> | 
+<p>[
+<% if job_filter == 'running' or job_filter == nil %>running jobs <% else %><a href="/display/running">running jobs</a><% end %> |
 <% if job_filter == 'all' %>all jobs <% else %><a href="/display/all">all jobs</a> <% end %> |
-<% if job_filter == 'done' %>complete jobs <% else %><a href="/display/done">complete jobs</a><% end %> | 
+<% if job_filter == 'done' %>complete jobs <% else %><a href="/display/done">complete jobs</a><% end %> |
 <% if job_filter == 'error' %>failed jobs <% else %><a href="/display/error">failed jobs</a><% end %>
  ]
 </p>
 
 <h3>Commands</h3>
 <ol>
-  <li><a href="/job/running/cancel">cancel running jobs</a></li>
-  <li><a href="/job/error/retry">retry failed jobs </a></li>
-  <li><a href="/job/all/report">download execution report</a></li>
+  <li><a href="#" onclick="chimpd_job_control(this, '/job/running/cancel')">cancel running jobs</a></li>
+  <li><a href="#" onclick="chimpd_job_control(this, '/job/error/retry')">retry failed jobs </a></li>
+  <li><a href="#" onclick="chimpd_job_control(this, '/job/all/report')">download execution report</a></li>
+</ol>
+
+<h3>Theme</h3>
+<ol>
+  <li> <a href="#" onclick="setActiveStyleSheet('default')">default</a></li>
+  <li> <a href="#" onclick="setActiveStyleSheet('greenscreen')">green screen</a></li>
+  <li> <a href="#" onclick="setActiveStyleSheet('hotdogstand')">hot dog stand</a></li>
 </ol>
 
 </div>
@@ -144,7 +90,7 @@ SINCE 2012</p>
   <h1>Job Group: <%=CGI::escapeHTML(group_name)%></h1>
 <% end %>
 
-<% 
+<%
 #
 # Print out all the jobs
 #
@@ -154,12 +100,12 @@ end
 
 jobs.each do |j|
   next unless j
-  
+
   status      = j.status
   id          = j.job_id
 
   server_name = CGI::escapeHTML(j.server['nickname']) if j.server
-  
+
   if j.exec
     action      = j.exec.to_s
     action      = j.exec['right_script']['name'] if j.exec['right_script']
@@ -170,8 +116,8 @@ jobs.each do |j|
   if job_filter and not (job_filter == 'all' or job_filter == 'group' )
     next unless status == job_filter.to_sym
   end
-  
-  execution_time_seconds = j.get_total_exec_time  
+
+  execution_time_seconds = j.get_total_exec_time
   h = (execution_time_seconds/3600).to_i
   m = (execution_time_seconds/60 - h*60).to_i
   s = (execution_time_seconds - (m*60 + h*3600))
@@ -179,9 +125,9 @@ jobs.each do |j|
 
 %>
 
-<h2 style="float: left; color: #088A29">#<%= id %></h2>
+<h2>#<%= id %></h2>
 <%
-  color = "#088A29" 
+  color = "#088A29"
   color = "brightgreen" if status == Executor::STATUS_RUNNING
   color = "orange"      if status == Executor::STATUS_RETRYING
   color = "red"         if status == Executor::STATUS_ERROR
@@ -195,15 +141,15 @@ jobs.each do |j|
     <% if status != Executor::STATUS_RUNNING %>
       <li>Results: <span style="color:#777"><%= j.results %></span></li>
     <% end %>
-    
+
     <li> <span class="action">
     <% if status == Executor::STATUS_ERROR %>
-      <a href="/job/<%=id%>/ack">ack</a> | 
-      <a href="/job/<%=id%>/retry">retry</a>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/ack')">ack</a> |
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">retry</a>
     <% elsif status == Executor::STATUS_RUNNING %>
-      <a href="/job/<%=id%>/cancel">cancel</a>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/cancel')">cancel</a>
     <% else %>
-      <a href="/job/<%=id%>/retry">requeue</a>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">requeue</a>
     <% end %>
     </li>
   </ul>

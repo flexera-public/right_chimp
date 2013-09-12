@@ -1,0 +1,82 @@
+body {
+  color: yellow;
+  background-color: red;
+  font-family: monospace;
+  font-size: 10px;
+  margin: 0;
+}
+
+h3 {
+  font-weight: bold;
+  border-bottom: 2px solid yellow;
+}
+
+h2 {
+  float: left;
+  color: yellow;
+}
+
+ol, ul {
+  list-style-type: none;
+}
+
+ol {
+  padding-left: 10px;
+}
+
+ul {
+  padding-bottom: 5px;
+  border-bottom: solid yellow 2px;
+}
+
+div#stats {
+  background-color: red; /* #002A5C */
+  color: yellow;
+  float: left;
+  border-right: solid 2px yellow;
+  position: fixed;
+  height: 100%;
+  padding: 5px;
+  padding-right: 15px;
+}
+
+div#jobs {
+  position: absolute;
+  left: 375px;
+  top: 10px;
+  width: 500px;
+  padding-left: 20px;
+  color: yellow;
+}
+
+div#groups {
+  color: yellow;
+  background-color: red;
+  border: solid 1px yellow;
+  overflow-y: auto;
+  height: 150px;
+}
+
+div#groups a {
+  color: yellow;
+  background-color: red;
+}
+
+.highlight {
+  background-color: yellow;
+  color: red;
+}
+
+td {
+  padding-right: 10px;
+}
+
+a {
+  text-decoration: underline;
+  color: yellow;
+  font-weight: bold;
+}
+
+a:hover, ol a:hover {
+  text-decoration: underline;
+}
