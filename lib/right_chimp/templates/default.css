@@ -1,0 +1,81 @@
+body {
+  color: black;
+  background-color: white;
+  font-family: monospace;
+  font-size: 10px;
+  margin: 0;
+}
+
+h3 {
+  font-weight: bold;
+  border-bottom: 2px solid black;
+}
+
+h2 {
+  float: left;
+}
+
+ol, ul {
+  list-style-type: none;
+}
+
+ol {
+  padding-left: 10px;
+}
+
+ul {
+  padding-bottom: 5px;
+  border-bottom: solid black 2px;
+}
+
+div#stats {
+  background-color: white; /* #002A5C */
+  color: black;
+  float: left;
+  border-right: solid 2px black;
+  position: fixed;
+  height: 100%;
+  padding: 5px;
+  padding-right: 15px;
+}
+
+div#jobs {
+  position: absolute;
+  left: 375px;
+  top: 10px;
+  width: 500px;
+  padding-left: 20px;
+  color: black;
+}
+
+div#groups {
+  color: black;
+  background-color: white;
+  border: solid 1px;
+  overflow-y: auto;
+  height: 150px;
+}
+
+div#groups a {
+  color: black;
+  background-color: white;
+}
+
+.highlight {
+  background-color: black;
+  color: white;
+}
+
+td {
+  padding-right: 10px;
+}
+
+a {
+  text-decoration: underline;
+  color: black;
+  font-weight: bold;
+}
+
+a:hover, ol a:hover {
+  text-decoration: underline;
+}
