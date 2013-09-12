@@ -1,14 +1,22 @@
 <html><head>
 <title>chimpd</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 <meta http-equiv="refresh" content="5">
-<style type="text/css">
-
-</style>
-
 <link rel="stylesheet" href="default.css" title="default" />
 <link rel="alternate stylesheet" href="greenscreen.css" title="greenscreen" />
 <link rel="alternate stylesheet" href="hotdogstand.css" title="hotdogstand" />
 <script src="styleswitcher.js"></script>
+
+<script type="text/javascript">
+
+  function chimpd_job_control(obj, url) {
+    obj.style.color = "red";
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", url, true);
+    xmlhttp.send();
+  }
+
+</script>
 
 </head><body>
 
@@ -61,9 +69,9 @@ SINCE 2012</p>
 
 <h3>Commands</h3>
 <ol>
-  <li><a href="/job/running/cancel">cancel running jobs</a></li>
-  <li><a href="/job/error/retry">retry failed jobs </a></li>
-  <li><a href="/job/all/report">download execution report</a></li>
+  <li><a href="#" onclick="chimpd_job_control(this, '/job/running/cancel')">cancel running jobs</a></li>
+  <li><a href="#" onclick="chimpd_job_control(this, '/job/error/retry')">retry failed jobs </a></li>
+  <li><a href="#" onclick="chimpd_job_control(this, '/job/all/report')">download execution report</a></li>
 </ol>
 
 <h3>Theme</h3>
@@ -136,12 +144,12 @@ jobs.each do |j|
 
     <li> <span class="action">
     <% if status == Executor::STATUS_ERROR %>
-      <a href="/job/<%=id%>/ack">ack</a> |
-      <a href="/job/<%=id%>/retry">retry</a>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/ack')">ack</a> |
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">retry</a>
     <% elsif status == Executor::STATUS_RUNNING %>
-      <a href="/job/<%=id%>/cancel">cancel</a>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/cancel')">cancel</a>
     <% else %>
-      <a href="/job/<%=id%>/retry">requeue</a>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">requeue</a>
     <% end %>
     </li>
   </ul>
