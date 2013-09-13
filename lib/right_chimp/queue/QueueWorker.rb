@@ -5,13 +5,13 @@
 module Chimp
   class QueueWorker
     attr_accessor :delay, :retry_count, :never_exit
-    
+
     def initialize
       @delay = 0
       @retry_count = 0
       @never_exit = true
     end
-    
+
     #
     # Grab work items from the ChimpQueue and process them
     # Only stop is @ever_exit is false
@@ -29,14 +29,21 @@ module Chimp
           else
             sleep 1
           end
-        
-        rescue StandardError => ex
-          $stderr.puts "Exception in QueueWorker.run: #{ex}"
-          puts ex.inspect
-          puts ex.backtrace
+
+        #
+        # the rest_connection gem raises RuntimeErrors so we need to
+        # rescue Exception here
+        #
+        rescue Exception => ex
+          Log.error "Exception in QueueWorker.run: #{ex}"
+          Log.debug ex.inspect
+          Log.debug ex.backtrace
+
+          work_item.status = Executor::STATUS_ERROR
+          work_item.error = ex
         end
       end
     end
-    
+
   end
 end
