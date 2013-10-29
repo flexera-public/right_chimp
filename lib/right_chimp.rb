@@ -13,8 +13,6 @@ require 'rest-client'
 require 'progressbar'
 require 'json'
 
-require 'debugger'
-
 module Chimp
   require 'right_chimp/version'
   require 'right_chimp/Chimp'

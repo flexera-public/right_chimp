@@ -25,5 +25,4 @@ Gem::Specification.new do |s|
   s.add_dependency "progressbar", "~> 0.11.0"
 
   s.add_development_dependency "rspec", "~> 2.6.0"
-  s.add_development_dependency "debugger"
 end
