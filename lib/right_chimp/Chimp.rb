@@ -208,7 +208,7 @@ module Chimp
           [ '--dry-run', '-n', GetoptLong::NO_ARGUMENT ],
           [ '--limit', '-l', GetoptLong::REQUIRED_ARGUMENT ],
           [ '--version', '-1', GetoptLong::NO_ARGUMENT ],
-          [ '--chimpd', '-f', GetoptLong::NO_ARGUMENT ],
+          [ '--chimpd', '-f', GetoptLong::OPTIONAL_ARGUMENT ],
           [ '--chimpd-wait-until-done', '-j', GetoptLong::NO_ARGUMENT ],
           [ '--dont-check-templates', '-0', GetoptLong::NO_ARGUMENT ],
           [ '--ignore-errors', '-9', GetoptLong::NO_ARGUMENT ],
@@ -297,6 +297,7 @@ module Chimp
               exit 0
             when '--chimpd'
               @use_chimpd = true
+              @chimpd_port = arg.to_i unless arg.empty?
             when '--chimpd-wait-until-done'
               @use_chimpd = true
               @chimpd_wait_until_done = true

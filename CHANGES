@@ -113,3 +113,7 @@ Version 1.0.5
 -------------
 * Feature: improved error handling and logging when submitting to chimpd
 
+Version 1.0.9
+-------------
+* Feature: Improved support for running chimp commands on any chimp daemon port
+* Feature: Added inverted hot dog stand theme
