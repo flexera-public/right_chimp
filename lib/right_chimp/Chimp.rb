@@ -297,7 +297,7 @@ module Chimp
               exit 0
             when '--chimpd'
               @use_chimpd = true
-              @chimpd_port = arg.to_i
+              @chimpd_port = arg.to_i unless arg.empty?
             when '--chimpd-wait-until-done'
               @use_chimpd = true
               @chimpd_wait_until_done = true
