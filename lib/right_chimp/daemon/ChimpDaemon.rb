@@ -72,7 +72,7 @@ module Chimp
             when '--port', '-p'
               @port = arg
             when '--exit', '-x'
-            	uri = "http://localhost:9055/admin"
+            	uri = "http://localhost:#{@port}/admin"
 							response = RestClient.post uri, { 'shutdown' => true }.to_yaml
 							exit 0
           end
