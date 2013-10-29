@@ -9,6 +9,8 @@
 
 <script type="text/javascript">
 
+  port = <%= ChimpDaemon.instance.port.to_s %>
+
   function chimpd_job_control(obj, url) {
     obj.style.color = "red";
     xmlhttp = new XMLHttpRequest();
