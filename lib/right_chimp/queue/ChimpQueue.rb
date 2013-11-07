@@ -48,6 +48,10 @@ module Chimp
     # Push a task into the queue
     #
     def push(g, w)
+      if w.exec.kind_of?(Hash)
+        Log.debug "Pushing job '#{w.exec['right_script']['name']}' into group '#{g}'"
+      end
+
       raise "no group specified" unless g
       create_group(g) if not ChimpQueue[g]
       ChimpQueue[g].push(w)
@@ -70,6 +74,7 @@ module Chimp
         @group.values.each do |group|
           if group.ready?
             r = group.shift
+            Log.debug "Shifting job '#{r.job_id}' from group '#{group.group_id}'"
             break
           end
         end      

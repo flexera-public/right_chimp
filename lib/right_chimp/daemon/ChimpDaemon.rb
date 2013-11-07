@@ -473,6 +473,7 @@ module Chimp
 
           count_jobs_running = queue.get_jobs_by_status(:running).size
           count_jobs_queued  = queue.get_jobs_by_status(:none).size
+          count_jobs_holding  = queue.get_jobs_by_status(:holding).size
           count_jobs_failed  = queue.get_jobs_by_status(:error).size
           count_jobs_done    = queue.get_jobs_by_status(:done).size
 

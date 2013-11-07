@@ -11,6 +11,7 @@ module Chimp
     attr_reader   :error, :results
     
     STATUS_NONE =     :none
+    STATUS_HOLDING =  :holding
     STATUS_RUNNING =  :running
     STATUS_RETRYING = :retrying
     STATUS_ERROR =    :error
@@ -93,6 +94,8 @@ module Chimp
     # This is called from the subclass with a code block to yield to
     #
     def run_with_retry(&block)
+      Log.debug "Running job '#{@job_id}' with status '#{@status}'"
+
       @status = STATUS_RUNNING
       @time_start = Time.now
       Log.info self.describe_work_start unless @quiet

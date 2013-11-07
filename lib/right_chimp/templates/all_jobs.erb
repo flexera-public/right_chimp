@@ -36,6 +36,9 @@ SINCE 2012</p>
   <td>Jobs running:</td>
   <td><%= count_jobs_running %>
 </tr><tr>
+  <td>Jobs holding:</td>
+  <td><%= count_jobs_holding %>
+</tr><tr>
   <td>Jobs waiting:</td>
   <td><%= count_jobs_queued %>
 </tr><tr>
@@ -60,14 +63,16 @@ SINCE 2012</p>
 </div>
 
 
-<h3>Filter Results</h3>
+<h3>Filter Results By Job Status</h3>
 
 <p>[
-<% if job_filter == 'running' or job_filter == nil %>running jobs <% else %><a href="/display/running">running jobs</a><% end %> |
-<% if job_filter == 'all' %>all jobs <% else %><a href="/display/all">all jobs</a> <% end %> |
-<% if job_filter == 'done' %>complete jobs <% else %><a href="/display/done">complete jobs</a><% end %> |
-<% if job_filter == 'error' %>failed jobs <% else %><a href="/display/error">failed jobs</a><% end %>
+<% if job_filter == 'running' or job_filter == nil %>running<% else %><a href="/display/running">running</a><% end %> |
+<% if job_filter == 'none' %>waiting<% else %><a href="/display/none">waiting</a> <% end %> |
+<% if job_filter == 'holding' %>holding<% else %><a href="/display/holding">holding</a> <% end %> |
+<% if job_filter == 'done' %>complete<% else %><a href="/display/done">complete</a><% end %> |
+<% if job_filter == 'error' %>failed<% else %><a href="/display/error">failed</a><% end %>
  ]
+<% if job_filter == 'all' %>all<% else %><a href="/display/all">all</a> <% end %> |
 </p>
 
 <h3>Commands</h3>
@@ -153,7 +158,7 @@ jobs.each do |j|
     <% elsif status == Executor::STATUS_RUNNING %>
       <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/cancel')">cancel</a>
     <% else %>
-      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">requeue</a>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">(re)queue</a>
     <% end %>
     </li>
   </ul>
