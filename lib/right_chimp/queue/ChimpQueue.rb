@@ -48,8 +48,11 @@ module Chimp
     # Push a task into the queue
     #
     def push(g, w)
-      if w.exec.kind_of?(Hash)
-        Log.debug "Pushing job '#{w.exec['right_script']['name']}' into group '#{g}'"
+      if w.exec.right_script && w.exec.right_script.kind_of?(Hash)
+        Log.debug "Pushing job '#{w.exec.right_script['name']}' into group '#{g}'"
+        if w.status == Executor::STATUS_HOLDING
+          Log.info "Holding job '#{w.exec.right_script['name']}'"
+        end
       end
 
       raise "no group specified" unless g
