@@ -117,3 +117,7 @@ Version 1.0.9
 -------------
 * Feature: Improved support for running chimp commands on any chimp daemon port
 * Feature: Added inverted hot dog stand theme
+
+Version 1.1.0
+-------------
+* Feature: Add a job state called 'holding' where jobs can be held until the user queues them
