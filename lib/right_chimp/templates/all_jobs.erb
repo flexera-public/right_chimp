@@ -69,10 +69,10 @@ SINCE 2012</p>
 <% if job_filter == 'running' or job_filter == nil %>running<% else %><a href="/display/running">running</a><% end %> |
 <% if job_filter == 'none' %>waiting<% else %><a href="/display/none">waiting</a> <% end %> |
 <% if job_filter == 'holding' %>holding<% else %><a href="/display/holding">holding</a> <% end %> |
-<% if job_filter == 'done' %>complete<% else %><a href="/display/done">complete</a><% end %> |
+<% if job_filter == 'done' %>completed<% else %><a href="/display/done">completed</a><% end %> |
 <% if job_filter == 'error' %>failed<% else %><a href="/display/error">failed</a><% end %>
- ]
-<% if job_filter == 'all' %>all<% else %><a href="/display/all">all</a> <% end %> |
+ |
+<% if job_filter == 'all' %>all<% else %><a href="/display/all">all</a> <% end %> ]
 </p>
 
 <h3>Commands</h3>
@@ -152,13 +152,17 @@ jobs.each do |j|
     <% end %>
 
     <li> <span class="action">
-    <% if status == Executor::STATUS_ERROR %>
+    <% case status
+        when Executor::STATUS_ERROR %>
       <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/ack')">ack</a> |
       <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">retry</a>
-    <% elsif status == Executor::STATUS_RUNNING %>
+    <%  when Executor::STATUS_RUNNING, Executor::STATUS_RETRYING, Executor::STATUS_NONE  %>
       <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/cancel')">cancel</a>
-    <% else %>
-      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">(re)queue</a>
+    <%  when Executor::STATUS_HOLDING %>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">queue</a>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/cancel')">cancel</a>
+    <%  when Executor::STATUS_DONE %>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">requeue</a>
     <% end %>
     </li>
   </ul>
