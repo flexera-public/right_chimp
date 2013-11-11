@@ -121,3 +121,7 @@ Version 1.0.9
 Version 1.1.0
 -------------
 * Feature: Add a job state called 'holding' where jobs can be held until the user queues them
+
+Version 1.1.1
+-------------
+* Bugfix: Enable timeouts on server arrays
