@@ -50,12 +50,18 @@ module Chimp
     # Take something from the queue
     #
     def shift
-      @queue.each do |j|
-        if j.status == Executor::STATUS_NONE
-          @time_start = Time.now if @time_start == nil
-          return j
+      updated_queue = []
+      found_job = nil
+      @queue.each do |job|
+        if found_job || job.status == Executor::STATUS_HOLDING
+          updated_queue.push(job)
+        else
+          found_job = job
         end
       end
+      @queue = updated_queue
+      @time_start = Time.now if @time_start == nil
+      return found_job
     end
 
     #
