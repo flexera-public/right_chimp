@@ -4,7 +4,7 @@
 
 module Chimp
   class Chimp
-    attr_accessor :concurrency, :delay, :retry_count, :progress, :prompt,
+    attr_accessor :concurrency, :delay, :retry_count, :hold, :progress, :prompt,
                   :quiet, :use_chimpd, :chimpd_host, :chimpd_port, :tags, :array_names,
                   :deployment_names, :script, :servers, :ssh, :report, :interactive, :action,
                   :limit_start, :limit_end, :dry_run, :group, :job_id, :verify
@@ -34,6 +34,7 @@ module Chimp
       @concurrency  = 1
       @delay        = 0
       @retry_count  = 0
+      @hold         = false
       @timeout      = 900
 
       @limit_start  = 0
@@ -205,6 +206,7 @@ module Chimp
           [ '--concurrency', '-c', GetoptLong::REQUIRED_ARGUMENT ],
           [ '--delay', '-d', GetoptLong::REQUIRED_ARGUMENT ],
           [ '--retry', '-y', GetoptLong::REQUIRED_ARGUMENT ],
+          [ '--hold', '-7', GetoptLong::NO_ARGUMENT ],
           [ '--dry-run', '-n', GetoptLong::NO_ARGUMENT ],
           [ '--limit', '-l', GetoptLong::REQUIRED_ARGUMENT ],
           [ '--version', '-1', GetoptLong::NO_ARGUMENT ],
@@ -282,6 +284,8 @@ module Chimp
               @concurrency = arg.to_i
             when '--delay', '-d'
               @delay = arg.to_i
+            when '--hold', '-7'
+              @hold = true
             when '--retry', '-y'
               @retry_count = arg.to_i
             when '--limit', '-l'
@@ -478,7 +482,7 @@ module Chimp
       # each server for the script until we locate it.
       #
       if script and template == nil
-        Log.debug "getting template URI..."
+        Log.debug "Getting template URI..."
 
         if not servers.empty?
           for i in (0..servers.size - 1)
@@ -588,7 +592,7 @@ module Chimp
              script = ::RightScript.new({ :href => script_URI, :right_script => script_data })
           end
         else
-          Log.debug "looking for script \"#{script}\""
+          Log.debug "Looking for script \"#{script}\""
           script = st.executables.detect { |ex| ex.name =~ /#{script}/ }
         end
 
@@ -721,6 +725,8 @@ module Chimp
         if e != nil
           e.dry_run = @dry_run
           e.quiet   = @@quiet
+          e.status  = Executor::STATUS_HOLDING if @hold
+
           tasks.push(e)
         end
 
@@ -1164,6 +1170,7 @@ module Chimp
       puts "chimpd options:"
       puts "  --chimpd=<port>                   send jobs to chimpd listening on <port> on localhost"
       puts "  --chimpd-wait-until-done          wait until all chimpd jobs are done"
+      puts "  --hold                            create a job in chimpd without executing until requested"
       puts
       puts "Misc Notes:"
       puts "  * If you leave the name of a --script or --ssh command blank, chimp will prompt you"

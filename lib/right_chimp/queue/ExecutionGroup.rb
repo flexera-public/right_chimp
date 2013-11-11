@@ -50,9 +50,18 @@ module Chimp
     # Take something from the queue
     #
     def shift
-      x = @queue.shift
+      updated_queue = []
+      found_job = nil
+      @queue.each do |job|
+        if found_job || job.status == Executor::STATUS_HOLDING
+          updated_queue.push(job)
+        else
+          found_job = job
+        end
+      end
+      @queue = updated_queue
       @time_start = Time.now if @time_start == nil
-      return x
+      return found_job
     end
 
     #
@@ -191,6 +200,7 @@ module Chimp
     # Requeue a job by id
     #
     def requeue(id)
+      Log.debug "Requeuing job id #{id}"
       job = @jobs_by_id[id]
       job.status = Executor::STATUS_NONE
       job.owner = nil
