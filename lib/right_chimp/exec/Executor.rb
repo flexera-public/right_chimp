@@ -6,9 +6,9 @@ module Chimp
   class Executor
     attr_accessor :server, :array, :exec, :inputs, :template, :owner, :group,
                   :job_id, :status, :dry_run, :verbose, :quiet, :timeout,
-                  :retry_count, :retry_sleep, :time_start, :time_end
+                  :retry_count, :retry_sleep, :time_start, :time_end, :error
     
-    attr_reader   :error, :results
+    attr_reader   :results
     
     STATUS_NONE =     :none
     STATUS_HOLDING =  :holding
