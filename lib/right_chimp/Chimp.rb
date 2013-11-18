@@ -652,6 +652,7 @@ module Chimp
               :exec => queue_executable,
               :inputs => @inputs,
               :template => queue_template,
+              :timeout => @timeout,
               :verbose => @@verbose,
               :quiet => @@quiet
             )
