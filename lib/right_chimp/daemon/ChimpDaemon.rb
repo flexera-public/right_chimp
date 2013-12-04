@@ -368,6 +368,7 @@ module Chimp
 
         jobs = queue.get_jobs_by_status(:running) if id == 'running'
         jobs = queue.get_jobs_by_status(:error)   if id == 'error'
+        jobs = queue.get_jobs_by_status(:holding) if id == 'holding'
         jobs = queue.get_jobs                     if id == 'all'
 
         raise WEBrick::HTTPStatus::PreconditionFailed.new('invalid or missing job_id #{id}') unless jobs.size > 0
@@ -378,6 +379,16 @@ module Chimp
         if req.request_uri.path =~ /ack$/
           jobs.each do |j|
             j.status = Executor::STATUS_DONE
+          end
+
+          resp.set_redirect( WEBrick::HTTPStatus::TemporaryRedirect, req.header['referer'])
+
+        #
+        # queue a job
+        #
+        elsif req.request_uri.path =~ /queue$/
+          jobs.each do |j|
+            j.queue
           end
 
           resp.set_redirect( WEBrick::HTTPStatus::TemporaryRedirect, req.header['referer'])

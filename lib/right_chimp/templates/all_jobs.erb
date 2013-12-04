@@ -159,7 +159,7 @@ jobs.each do |j|
     <%  when Executor::STATUS_RUNNING, Executor::STATUS_RETRYING, Executor::STATUS_NONE  %>
       <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/cancel')">cancel</a>
     <%  when Executor::STATUS_HOLDING %>
-      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">queue</a>
+      <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/queue')">queue</a>
       <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/cancel')">cancel</a>
     <%  when Executor::STATUS_DONE %>
       <a href="#" onclick="chimpd_job_control(this, '/job/<%=id%>/retry')">requeue</a>
