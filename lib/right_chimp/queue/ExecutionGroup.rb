@@ -197,6 +197,18 @@ module Chimp
     end
 
     #
+    # Queue a held job by id
+    #
+    def queue(id)
+      Log.debug "Requeuing job id #{id}"
+      job = @jobs_by_id[id]
+      job.owner = nil
+      job.time_start = Time.now
+      job.time_end = nil
+      job.status = Executor::STATUS_NONE
+    end
+
+    #
     # Requeue a job by id
     #
     def requeue(id)

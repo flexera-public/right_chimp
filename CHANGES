@@ -125,3 +125,8 @@ Version 1.1.0
 Version 1.1.1
 -------------
 * Bugfix: Enable timeouts on server arrays
+
+Version 1.1.2
+-------------
+* Bugfix: Fix queueing of 'held' jobs to pull no more than one job from the queue
+* Bugfix: Fix issue where ssh commands were non-functional

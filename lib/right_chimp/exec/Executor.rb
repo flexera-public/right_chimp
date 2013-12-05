@@ -58,6 +58,13 @@ module Chimp
     end
     
     #
+    # Convenience method to queue a held job
+    #
+    def queue
+      @group.queue(self.job_id)
+    end
+    
+    #
     # Convenience method to requeue
     #
     def requeue
