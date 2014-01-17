@@ -55,7 +55,7 @@ module Chimp
       @queue.each do |job|
         if found_job || job.status == Executor::STATUS_HOLDING
           updated_queue.push(job)
-        else
+        elsif job.status == Executor::STATUS_NONE
           found_job = job
         end
       end
