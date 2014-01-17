@@ -130,3 +130,7 @@ Version 1.1.2
 -------------
 * Bugfix: Fix queueing of 'held' jobs to pull no more than one job from the queue
 * Bugfix: Fix issue where ssh commands were non-functional
+
+Version 1.1.3
+-------------
+* Bugfix: Fix issue where queued/held jobs move into a waiting state and do nothing
