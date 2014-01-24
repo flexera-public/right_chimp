@@ -342,6 +342,11 @@ module Chimp
     # Check for any invalid combinations of command line options
     #
     def check_option_validity
+      if @hold && !@array_names.empty?
+        puts "ERROR: Holding of array objects is not yet supported"
+        exit 1
+      end
+
       if @tags.empty? and @array_names.empty? and @deployment_names.empty? and not @chimpd_wait_until_done
         puts "ERROR: Please select the objects to operate upon."
         help

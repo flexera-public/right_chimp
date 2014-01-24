@@ -67,8 +67,8 @@ SINCE 2012</p>
 
 <p>[
 <% if job_filter == 'running' or job_filter == nil %>running<% else %><a href="/display/running">running</a><% end %> |
-<% if job_filter == 'none' %>waiting<% else %><a href="/display/none">waiting</a> <% end %> |
 <% if job_filter == 'holding' %>holding<% else %><a href="/display/holding">holding</a> <% end %> |
+<% if job_filter == 'none' %>waiting<% else %><a href="/display/none">waiting</a> <% end %> |
 <% if job_filter == 'done' %>completed<% else %><a href="/display/done">completed</a><% end %> |
 <% if job_filter == 'error' %>failed<% else %><a href="/display/error">failed</a><% end %>
  |

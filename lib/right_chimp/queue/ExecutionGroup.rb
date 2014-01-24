@@ -55,7 +55,7 @@ module Chimp
       @queue.each do |job|
         if found_job || job.status == Executor::STATUS_HOLDING
           updated_queue.push(job)
-        else
+        elsif job.status == Executor::STATUS_NONE
           found_job = job
         end
       end
@@ -200,12 +200,13 @@ module Chimp
     # Queue a held job by id
     #
     def queue(id)
-      Log.debug "Requeuing job id #{id}"
+      Log.debug "Queuing held job id #{id}"
       job = @jobs_by_id[id]
       job.owner = nil
       job.time_start = Time.now
       job.time_end = nil
       job.status = Executor::STATUS_NONE
+      self.push(job)
     end
 
     #
