@@ -13,6 +13,11 @@ require 'rest-client'
 require 'progressbar'
 require 'json'
 
+require 'highline/import'
+
+#NEW API CALS
+require 'right_api_client'
+
 module Chimp
   require 'right_chimp/version'
   require 'right_chimp/Chimp'
