@@ -78,76 +78,103 @@ module Chimp
       @chimpd_port                = 9055
       @chimpd_wait_until_done     = false
 
-      RestClient.log = nil
+      @creds = []
+      require 'yaml'
+      creds=YAML.load_file('/Users/markitoxs/.chimp_creds.yaml')
+      @client=RightApi::Client.new(:email => creds['user'], :password => creds['pass'], :account_id => creds['account'])
+
+      #
+      # Will contain the operational scripts we have found
+      # In the form: [name, href]
+      @op_scripts                 = []
+
+      #
+      # This will contain the href and the name of the script to be run
+      # in the form: [name, href]
+      @script_to_run       = []
+
+#      RestClient.log = nil
     end
 
     #
     # Entry point for the chimp command line application
     #
     def run
-      queue = ChimpQueue.instance
+     # queue = ChimpQueue.instance
 
       parse_command_line if @interactive
       check_option_validity if @interactive
-      disable_logging unless @@verbose
+      #disable_logging unless @@verbose
 
       puts "chimp #{VERSION} executing..." if (@interactive and not @use_chimpd) and not @@quiet
 
-      #
-      # Wait for chimpd to complete tasks
-      #
-      if @chimpd_wait_until_done
-        chimpd_wait_until_done
-        exit
-      end
-
-      #
-      # Send the command to chimpd for execution
-      #
-      if @use_chimpd
-        ChimpDaemonClient.submit(@chimpd_host, @chimpd_port, self)
-        exit
-      end
-
-      #
-      # If we're processing the command ourselves, then go
-      # ahead and start making API calls to select the objects
-      # to operate upon
-      #
-      get_array_info
+#      #
+#      # Wait for chimpd to complete tasks
+#      #
+#      if @chimpd_wait_until_done
+#        chimpd_wait_until_done
+#        exit
+#      end
+#
+#      #
+#      # Send the command to chimpd for execution
+#      #
+#      if @use_chimpd
+#        ChimpDaemonClient.submit(@chimpd_host, @chimpd_port, self)
+#        exit
+#      end
+#
+#      #
+#      # If we're processing the command ourselves, then go
+#      # ahead and start making API calls to select the objects
+#      # to operate upon
+#      #
+#      get_array_info
+      puts "Looking for servers:"
       get_server_info
+      
+      puts "Looking for their STs"
       get_template_info
+
+      puts "Looking for the rightscripts"
       get_executable_info
 
-      #
-      # Optionally display the list of objects to operate on
-      # and prompt the user
-      #
-      if @prompt and @interactive
-        list_of_objects = make_human_readable_list_of_objects
-        confirm = (list_of_objects.size > 0 and @action != :action_none) or @action == :action_none
-
-        verify("Your command will be executed on the following:", list_of_objects, confirm)
-
-        if @servers.length >= 2 and @server_template and @executable and not @dont_check_templates_for_script
-          warn_if_rightscript_not_in_all_servers @servers, @server_template, @executable
-        end
+      if ( ask_confirmation("Proceed?", false))
+        puts "Executing..."
+        puts @script_to_run[0][1]
+        execute_script(@servers,@script_to_run)
       end
 
-      #
-      # Load the queue with work
-      #
-      jobs = generate_jobs(@servers, @arrays, @server_template, @executable)
-      add_to_queue(jobs)
-
-      #
-      # Exit early if there is nothing to do
-      #
-      if @action == :action_none or queue.group[@group].size == 0
-        puts "No actions to perform." unless @@quiet
-      else
-        do_work
-      end
+#At this stage we should have all the scripts in @op_scripts
+#      #
+#      # Optionally display the list of objects to operate on
+#      # and prompt the user
+#      #
+#      if @prompt and @interactive
+#        list_of_objects = make_human_readable_list_of_objects
+#        confirm = (list_of_objects.size > 0 and @action != :action_none) or @action == :action_none
+#
+#        verify("Your command will be executed on the following:", list_of_objects, confirm)
+#
+#        if @servers.length >= 2 and @server_template and @executable and not @dont_check_templates_for_script
+#          warn_if_rightscript_not_in_all_servers @servers, @server_template, @executable
+#        end
+#      end
+#
+#      #
+#      # Load the queue with work
+#      #
+#      jobs = generate_jobs(@servers, @arrays, @server_template, @executable)
+#      add_to_queue(jobs)
+#
+#      #
+#      # Exit early if there is nothing to do
+#      #
+#      if @action == :action_none or queue.group[@group].size == 0
+#        puts "No actions to perform." unless @@quiet
+#      else
+#        do_work
+#      end
     end
 
     #
@@ -168,7 +195,8 @@ module Chimp
     #
     def get_template_info
       if not (@servers.empty? and @array_names.empty?)
-        @server_template = detect_server_template(@template, @script, @servers, @array_names)
+        @server_template = detect_server_template_new(@servers, @array_names)
+        @server_template.each { |st| puts st[0] }
       end
     end
 
@@ -177,7 +205,8 @@ module Chimp
     #
     def get_executable_info
       if not (@servers.empty? and @array_names.empty?)
-        @executable = detect_right_script(@server_template, @script)
+        if (@script != nil)
+        @executable = detect_right_script_new(@server_template, @script)
         puts "Using SSH command: \"#{@ssh}\"" if @action == :action_ssh
       end
     end
@@ -367,8 +396,8 @@ module Chimp
     #
     def get_server_info
       @servers += get_servers_by_tag(@tags)
-      @servers += get_servers_by_deployment(@deployment_names)
-      @servers = filter_out_non_operational_servers(@servers)
+#      @servers += get_servers_by_deployment(@deployment_names)
+#      @servers = filter_out_non_operational_servers(@servers)
     end
 
     #
@@ -404,22 +433,42 @@ module Chimp
     end
 
     #
+    #
     # Get servers to operate on via a tag query
     #
     # Returns: array of RestConnection::Server objects
     #
     def get_servers_by_tag(tags)
       return([]) unless tags.size > 0
-      servers = ::Tag.search("ec2_instance", tags, :match_all => @match_all)
+      #
+      # The API behaves inconsisntently:
+      #
+      # [0].resource will be an array if multiple elements are found but
+      # it will be one object, i.e. NOT AN ARRAY OF SIZE1 if only one server
+      # is found.
+      #
+      # This way we assure servers is always an array with instance objects
+      #
+      servers = []
+
+      search_results = @client.tags.by_tag(:resource_type => 'instances', :tags => tags, :match_all => @match_all)[0].resource
+      if search_results.kind_of?(Array)
+        servers = search_results
+      else
+        servers << search_results
+      end
+
 
       if tags.size > 0 and servers.nil? or servers.empty?
         if @ignore_errors
-          Log.warn "Tag query returned no results: #{tags.join(" ")}"
+          puts  "Tag query returned no results: #{tags.join(" ")}"
         else
            raise "Tag query returned no results: #{tags.join(" ")}"
         end
       end
-
+      servers.each do |s|
+        puts s.show.name
+      end
       return(servers)
     end
 
@@ -474,63 +523,152 @@ module Chimp
       return(array_servers)
     end
 
+
     #
     # ServerTemplate auto-detection
     #
     # Returns: RestConnection::ServerTemplate
     #
-    def detect_server_template(template, script, servers, array_names_to_detect)
-      st = nil
+    def detect_server_template_new(servers, array_names_to_detect)
+      st = []
 
-      #
-      # If we have a script name but no template, check
-      # each server for the script until we locate it.
-      #
-      if script and template == nil
-        Log.debug "Getting template URI..."
-
-        if not servers.empty?
-          for i in (0..servers.size - 1)
-
-            template = servers[i]['server_template_href'] if not servers[i].empty?
-            break if template
+      servers.each { |s|
+        name=s.show.server_template.show.name
+        if !(st.empty?)
+          #Only store if its a new server template
+          if !(st.reduce(:concat).include?(name))
+            st.push([name, s.show.server_template])
           end
-
-        elsif not array_names_to_detect.empty?
-          array_names_to_detect.each do |array_name|
-            a = Ec2ServerArray.find_by(:nickname) { |n| n =~ /^#{array_name}/i }.first
-            next unless a
-            template = a['server_template_href']
-            break if template
-          end
-        end
-
-        raise "Unable to locate ServerTemplate!" unless template
-        Log.debug "Template: #{template}"
-      end
-
-      #
-      # Now look up the ServerTemplate via the RightScale API
-      #
-      if template
-        Log.debug "Looking up template..."
-
-        if template =~ /^http/
-          st = ::ServerTemplate.find(template)
         else
-          st = ::ServerTemplate.find_by_nickname(template).first
+          st.push([name, s.show.server_template])
         end
-
-        if st == nil
-          raise "No matching ServerTemplate found!"
-        else
-          Log.debug "ServerTemplate: \"#{st['nickname']}\""
-        end
-      end
-
+      }
+      #
+      # We return an array of server_template resources
+      # of the type [ name, st object ]
+      #
       return(st)
     end
 
+    #
+    # Excute a script on objects
+    # FIXME: to be sent to Chimpqueue instead
+    #
+    def execute_script(servers,script)
+
+      #
+      # Executing just the first script from the array
+      #
+      script_href="right_script_href="+script[0][1]
+      puts script_href
+
+      tasks = []
+      # Maybe add the server name to the task list?
+      servers.each { |s|
+        tasks.push([s.show.name,s.show.run_executable(script_href)])
+      }
+
+      begin
+        i=0
+        tasks_running=tasks.size
+        tasks.each { |t|
+          #query the api for the state of the task
+          state=t[1].show.summary
+          if state.include?("ompleted")
+            puts t[0]+" - "+ state
+            tasks.delete_at(i)
+          else
+            puts t[0]+" - "+state
+          end
+          i=i+1
+        }
+        sleep 10
+      end while ( tasks_running > 0 )
+      puts "All tasks completed"
+
+    end
+
+    # Look up the RightScript
+    #
+    # Returns: RestConnection::Executable
+    #
+    def detect_right_script_new(st, script)
+            # if script is empty, we will list all common scripts
+            # if not empty, we will list the first matching one
+            st.each do |s|
+                s[1].show.runnable_bindings.index.each do |x|
+                    #Add rightscript objects to the
+                    # only add the operational ones
+                    name=x.right_script.show.name
+                    if x.sequence == "operational"
+                        #
+                        # Only store the unique ones - FIXME
+                        # This creates a list with scripts from one ST that is not
+                        # in the other ST, since we just look for uniqueness, probably
+                        # best to store all operationals, and reduce to common ones.
+                        #
+                        if !(@op_scripts.empty?)
+                          if !(@op_scripts.reduce(:concat).include?(name))
+                            @op_scripts.push([name, x])
+                          end
+                        else
+                          @op_scripts.push([name, x])
+                        end
+                    end
+                end
+            end
+
+            #We now should only have operational runnable_bindings under the script_objects array
+            if @op_scripts.length <= 1
+                puts "Warning: No operational scripts found on the server(s). "
+                puts "         (Search performed on server template '#{st[0][0]}')"
+            end
+
+            # if script is empty, we will list all common scripts
+            # if not empty, we will list the first matching one
+            # The problem with this approbach is that we cant serve a script
+            # that isnt defined in the ST. a la "any script"
+            # FIXME
+            if @script == ""
+              #list all operational scripts
+              #######################################
+
+
+              puts "List of available operational scripts:"
+              puts "------------------------------------------------------------"
+              for i in 1..@op_scripts.length - 1
+              puts "  %3d. #{@op_scripts[i][0]}" % i
+              end
+              puts "------------------------------------------------------------"
+              while true
+              printf "Type the number of the script to run and press Enter (Ctrl-C to quit): "
+                script_id = Integer(gets.chomp) rescue -1
+                if script_id > 0 && script_id < @op_scripts.length
+                puts "Script choice: #{script_id}. #{@op_scripts[ script_id ][0]}"
+                break
+                else
+                puts "#{script_id < 0 ? 'Invalid input' : 'Input out of range'}."
+                end
+                end
+                # Provide the name + href
+                @script_to_run.push([@op_scripts[script_id][0],@op_scripts[script_id][1].right_script.show.href])
+                ########################
+               #end of the break
+
+            else
+              #try to find the first one matching
+              #The arrays is filled with  [name_of_the_script , #<RightApi::ResourceDetail resource_type="runnable_binding">]
+              @op_scripts.each  do |rb|
+                  script_name=rb[1].right_script.show.name
+                  if script_name =~ Regexp.new(script)
+                      #We will only push the hrefs for the scripts since its the only ones we care
+                      @script_to_run.push([script_name,rb[1].right_script.show.href])
+                      puts "Found:" + script_name + ":" +    rb[1].right_script.show.href
+                      break
+                  end
+              end
+            end
+    end
     #
     # Look up the RightScript
     #
@@ -897,6 +1035,20 @@ module Chimp
     #
     def job_id
       return 0
+    end
+
+    #
+    # Asks for confirmation before continuing
+    #
+    def ask_confirmation(prompt = 'Continue?', default = false)
+      a = ''
+      s = default ? '[Y/n]' : '[y/N]'
+      d = default ? 'y' : 'n'
+      until %w[y n].include? a
+        a = ask("#{prompt} #{s} ") { |q| q.limit = 1; q.case = :downcase }
+        a = d if a.length == 0
+      end
+      a == 'y'
     end
 
     #
