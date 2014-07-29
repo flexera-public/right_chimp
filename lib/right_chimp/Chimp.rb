@@ -208,8 +208,9 @@ module Chimp
         if (@script != nil)
         @executable = detect_right_script_new(@server_template, @script)
         puts "Using SSH command: \"#{@ssh}\"" if @action == :action_ssh
+        end
       end
-    end
+    end 
 
     #
     # Parse command line options
@@ -1140,7 +1141,7 @@ module Chimp
     end
 
     ####################################################
-    private
+    #private
     ####################################################
 
     #
@@ -1257,8 +1258,10 @@ module Chimp
           puts "Script OK. All the servers share the same template and the script is included in it."
         end
       end
-      puts
     end
+
+
+
 
     #
     # Generate a human readable list of objects
@@ -1336,9 +1339,6 @@ module Chimp
       puts "  * URIs must be API URIs in the format https://my.rightscale.com/api/acct/<acct>/ec2_server_templates/<id>"
       puts "  * The following reporting keywords can be used: nickname, ip-address, state, server_type, href"
       puts "    server_template_href, deployment_href, created_at, updated_at"
-      puts
     end
-
   end
 end
-
