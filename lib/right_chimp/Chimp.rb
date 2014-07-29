@@ -139,22 +139,22 @@ module Chimp
       puts "Looking for the rightscripts"
       get_executable_info
 
-      if ( ask_confirmation("Proceed?", false))
-        puts "Executing..."
-        puts @script_to_run[0][1]
-        execute_script(@servers,@script_to_run)
-      end
+#      if ( ask_confirmation("Proceed?", false))
+#        puts "Executing..."
+#        puts @script_to_run[0][1]
+#        execute_script(@servers,@script_to_run)
+#      end
 
 #At this stage we should have all the scripts in @op_scripts
 #      #
 #      # Optionally display the list of objects to operate on
 #      # and prompt the user
 #      #
-#      if @prompt and @interactive
-#        list_of_objects = make_human_readable_list_of_objects
-#        confirm = (list_of_objects.size > 0 and @action != :action_none) or @action == :action_none
+      @prompt and @interactive
+        list_of_objects = make_human_readable_list_of_objects
+        confirm = (list_of_objects.size > 0 and @action != :action_none) or @action == :action_none
 #
-#        verify("Your command will be executed on the following:", list_of_objects, confirm)
+        verify("Your command will be executed on the following:", list_of_objects, confirm)
 #
 #        if @servers.length >= 2 and @server_template and @executable and not @dont_check_templates_for_script
 #          warn_if_rightscript_not_in_all_servers @servers, @server_template, @executable
@@ -397,7 +397,7 @@ module Chimp
     #
     def get_server_info
       @servers += get_servers_by_tag(@tags)
-#      @servers += get_servers_by_deployment(@deployment_names)
+      @servers += get_servers_by_deployment(@deployment_names)
 #      @servers = filter_out_non_operational_servers(@servers)
     end
 
@@ -467,9 +467,9 @@ module Chimp
            raise "Tag query returned no results: #{tags.join(" ")}"
         end
       end
-      servers.each do |s|
-        puts s.show.name
-      end
+#      servers.each do |s|
+#        puts s.show.name
+#      end
       return(servers)
     end
 
@@ -483,22 +483,31 @@ module Chimp
 
       if names.size > 0
         names.each do |deployment|
-          d = ::Deployment.find_by_nickname(deployment).first
-
+          #
+          # Returns an array
+          # 
+          d = @client.deployments.index(:filter => ["name==#{deployment}"])
           if d == nil
             if @ignore_errors
-              Log.warn "cannot find deployment #{deployment}"
+              puts "cannot find deployment #{deployment}"
             else
               raise "cannot find deployment #{deployment}"
             end
           else
-            d.servers_no_reload.each do |s|
-              servers << s
+            # It is possible to find more than one deployment matching
+            d.each do |dp|  
+              dp.servers.index.each do |i|
+                #
+                # Only store the instance object if its operational
+                #
+                if i.show.state == "operational"
+                  servers << i.current_instance 
+                end
+              end
             end
           end
         end
       end
-
       return(servers)
     end
 
@@ -596,6 +605,8 @@ module Chimp
     def detect_right_script_new(st, script)
             # if script is empty, we will list all common scripts
             # if not empty, we will list the first matching one
+            size = st.size-1
+
             st.each do |s|
                 s[1].show.runnable_bindings.index.each do |x|
                     #Add rightscript objects to the
@@ -603,26 +614,26 @@ module Chimp
                     name=x.right_script.show.name
                     if x.sequence == "operational"
                         #
-                        # Only store the unique ones - FIXME
-                        # This creates a list with scripts from one ST that is not
-                        # in the other ST, since we just look for uniqueness, probably
-                        # best to store all operationals, and reduce to common ones.
+                        # Only store the common ones - FIXME
                         #
-                        if !(@op_scripts.empty?)
-                          if !(@op_scripts.reduce(:concat).include?(name))
-                            @op_scripts.push([name, x])
-                          end
-                        else
-                          @op_scripts.push([name, x])
-                        end
+                        puts "Found operational script"
+                        @op_scripts.push([name, x])
                     end
                 end
             end
 
+            #
+            # Reduce to only scripts that appear in ALL ST's
+            #
+            @op_scripts = @op_scripts.select{|i| @op_scripts.grep(i).size > size}
+
             #We now should only have operational runnable_bindings under the script_objects array
             if @op_scripts.length <= 1
-                puts "Warning: No operational scripts found on the server(s). "
-                puts "         (Search performed on server template '#{st[0][0]}')"
+                puts "ERROR: No common operational scripts found on the server(s). "
+                st.each {|s| 
+                  puts "         (Search performed on server template '#{s[0]}')"
+                }
+                exit
             end
 
             # if script is empty, we will list all common scripts
@@ -1270,7 +1281,7 @@ module Chimp
       list_of_objects = []
 
       if @servers
-        list_of_objects += @servers.map { |s| s['nickname'] }
+        list_of_objects += @servers.map { |s| s.show.name }
       end
 
       if @arrays
