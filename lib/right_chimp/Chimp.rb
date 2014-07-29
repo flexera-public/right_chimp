@@ -1120,13 +1120,13 @@ module Chimp
       STDOUT.sync = true
       STDERR.sync = true
 
-      if @@verbose == true
-        Log.threshold = Logger::DEBUG
-      elsif @@quiet == true
-        Log.threshold = Logger::WARN
-      else
-        Log.threshold = Logger::INFO
-      end
+#      if @@verbose == true
+#        Log.threshold = Logger::DEBUG
+#      elsif @@quiet == true
+#        Log.threshold = Logger::WARN
+#      else
+#        Log.threshold = Logger::INFO
+#      end
     end
 
     def self.verbose?
