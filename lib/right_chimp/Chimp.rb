@@ -613,19 +613,10 @@ module Chimp
                     # only add the operational ones
                     name=x.right_script.show.name
                     if x.sequence == "operational"
-                        #
-                        # Only store the common ones - FIXME
-                        #
-                        puts "Found operational script"
                         @op_scripts.push([name, x])
                     end
                 end
             end
-
-            #
-            # Reduce to only scripts that appear in ALL ST's
-            #
-            @op_scripts = @op_scripts.select{|i| @op_scripts.grep(i).size > size}
 
             #We now should only have operational runnable_bindings under the script_objects array
             if @op_scripts.length <= 1
@@ -638,14 +629,15 @@ module Chimp
 
             # if script is empty, we will list all common scripts
             # if not empty, we will list the first matching one
-            # The problem with this approbach is that we cant serve a script
-            # that isnt defined in the ST. a la "any script"
-            # FIXME
             if @script == ""
               #list all operational scripts
-              #######################################
 
+              #
+              # Reduce to only scripts that appear in ALL ST's
+              #
+              @op_scripts = @op_scripts.select{|i| @op_scripts.grep(i).size > size}
 
+              
               puts "List of available operational scripts:"
               puts "------------------------------------------------------------"
               for i in 1..@op_scripts.length - 1
@@ -668,8 +660,10 @@ module Chimp
                #end of the break
 
             else
-              #try to find the first one matching
-              #The arrays is filled with  [name_of_the_script , #<RightApi::ResourceDetail resource_type="runnable_binding">]
+              # 
+              # Try to find the first one matching, if none matches, try to run from ANY script - FIXME
+              # The arrays is filled with  [name_of_the_script , #<RightApi::ResourceDetail resource_type="runnable_binding">]
+              # Maybe throw a warning if script is not on the list?
               @op_scripts.each  do |rb|
                   script_name=rb[1].right_script.show.name
                   if script_name =~ Regexp.new(script)
@@ -679,6 +673,11 @@ module Chimp
                       break
                   end
               end
+              #
+              # If we reach here it means we didnt find the script in the operationals one
+              #
+              puts "Sorry, didnt find that"
+              exit
             end
     end
     #
