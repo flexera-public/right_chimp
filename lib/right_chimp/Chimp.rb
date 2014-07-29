@@ -675,9 +675,16 @@ module Chimp
               end
               #
               # If we reach here it means we didnt find the script in the operationals one
+              # At this point we can make a full-on API query for the last revision of the script
               #
-              puts "Sorry, didnt find that"
-              exit
+              result=@client.right_scripts.index(:filter => ["name==#{script}"] , :latest_only => true)
+              if result.nil?
+                puts "Sorry, didnt find that"
+                exit
+              else
+                @script_to_run.push([result[0].name , result[0].href]) 
+                puts "Found:" +result[0].name + ":" +   result[0].href
+              end
             end
     end
     #
