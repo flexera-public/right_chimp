@@ -1,7 +1,7 @@
 #
 # The Chimp class encapsulates the command-line program logic
 #
-
+#
 module Chimp
   class Chimp
     attr_accessor :concurrency, :delay, :retry_count, :hold, :progress, :prompt,
