@@ -82,7 +82,15 @@ module Chimp
       require 'yaml'
       begin 
         creds=YAML.load_file("#{ENV['HOME']}/.rest_connection/rest_api_config.yaml")
-        @client=RightApi::Client.new(:email => creds['user'], :password => creds['pass'], :account_id => creds['account'], :api_url => creds['api_url'])
+        #
+        # Extract the account
+        #
+        creds[:account]=File.basename(creds[:api_url])
+        #
+        # Figure out url to hit:
+        #
+        creds[:api_url]="https://"+URI.parse(creds[:api_url]).host
+        @client=RightApi::Client.new(:email => creds[:user], :password => creds[:pass], :account_id => creds[:account], :api_url => creds[:api_url])
       rescue
         puts "##############################################################################"
         puts "Error, credentials file: could not be loaded correctly"
