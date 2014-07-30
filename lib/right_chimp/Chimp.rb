@@ -80,8 +80,19 @@ module Chimp
 
       @creds = []
       require 'yaml'
-      creds=YAML.load_file('/Users/markitoxs/.chimp_creds.yaml')
-      @client=RightApi::Client.new(:email => creds['user'], :password => creds['pass'], :account_id => creds['account'])
+      begin 
+        creds=YAML.load_file('#{ENV['HOME']}/.chimp_creds.yaml')
+        @client=RightApi::Client.new(:email => creds['user'], :password => creds['pass'], :account_id => creds['account'])
+      rescue
+        puts "##############################################################################"
+        puts "Error, credentials file: ~/.chimp_creds.yaml could not be loaded correctly"
+        puts " example:"
+        puts "---
+account: '9202'
+pass: 'abajdfadoiadsidaf'
+user: 'likeaboss@rightscale.com'"
+        puts "##############################################################################"
+      end
 
       #
       # Will contain the operational scripts we have found
@@ -130,6 +141,9 @@ module Chimp
 #      # to operate upon
 #      #
 #      get_array_info
+
+
+      puts "Script is" + @script
       puts "Looking for servers:"
       get_server_info
       
@@ -204,7 +218,7 @@ module Chimp
     # Get the Executable (RightScript) info from the API
     #
     def get_executable_info
-      if not (@servers.empty? and @array_names.empty?)
+      if not (@servers.empty? )
         if (@script != nil)
         @executable = detect_right_script_new(@server_template, @script)
         puts "Using SSH command: \"#{@ssh}\"" if @action == :action_ssh
@@ -501,6 +515,7 @@ module Chimp
                 # Only store the instance object if its operational
                 #
                 if i.show.state == "operational"
+                  puts "Found an operational server"
                   servers << i.current_instance 
                 end
               end
@@ -664,6 +679,9 @@ module Chimp
               # Try to find the first one matching, if none matches, try to run from ANY script - FIXME
               # The arrays is filled with  [name_of_the_script , #<RightApi::ResourceDetail resource_type="runnable_binding">]
               # Maybe throw a warning if script is not on the list?
+              #
+
+              puts "script specified, looking into the common ones"
               @op_scripts.each  do |rb|
                   script_name=rb[1].right_script.show.name
                   if script_name =~ Regexp.new(script)
@@ -677,6 +695,8 @@ module Chimp
               # If we reach here it means we didnt find the script in the operationals one
               # At this point we can make a full-on API query for the last revision of the script
               #
+              puts "Didnt find it, must be ANY script"
+             
               result=@client.right_scripts.index(:filter => ["name==#{script}"] , :latest_only => true)
               if result.nil?
                 puts "Sorry, didnt find that"
