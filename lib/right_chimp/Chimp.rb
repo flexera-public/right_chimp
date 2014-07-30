@@ -147,7 +147,6 @@ module Chimp
 #      get_array_info
 
 
-      puts "Script is" + @script
       puts "Looking for servers:"
       get_server_info
       
@@ -519,7 +518,6 @@ module Chimp
                 # Only store the instance object if its operational
                 #
                 if i.show.state == "operational"
-                  puts "Found an operational server"
                   servers << i.current_instance 
                 end
               end
@@ -648,7 +646,7 @@ module Chimp
 
             # if script is empty, we will list all common scripts
             # if not empty, we will list the first matching one
-            if @script == ""
+            if @script == "" and @script != nil
               #list all operational scripts
 
               #
