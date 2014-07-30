@@ -81,7 +81,7 @@ module Chimp
       @creds = []
       require 'yaml'
       begin 
-        creds=YAML.load_file('#{ENV['HOME']}/.rest_connection/rest_api_config.yaml')
+        creds=YAML.load_file("#{ENV['HOME']}/.rest_connection/rest_api_config.yaml")
         @client=RightApi::Client.new(:email => creds['user'], :password => creds['pass'], :account_id => creds['account'], :api-url => creds['api-url'])
       rescue
         puts "##############################################################################"
