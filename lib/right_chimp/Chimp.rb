@@ -666,12 +666,6 @@ module Chimp
               #
               # Reduce to only scripts that appear in ALL ST's
               #
-<<<<<<< HEAD
-              #
-              # Reduce to only scripts that appear in ALL ST's
-              #
-=======
->>>>>>> chimp2.0_masterdev
               puts "Size is: "+ size.to_s
               puts "Reducing"
               b = @op_scripts.inject({}) do |res, row|
@@ -685,11 +679,7 @@ module Chimp
               @op_scripts=res
               end 
               #@op_scripts = @op_scripts.detect{|i| @op_scripts.count(i) > size}
-<<<<<<< HEAD
 
-              @op_scripts = @op_scripts.select{|i| @op_scripts.grep(i).size > size}
-=======
->>>>>>> chimp2.0_masterdev
 
               
               puts "List of available operational scripts:"
