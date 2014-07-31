@@ -183,6 +183,8 @@ module Chimp
         confirm = (list_of_objects.size > 0 and @action != :action_none) or @action == :action_none
 #
         verify("Your command will be executed on the following:", list_of_objects, confirm)
+        execute_script(@servers,@script_to_run)
+
 #
 #        if @servers.length >= 2 and @server_template and @executable and not @dont_check_templates_for_script
 #          warn_if_rightscript_not_in_all_servers @servers, @server_template, @executable
@@ -641,6 +643,7 @@ module Chimp
                     # only add the operational ones
                     name=x.right_script.show.name
                     if x.sequence == "operational"
+                        puts "found:" + name
                         @op_scripts.push([name, x])
                     end
                 end
@@ -663,9 +666,12 @@ module Chimp
               #
               # Reduce to only scripts that appear in ALL ST's
               #
+<<<<<<< HEAD
               #
               # Reduce to only scripts that appear in ALL ST's
               #
+=======
+>>>>>>> chimp2.0_masterdev
               puts "Size is: "+ size.to_s
               puts "Reducing"
               b = @op_scripts.inject({}) do |res, row|
@@ -679,20 +685,23 @@ module Chimp
               @op_scripts=res
               end 
               #@op_scripts = @op_scripts.detect{|i| @op_scripts.count(i) > size}
+<<<<<<< HEAD
 
               @op_scripts = @op_scripts.select{|i| @op_scripts.grep(i).size > size}
+=======
+>>>>>>> chimp2.0_masterdev
 
               
               puts "List of available operational scripts:"
               puts "------------------------------------------------------------"
-              for i in 1..@op_scripts.length - 1
+              for i in 0..@op_scripts.length - 1 
               puts "  %3d. #{@op_scripts[i][0]}" % i
               end
               puts "------------------------------------------------------------"
               while true
               printf "Type the number of the script to run and press Enter (Ctrl-C to quit): "
                 script_id = Integer(gets.chomp) rescue -1
-                if script_id > 0 && script_id < @op_scripts.length
+                if script_id >= 0 && script_id < @op_scripts.length
                 puts "Script choice: #{script_id}. #{@op_scripts[ script_id ][0]}"
                 break
                 else
@@ -725,101 +734,20 @@ module Chimp
               # If we reach here it means we didnt find the script in the operationals one
               # At this point we can make a full-on API query for the last revision of the script
               #
-              puts "Didnt find it, must be ANY script"
-             
-              result=@client.right_scripts.index(:filter => ["name==#{script}"] , :latest_only => true)
-              if result.nil?
-                puts "Sorry, didnt find that"
-                exit
-              else
-                @script_to_run.push([result[0].name , result[0].href]) 
-                puts "Found:" +result[0].name + ":" +   result[0].href
-              end
+              puts "Sorry, didnt find that, provide an URI instead"
+              # FIXME, only do this if script is an URI
+#              puts "Didnt find it, must be ANY script"
+#             
+#              result=@client.right_scripts.index(:filter => ["name==#{script}"] , :latest_only => true)
+#              if result.nil?
+#                puts "Sorry, didnt find that"
+#                exit
+#              else
+#                @script_to_run.push([result[0].name , result[0].href]) 
+#                puts "Found:" +result[0].name + ":" +   result[0].href
+#              end
             end
     end
-    #
-    # Look up the RightScript
-    #
-    # Returns: RestConnection::Executable
-    #
-    def detect_right_script(st, script)
-      executable = nil
-
-      if script == ""
-        if not @interactive
-          puts "Error: empty --script= option is supported only in interactive mode. Exiting."
-          exit 1
-        end
-        # Find operational scripts that exist in this server template
-        op_script_names = ['dummy name']      # Placeholder for #0 since we want to offer choices 1..n
-        op_script_hrefs = [ 'dummy href' ]
-        st.executables.each do |ex|
-            if ex.apply == "operational"
-              op_script_names.push( ex.name )
-              op_script_hrefs.push( ex.href )
-            end
-        end
-        if op_script_names.length <= 1
-          puts "Warning: No operational scripts found on the server(s). "
-          puts "         (Search performed on server template '#{st.nickname}')"
-        else
-          puts "List of available operational scripts in the server template: ('#{st.nickname}')"
-          puts "------------------------------------------------------------"
-          for i in 1..op_script_names.length - 1
-            puts "  %3d. #{op_script_names[i]}" % i
-          end
-          puts "------------------------------------------------------------"
-          while true
-            printf "Type the number of the script to run and press Enter (Ctrl-C to quit): "
-            op_script_id = Integer(gets.chomp) rescue -1
-            if op_script_id > 0 && op_script_id < op_script_names.length
-              puts "Script choice: #{op_script_id}. #{op_script_names[ op_script_id ]}"
-              break
-            else
-              puts "#{op_script_id < 0 ? 'Invalid input' : 'Input out of range'}."
-            end
-          end
-          # Provide the href as the input for the block that will do the lookup
-          script = op_script_hrefs[ op_script_id ]
-        end
-      end
-
-      if script
-        if script =~ /^http/ or script =~ /^\d+$/
-          if script =~ /^\d+$/
-            url_prefix = st.params['href'].match( /^.*\/acct\/\d+/)[0]  # extract the 'https://my.rightscale.com/api/acct/<account_id>' part from the template's href
-            script = url_prefix + "/right_scripts/#{script}"
-          end
-          script_URI = script
-          Log.debug "Looking for script href \"#{script_URI}\""
-          puts
-          # First look up the script URI in the template.
-          # It *will* be found if we came here from the 'if script = ""' block
-          script = st.executables.detect { |ex| ex.href == script }
-          if not script
-             script_obj = ::RightScript.find(script_URI)
-             script_data = {}
-             script_data[ 'name' ] = script_obj.params['name']
-             script = ::RightScript.new({ :href => script_URI, :right_script => script_data })
-          end
-        else
-          Log.debug "Looking for script \"#{script}\""
-          script = st.executables.detect { |ex| ex.name =~ /#{script}/ }
-        end
-
-       if script != nil and script['right_script'] != nil
-         puts "RightScript: \"#{script['right_script']['name']}\"" if @interactive
-       else
-         puts "No matching RightScript found!"
-         raise "No matching RightScript found!"
-       end
-
-       executable = script
-      end
-
-      return(executable)
-    end
-
     #
     # Load up the queue with work
     #
