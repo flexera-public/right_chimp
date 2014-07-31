@@ -172,6 +172,8 @@ module Chimp
         confirm = (list_of_objects.size > 0 and @action != :action_none) or @action == :action_none
 #
         verify("Your command will be executed on the following:", list_of_objects, confirm)
+        execute_script(@servers,@script_to_run)
+
 #
 #        if @servers.length >= 2 and @server_template and @executable and not @dont_check_templates_for_script
 #          warn_if_rightscript_not_in_all_servers @servers, @server_template, @executable
@@ -657,7 +659,7 @@ module Chimp
               
               puts "List of available operational scripts:"
               puts "------------------------------------------------------------"
-              for i in 1..@op_scripts.length - 1
+              for i in 0..@op_scripts.length - 1 
               puts "  %3d. #{@op_scripts[i][0]}" % i
               end
               puts "------------------------------------------------------------"
@@ -697,16 +699,18 @@ module Chimp
               # If we reach here it means we didnt find the script in the operationals one
               # At this point we can make a full-on API query for the last revision of the script
               #
-              puts "Didnt find it, must be ANY script"
-             
-              result=@client.right_scripts.index(:filter => ["name==#{script}"] , :latest_only => true)
-              if result.nil?
-                puts "Sorry, didnt find that"
-                exit
-              else
-                @script_to_run.push([result[0].name , result[0].href]) 
-                puts "Found:" +result[0].name + ":" +   result[0].href
-              end
+              puts "Sorry, didnt find that, provide an URI instead"
+              # FIXME, only do this if script is an URI
+#              puts "Didnt find it, must be ANY script"
+#             
+#              result=@client.right_scripts.index(:filter => ["name==#{script}"] , :latest_only => true)
+#              if result.nil?
+#                puts "Sorry, didnt find that"
+#                exit
+#              else
+#                @script_to_run.push([result[0].name , result[0].href]) 
+#                puts "Found:" +result[0].name + ":" +   result[0].href
+#              end
             end
     end
     #
@@ -744,7 +748,7 @@ module Chimp
           while true
             printf "Type the number of the script to run and press Enter (Ctrl-C to quit): "
             op_script_id = Integer(gets.chomp) rescue -1
-            if op_script_id > 0 && op_script_id < op_script_names.length
+            if op_script_id >= 0 && op_script_id < op_script_names.length
               puts "Script choice: #{op_script_id}. #{op_script_names[ op_script_id ]}"
               break
             else
