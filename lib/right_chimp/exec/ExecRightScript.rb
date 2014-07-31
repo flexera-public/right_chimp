@@ -13,7 +13,7 @@ module Chimp
       end
     
       run_with_retry do
-        audit_entry = server.run_executable(@exec, options)
+        audit_entry = server.show.run_executable(@exec, options)
         audit_entry.wait_for_state("completed", @timeout)
         @results = audit_entry.summary
       end
