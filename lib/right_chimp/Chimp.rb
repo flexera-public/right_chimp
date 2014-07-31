@@ -666,7 +666,7 @@ module Chimp
               while true
               printf "Type the number of the script to run and press Enter (Ctrl-C to quit): "
                 script_id = Integer(gets.chomp) rescue -1
-                if script_id > 0 && script_id < @op_scripts.length
+                if script_id >= 0 && script_id < @op_scripts.length
                 puts "Script choice: #{script_id}. #{@op_scripts[ script_id ][0]}"
                 break
                 else
