@@ -8,15 +8,20 @@ require 'singleton'
 require 'base64'
 require 'rake'
 
-require 'rest_connection'
-require 'rest-client'
+#require 'rest_connection'
+#require 'rest-client'
 require 'progressbar'
 require 'json'
+
+require 'highline/import'
+
+#NEW API CALS
+require 'right_api_client'
 
 module Chimp
   require 'right_chimp/version'
   require 'right_chimp/Chimp'
-  require 'right_chimp/Log'
+#  require 'right_chimp/Log'
   require 'right_chimp/IDManager'
   require 'right_chimp/daemon/ChimpDaemon'
   require 'right_chimp/daemon/ChimpDaemonClient'
