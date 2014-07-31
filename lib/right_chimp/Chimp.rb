@@ -663,6 +663,23 @@ module Chimp
               #
               # Reduce to only scripts that appear in ALL ST's
               #
+              #
+              # Reduce to only scripts that appear in ALL ST's
+              #
+              puts "Size is: "+ size.to_s
+              puts "Reducing"
+              b = @op_scripts.inject({}) do |res, row|
+              res[row[0]] ||= []
+              res[row[0]] << row[1]
+              res
+              end
+
+              b.inject([]) do |res, (key, values)|
+              res << [key, values.first] if values.size >= 1
+              @op_scripts=res
+              end 
+              #@op_scripts = @op_scripts.detect{|i| @op_scripts.count(i) > size}
+
               @op_scripts = @op_scripts.select{|i| @op_scripts.grep(i).size > size}
 
               
