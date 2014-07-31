@@ -1,8 +1,19 @@
 #
 # The Chimp class encapsulates the command-line program logic
 #
-
+#
 module Chimp
+
+
+  # Tempotarely add my server object here
+  class Server
+    attr_accessor :name
+    attr_accessor :href
+    attr_accessor :nickname
+    attr_accessor :current_instance_href
+    attr_accessor :ip_address
+  end
+
   class Chimp
     attr_accessor :concurrency, :delay, :retry_count, :hold, :progress, :prompt,
                   :quiet, :use_chimpd, :chimpd_host, :chimpd_port, :tags, :array_names,
@@ -183,7 +194,7 @@ module Chimp
 #      #
 #      # Load the queue with work
 #      #
-#      jobs = generate_jobs(@servers, @arrays, @server_template, @executable)
+       jobs = generate_jobs(@servers, @server_template, @executable)
 #      add_to_queue(jobs)
 #
 #      #
@@ -205,7 +216,7 @@ module Chimp
       get_server_info
       get_template_info
       get_executable_info
-      jobs = generate_jobs(@servers, @arrays, @server_template, @executable)
+      jobs = generate_jobs(@servers, @server_template, @executable)
       return(jobs)
     end
 
@@ -669,6 +680,7 @@ module Chimp
               end 
               #@op_scripts = @op_scripts.detect{|i| @op_scripts.count(i) > size}
 
+
               
               puts "List of available operational scripts:"
               puts "------------------------------------------------------------"
@@ -731,7 +743,7 @@ module Chimp
     #
     # FIXME this needs to be refactored
     #
-    def generate_jobs(queue_servers, queue_arrays, queue_template, queue_executable)
+    def generate_jobs(queue_servers, queue_template, queue_executable)
       counter = 0
       tasks = []
       Log.debug "Loading queue..."
@@ -746,45 +758,45 @@ module Chimp
       #
       # Process ServerArray selection
       #
-      Log.debug("processing queue selection")
-      if not queue_arrays.empty?
-        queue_arrays.each do |array|
-          instances = filter_out_non_operational_servers(array.instances)
-
-          if not instances
-            Log.error("no instances in array!")
-            break
-          end
-
-          instances.each do |array_instance|
-            #
-            # Handle limiting options
-            #
-            counter += 1
-            next if @limit_start.to_i > 0 and counter < @limit_start.to_i
-            break if @limit_end.to_i > 0 and counter > @limit_end.to_i
-            a = ExecArray.new(
-              :array => array,
-              :server => array_instance,
-              :exec => queue_executable,
-              :inputs => @inputs,
-              :template => queue_template,
-              :timeout => @timeout,
-              :verbose => @@verbose,
-              :quiet => @@quiet
-            )
-            a.dry_run = @dry_run
-            ChimpQueue.instance.push(@group, a)
-          end
-        end
-      end
+#      Log.debug("processing queue selection")
+#      if not queue_arrays.empty?
+#        queue_arrays.each do |array|
+#          instances = filter_out_non_operational_servers(array.instances)
+#
+#          if not instances
+#            Log.error("no instances in array!")
+#            break
+#          end
+#
+#          instances.each do |array_instance|
+#            #
+#            # Handle limiting options
+#            #
+#            counter += 1
+#            next if @limit_start.to_i > 0 and counter < @limit_start.to_i
+#            break if @limit_end.to_i > 0 and counter > @limit_end.to_i
+#            a = ExecArray.new(
+#              :array => array,
+#              :server => array_instance,
+#              :exec => queue_executable,
+#              :inputs => @inputs,
+#              :template => queue_template,
+#              :timeout => @timeout,
+#              :verbose => @@verbose,
+#              :quiet => @@quiet
+#            )
+#            a.dry_run = @dry_run
+#            ChimpQueue.instance.push(@group, a)
+#          end
+#        end
+#      end
 
       #
       # Process Server selection
       #
       Log.debug("Processing server selection")
 
-      queue_servers.sort! { |a,b| a['nickname'] <=> b['nickname'] }
+      queue_servers.sort! { |a,b| a.show.name <=> b.show.name }
       queue_servers.each do |server|
 
         #
@@ -797,14 +809,18 @@ module Chimp
         #
         # Construct the Server object
         #
-        s = ::Server.new
-        s.href = server['href']
-        s.current_instance_href = server['current_instance_href']
-        s.name = server['nickname'] || server['name']
-        s.nickname = s.name
-        s.ip_address = server['ip-address'] || server['ip_address']
+        # This isnt gonna fly because it comes from the rest_connection objects
+        # https://github.com/ryancragun/rest_connection/blob/5e5204a748bac8378ebec5b95e1b36d08b5fd467/lib/rest_connection/rightscale/server.rb
+        #
+        s = Server.new
+        s.href = server.href
+        s.current_instance_href = server.href
+        s.name = server.show.name
+        s.nickname = s.show.name
+        s.ip_address = server.show.public_ip_addresses
         e = nil
 
+        # If @script has been passed
         if queue_executable
           e = ExecRightScript.new(
             :server => s,
@@ -822,19 +838,19 @@ module Chimp
             :verbose => @@verbose,
             :quiet => @@quiet
           )
-        elsif queue_template and not clone
-          e = ExecSetTemplate.new(
-            :server => s,
-            :template => queue_template,
-            :verbose => @@verbose,
-            :quiet => @@quiet
-          )
-        elsif @report
-          if s.href
-            s.href = s.href.sub("/current","")
-            e = ExecReport.new(:server => s, :verbose => @@verbose, :quiet => @@quiet)
-            e.fields = @report
-          end
+#        elsif queue_template and not clone
+#          e = ExecSetTemplate.new(
+#            :server => s,
+#            :template => queue_template,
+#            :verbose => @@verbose,
+#            :quiet => @@quiet
+#          )
+#        elsif @report
+#          if s.href
+#            s.href = s.href.sub("/current","")
+#            e = ExecReport.new(:server => s, :verbose => @@verbose, :quiet => @@quiet)
+#            e.fields = @report
+#          end
         elsif @set_tags.size > 0
           e = ExecSetTags.new(:server => s, :verbose => @@verbose, :quiet => @@quiet)
           e.tags = set_tags
