@@ -1,7 +1,6 @@
 #
 # Run a RightScript
 #
-require 'pry'
 module Chimp
   class ExecRightScript < Executor
   
@@ -14,24 +13,24 @@ module Chimp
       end
     
       run_with_retry do
-        audit_entry = server.show.run_executable(@exec, options)
+        require 'pry'
+        binding.pry
+        audit_entry = server.run_executable(@exec, options)
         audit_entry.wait_for_state("completed", @timeout)
         @results = audit_entry.summary
       end
     end
     
     def describe_work
-      puts "Describing work:"
-      return "ExecRightScript job_id=#{@job_id} script=\"#{@exec[0]}\" server=\"#{@server.name}\""
+      return "ExecRightScript job_id=#{@job_id} script=\"#{@exec.params['right_script']['name']}\" server=\"#{@server.nickname}\""
     end
     
     def info
-      puts "Info:"
-      return @exec[0]
+      return @exec.params['right_script']['name']
     end
     
     def target
-      return @server['nickname']
+      return @server.nickname
     end
     
   end

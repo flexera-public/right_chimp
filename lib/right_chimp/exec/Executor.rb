@@ -101,6 +101,7 @@ module Chimp
     # This is called from the subclass with a code block to yield to
     #
     def run_with_retry(&block)
+      puts "Im inside run_with_retry"
       Log.debug "Running job '#{@job_id}' with status '#{@status}'"
 
       @status = STATUS_RUNNING

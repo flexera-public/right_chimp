@@ -6,7 +6,6 @@ module Chimp
 
 
   # Tempotarely add my script object here
-
   class Executable
     attr_writer :params
     attr_reader :params
@@ -36,10 +35,14 @@ module Chimp
     def name
       @params['right_script']['name']
     end
+
+
+    # Needs to have a .run method that will queue the script on the server
   end
   class Server
     attr_writer :params
     attr_reader :params
+    attr_accessor :run_executable
     def initialize
       @params={
         "href"=>"dummy href", 
@@ -58,8 +61,22 @@ module Chimp
     def name
       @params['name']
     end
+    def nickname
+      @params['nickname']
+    end
     def ip_address
       @params['ip_address']
+    end
+
+
+    #
+    # method run_executable
+    #
+    def run_executable(exec, options)
+      puts "will bomb for food"
+      require 'pry'
+      binding.pry
+       dfssdf.elefeef
     end
   end
 
@@ -166,7 +183,7 @@ module Chimp
       #
       # This will contain the href and the name of the script to be run
       # in the form: [name, href]
-      @script_to_run       = []
+      @script_to_run       = nil
 
 #      RestClient.log = nil
     end
@@ -235,15 +252,8 @@ module Chimp
       #TEMPORARY
       puts "Looking for the rightscripts"
       # This needs to store a rightscript as similar to original as possible
-      show_wait_spinner{
-        get_executable_info # Simulate a task taking an unknown amount of time
-      }
+      get_executable_info # Simulate a task taking an unknown amount of time
     
-
-      puts "Look at @executable!"
-      require 'pry'
-      binding.pry
-
 #      if ( ask_confirmation("Proceed?", false))
 #        puts "Executing..."
 #        puts @script_to_run[0][1]
@@ -668,43 +678,43 @@ module Chimp
       return(st)
     end
 
-    #
-    # Excute a script on objects
-    # FIXME: to be sent to Chimpqueue instead
-    #
-    def execute_script(servers,script)
-
-      #
-      # Executing just the first script from the array
-      #
-      script_href="right_script_href="+script[0][1]
-      puts script_href
-
-      tasks = []
-      # Maybe add the server name to the task list?
-      servers.each { |s|
-        tasks.push([s.show.name,s.show.run_executable(script_href)])
-      }
-
-      begin
-        i=0
-        tasks_running=tasks.size
-        tasks.each { |t|
-          #query the api for the state of the task
-          state=t[1].show.summary
-          if state.include?("ompleted")
-            puts t[0]+" - "+ state
-            tasks.delete_at(i)
-          else
-            puts t[0]+" - "+state
-          end
-          i=i+1
-        }
-        sleep 10
-      end while ( tasks_running > 0 )
-      puts "All tasks completed"
-
-    end
+#    #
+#    # Excute a script on objects
+#    # FIXME: to be sent to Chimpqueue instead
+#    #
+#    def execute_script(servers,script)
+#
+#      #
+#      # Executing just the first script from the array
+#      #
+#      script_href="right_script_href="+script[0][1]
+#      puts script_href
+#
+#      tasks = []
+#      # Maybe add the server name to the task list?
+#      servers.each { |s|
+#        tasks.push([s.show.name,s.show.run_executable(script_href)])
+#      }
+#
+#      begin
+#        i=0
+#        tasks_running=tasks.size
+#        tasks.each { |t|
+#          #query the api for the state of the task
+#          state=t[1].show.summary
+#          if state.include?("ompleted")
+#            puts t[0]+" - "+ state
+#            tasks.delete_at(i)
+#          else
+#            puts t[0]+" - "+state
+#          end
+#          i=i+1
+#        }
+#        sleep 10
+#      end while ( tasks_running > 0 )
+#      puts "All tasks completed"
+#
+#    end
 
     # Look up the RightScript
     #
@@ -714,18 +724,18 @@ module Chimp
             # if script is empty, we will list all common scripts
             # if not empty, we will list the first matching one
             size = st.size-1
-
-            st.each do |s|
-                s[1].show.runnable_bindings.index.each do |x|
-                    #Add rightscript objects to the
-                    # only add the operational ones
-                    name=x.right_script.show.name
-                    if x.sequence == "operational"
-                        @op_scripts.push([name, x])
-                    end
-                end
-            end
-
+            show_wait_spinner{
+              st.each do |s|
+                  s[1].show.runnable_bindings.index.each do |x|
+                      #Add rightscript objects to the
+                      # only add the operational ones
+                      name=x.right_script.show.name
+                      if x.sequence == "operational"
+                          @op_scripts.push([name, x])
+                      end
+                  end
+              end
+            }
             #We now should only have operational runnable_bindings under the script_objects array
             if @op_scripts.length <= 1
                 puts "ERROR: No common operational scripts found on the server(s). "
@@ -743,7 +753,6 @@ module Chimp
               #
               # Reduce to only scripts that appear in ALL ST's
               #
-              puts "Reducing"
               b = @op_scripts.inject({}) do |res, row|
               res[row[0]] ||= []
               res[row[0]] << row[1]
@@ -778,7 +787,7 @@ module Chimp
                 s=Executable.new
                 s.params['right_script']['href']=@op_scripts[script_id][1].right_script.show.href
                 s.params['right_script']['name']=@op_scripts[script_id][0]
-                @script_to_run.push(s)
+                @script_to_run=s
                 #@script_to_run.push([@op_scripts[script_id][0],@op_scripts[script_id][1].right_script.show.href])
                 ########################
                #end of the break
@@ -791,6 +800,8 @@ module Chimp
               #
 
               puts "script specified, looking into the common ones"
+              require 'pry'
+              binding.pry
               @op_scripts.each  do |rb|
                   script_name=rb[1].right_script.show.name
                   if script_name =~ Regexp.new(script)
@@ -798,7 +809,7 @@ module Chimp
                       s=Executable.new
                       s.params['right_script']['href']=rb[1].right_script.show.href
                       s.params['right_script']['name']=script_name
-                      @script_to_run.push(s)
+                      @script_to_run=s
 #                     @script_to_run.push([script_name,rb[1].right_script.show.href])
                       break
                   end
@@ -948,7 +959,6 @@ module Chimp
         end
 
       end
-      puts tasks.inspect
       return(tasks)
     end
 
