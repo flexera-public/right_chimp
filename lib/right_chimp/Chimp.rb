@@ -5,13 +5,62 @@
 module Chimp
 
 
-  # Tempotarely add my server object here
+  # Tempotarely add my script object here
+
+  class Executable
+    attr_writer :params
+    attr_reader :params
+    def initialize
+      @params={
+        "position"=>5, 
+        "right_script"=>{
+          "created_at"=>"", 
+          "href"=>"dummy_href", 
+          "updated_at"=>"", 
+          "version"=>4, 
+          "is_head_version"=>false, 
+          "script"=>"",
+          "name"=>"dummy_name", 
+          "description"=>"dummy_description"
+          }, 
+          "recipe"=>nil, 
+          "apply"=>"operational"
+        }
+    end
+
+
+    # TODO Create mthods for href and href=
+    def href
+      @params['right_script']['href']
+    end
+    def name
+      @params['right_script']['name']
+    end
+  end
   class Server
-    attr_accessor :name
-    attr_accessor :href
-    attr_accessor :nickname
-    attr_accessor :current_instance_href
-    attr_accessor :ip_address
+    attr_writer :params
+    attr_reader :params
+    def initialize
+      @params={
+        "href"=>"dummy href", 
+        "current_instance_href"=>nil, 
+        "current-instance-href"=>nil, 
+        "name"=>"dummy name", 
+        "nickname"=>"dummy nickname", 
+        "ip_address"=>nil, 
+        "ip-address"=>nil
+      }
+    end
+    # TODO Create mthods for href and href=
+    def href
+      @params['href']
+    end
+    def name
+      @params['name']
+    end
+    def ip_address
+      @params['ip_address']
+    end
   end
 
   class Chimp
@@ -126,7 +175,7 @@ module Chimp
     # Entry point for the chimp command line application
     #
     def run
-     # queue = ChimpQueue.instance
+      queue = ChimpQueue.instance
 
       parse_command_line if @interactive
       check_option_validity if @interactive
@@ -164,8 +213,36 @@ module Chimp
       puts "Looking for their STs"
       get_template_info
 
+
+
+      #TEMPORARY
+      def show_wait_spinner(fps=10)
+        chars = %w[| / - \\]
+        delay = 1.0/fps
+        iter = 0
+        spinner = Thread.new do
+          while iter do  # Keep spinning until told otherwise
+            print chars[(iter+=1) % chars.length]
+            sleep delay
+            print "\b"
+          end
+        end
+        yield.tap{       # After yielding to the block, save the return value
+          iter = false   # Tell the thread to exit, cleaning up after itself…
+          spinner.join   # …and wait for it to do so.
+        }                # Use the block's return value as the method's
+      end
+      #TEMPORARY
       puts "Looking for the rightscripts"
-      get_executable_info
+      # This needs to store a rightscript as similar to original as possible
+      show_wait_spinner{
+        get_executable_info # Simulate a task taking an unknown amount of time
+      }
+    
+
+      puts "Look at @executable!"
+      require 'pry'
+      binding.pry
 
 #      if ( ask_confirmation("Proceed?", false))
 #        puts "Executing..."
@@ -183,7 +260,7 @@ module Chimp
         confirm = (list_of_objects.size > 0 and @action != :action_none) or @action == :action_none
 #
         verify("Your command will be executed on the following:", list_of_objects, confirm)
-        execute_script(@servers,@script_to_run)
+#       execute_script(@servers,@script_to_run)
 
 #
 #        if @servers.length >= 2 and @server_template and @executable and not @dont_check_templates_for_script
@@ -195,16 +272,17 @@ module Chimp
 #      # Load the queue with work
 #      #
        jobs = generate_jobs(@servers, @server_template, @executable)
-#      add_to_queue(jobs)
+       add_to_queue(jobs)
 #
 #      #
 #      # Exit early if there is nothing to do
 #      #
-#      if @action == :action_none or queue.group[@group].size == 0
-#        puts "No actions to perform." unless @@quiet
-#      else
-#        do_work
-#      end
+      if @action == :action_none or queue.group[@group].size == 0
+        puts "No actions to perform." unless @@quiet
+      else
+        do_work
+      end
+
     end
 
     #
@@ -497,9 +575,9 @@ module Chimp
            raise "Tag query returned no results: #{tags.join(" ")}"
         end
       end
-#      servers.each do |s|
-#        puts s.show.name
-#      end
+      servers.each do |s|
+        puts s.show.name
+      end
       return(servers)
     end
 
@@ -643,7 +721,6 @@ module Chimp
                     # only add the operational ones
                     name=x.right_script.show.name
                     if x.sequence == "operational"
-                        puts "found:" + name
                         @op_scripts.push([name, x])
                     end
                 end
@@ -666,7 +743,6 @@ module Chimp
               #
               # Reduce to only scripts that appear in ALL ST's
               #
-              puts "Size is: "+ size.to_s
               puts "Reducing"
               b = @op_scripts.inject({}) do |res, row|
               res[row[0]] ||= []
@@ -699,7 +775,11 @@ module Chimp
                 end
                 end
                 # Provide the name + href
-                @script_to_run.push([@op_scripts[script_id][0],@op_scripts[script_id][1].right_script.show.href])
+                s=Executable.new
+                s.params['right_script']['href']=@op_scripts[script_id][1].right_script.show.href
+                s.params['right_script']['name']=@op_scripts[script_id][0]
+                @script_to_run.push(s)
+                #@script_to_run.push([@op_scripts[script_id][0],@op_scripts[script_id][1].right_script.show.href])
                 ########################
                #end of the break
 
@@ -715,8 +795,11 @@ module Chimp
                   script_name=rb[1].right_script.show.name
                   if script_name =~ Regexp.new(script)
                       #We will only push the hrefs for the scripts since its the only ones we care
-                      @script_to_run.push([script_name,rb[1].right_script.show.href])
-                      puts "Found:" + script_name + ":" +    rb[1].right_script.show.href
+                      s=Executable.new
+                      s.params['right_script']['href']=rb[1].right_script.show.href
+                      s.params['right_script']['name']=script_name
+                      @script_to_run.push(s)
+#                     @script_to_run.push([script_name,rb[1].right_script.show.href])
                       break
                   end
               end
@@ -809,19 +892,19 @@ module Chimp
         #
         # Construct the Server object
         #
-        # This isnt gonna fly because it comes from the rest_connection objects
-        # https://github.com/ryancragun/rest_connection/blob/5e5204a748bac8378ebec5b95e1b36d08b5fd467/lib/rest_connection/rightscale/server.rb
-        #
+        puts "Creating Server object"
+        
         s = Server.new
-        s.href = server.href
-        s.current_instance_href = server.href
-        s.name = server.show.name
-        s.nickname = s.show.name
-        s.ip_address = server.show.public_ip_addresses
+        s.params['href'] = server.href
+        s.params['current_instance_href'] = server.href
+        s.params['name'] = server.show.name
+        s.params['nickname'] = server.show.name
+        s.params['ip_address'] = server.show.public_ip_addresses
         e = nil
 
         # If @script has been passed
         if queue_executable
+          puts "Creating Script object"
           e = ExecRightScript.new(
             :server => s,
             :exec => queue_executable,
@@ -865,7 +948,7 @@ module Chimp
         end
 
       end
-
+      puts tasks.inspect
       return(tasks)
     end
 

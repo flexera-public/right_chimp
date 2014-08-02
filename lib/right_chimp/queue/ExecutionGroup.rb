@@ -71,11 +71,12 @@ module Chimp
       return self.get_jobs.map do |task|
         next if task == nil
         next if task.server == nil
-
+        require 'pry'
+        binding.pry
         {
           :job_id => task.job_id,
-          :name   => task.info,
-          :host   => task.server['nickname'] || task.server['name'],
+          :name   => task.info[0],
+          :host   => task.server.name,
           :status => task.status,
           :error  => task.error,
           :total  => self.get_total_execution_time(task.status, task.time_start, task.time_end),
@@ -97,9 +98,10 @@ module Chimp
     # Sort queue by server nickname
     #
     def sort!
+      puts "we got "+@queue.size.to_s+" elements in the queue"
       if @queue != nil
         @queue.sort! do |a,b|
-          a.server['nickname'] <=> b.server['nickname']
+          a.server.name <=> b.server.name
         end
       end
     end

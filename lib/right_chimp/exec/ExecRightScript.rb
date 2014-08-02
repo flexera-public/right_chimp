@@ -1,6 +1,7 @@
 #
 # Run a RightScript
 #
+require 'pry'
 module Chimp
   class ExecRightScript < Executor
   
@@ -20,11 +21,13 @@ module Chimp
     end
     
     def describe_work
-      return "ExecRightScript job_id=#{@job_id} script=\"#{@exec['right_script']['name']}\" server=\"#{@server['nickname']}\""
+      puts "Describing work:"
+      return "ExecRightScript job_id=#{@job_id} script=\"#{@exec[0]}\" server=\"#{@server.name}\""
     end
     
     def info
-      return @exec['right_script']['name']
+      puts "Info:"
+      return @exec[0]
     end
     
     def target
