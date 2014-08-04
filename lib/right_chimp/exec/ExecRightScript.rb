@@ -13,11 +13,10 @@ module Chimp
       end
     
       run_with_retry do
-        require 'pry'
-        binding.pry
-        audit_entry = server.run_executable(@exec, options)
-        audit_entry.wait_for_state("completed", @timeout)
-        @results = audit_entry.summary
+        task=Task.new
+        task.tasker = @server.run_executable(@exec, options)
+        task.wait_for_state("completed", @timeout)
+        @results = task.tasker.show.summary
       end
     end
     

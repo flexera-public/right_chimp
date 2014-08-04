@@ -4,6 +4,38 @@
 #
 module Chimp
 
+   class Task
+
+    attr_writer :tasker
+    attr_reader :tasker
+
+    def wait_for_state(desired_state, timeout=900)
+      while(timeout > 0)
+        state=self.tasker.show.summary
+        return true if self.state.match(desired_state)
+        friendly_url = "https://my.rightscale.com/audit_entries/"
+        friendly_url += self.href.split(/\//).last
+        friendly_url = friendly_url.tr('ae-','')
+        raise "FATAL error, #{self.tasker.show.summary}\nSee Audit: API:#{self.href}, WWW:<a href='#{friendly_url}'>#{friendly_url}</a>\n" if self.state.match("failed")
+        sleep 30
+        timeout -= 30
+      end
+      raise "FATAL: Timeout waiting for Executable to complete.  State was #{self.state}" if timeout <= 0
+    end
+
+    def wait_for_completed(timeout=900)
+      wait_for_state("completed", timeout)
+    end
+
+    def state
+      self.tasker.show.summary
+    end
+
+    def href
+      self.tasker.href
+    end
+  end
+
 
   # Tempotarely add my script object here
   class Executable
@@ -40,8 +72,8 @@ module Chimp
     # Needs to have a .run method that will queue the script on the server
   end
   class Server
-    attr_writer :params
-    attr_reader :params
+    attr_writer :params, :object
+    attr_reader :params, :object
     attr_accessor :run_executable
     def initialize
       @params={
@@ -53,6 +85,7 @@ module Chimp
         "ip_address"=>nil, 
         "ip-address"=>nil
       }
+      @object = nil
     end
     # TODO Create mthods for href and href=
     def href
@@ -73,10 +106,10 @@ module Chimp
     # method run_executable
     #
     def run_executable(exec, options)
-      puts "will bomb for food"
-      require 'pry'
-      binding.pry
-       dfssdf.elefeef
+      #Create and queue the task  
+      script_href="right_script_href="+exec.href
+      task=self.object.show.run_executable(script_href)
+      return task
     end
   end
 
@@ -911,6 +944,7 @@ module Chimp
         s.params['name'] = server.show.name
         s.params['nickname'] = server.show.name
         s.params['ip_address'] = server.show.public_ip_addresses
+        s.object=server
         e = nil
 
         # If @script has been passed
