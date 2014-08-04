@@ -271,8 +271,9 @@ module Chimp
       get_template_info
 
 
-
+      #################################
       #TEMPORARY
+      #################################
       def show_wait_spinner(fps=10)
         chars = %w[| / - \\]
         delay = 1.0/fps
@@ -289,7 +290,11 @@ module Chimp
           spinner.join   # …and wait for it to do so.
         }                # Use the block's return value as the method's
       end
+      
+
+      #################################
       #TEMPORARY
+      #################################
       puts "Looking for the rightscripts"
       # This needs to store a rightscript as similar to original as possible
       get_executable_info # Simulate a task taking an unknown amount of time
