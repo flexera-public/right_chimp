@@ -4,7 +4,10 @@
 #
 module Chimp
 
-   class Task
+  ######################################
+  #Temporarely add my Task object here
+  ######################################
+  class Task
 
     attr_writer :tasker
     attr_reader :tasker
@@ -12,7 +15,7 @@ module Chimp
     def wait_for_state(desired_state, timeout=900)
       while(timeout > 0)
         state=self.tasker.show.summary
-        return true if self.state.match(desired_state)
+      return true if self.state.match(desired_state)
         friendly_url = "https://my.rightscale.com/audit_entries/"
         friendly_url += self.href.split(/\//).last
         friendly_url = friendly_url.tr('ae-','')
@@ -37,10 +40,14 @@ module Chimp
   end
 
 
-  # Tempotarely add my script object here
+  ######################################
+  #Temporarely add my Executable object
+  ######################################
   class Executable
+
     attr_writer :params
     attr_reader :params
+
     def initialize
       @params={
         "position"=>5, 
@@ -59,8 +66,6 @@ module Chimp
         }
     end
 
-
-    # TODO Create mthods for href and href=
     def href
       @params['right_script']['href']
     end
@@ -69,12 +74,18 @@ module Chimp
     end
 
 
-    # Needs to have a .run method that will queue the script on the server
   end
+  
+  ######################################
+  #Temporarely add my Server object here
+  ######################################
   class Server
+
     attr_writer :params, :object
     attr_reader :params, :object
+
     attr_accessor :run_executable
+
     def initialize
       @params={
         "href"=>"dummy href", 
@@ -87,26 +98,24 @@ module Chimp
       }
       @object = nil
     end
-    # TODO Create mthods for href and href=
+    
     def href
       @params['href']
     end
+   
     def name
       @params['name']
     end
+    
     def nickname
       @params['nickname']
     end
+   
     def ip_address
       @params['ip_address']
     end
 
-
-    #
-    # method run_executable
-    #
     def run_executable(exec, options)
-      #Create and queue the task  
       script_href="right_script_href="+exec.href
       task=self.object.show.run_executable(script_href)
       return task
@@ -217,8 +226,6 @@ module Chimp
       # This will contain the href and the name of the script to be run
       # in the form: [name, href]
       @script_to_run       = nil
-
-#      RestClient.log = nil
     end
 
     #
