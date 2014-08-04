@@ -700,7 +700,7 @@ module Chimp
     #
     # ServerTemplate auto-detection
     #
-    # Returns: RestConnection::ServerTemplate
+    # Returns [st_name, st_object]
     #
     def detect_server_template_new(servers, array_names_to_detect)
       st = []
@@ -722,48 +722,9 @@ module Chimp
       #
       return(st)
     end
-
-#    #
-#    # Excute a script on objects
-#    # FIXME: to be sent to Chimpqueue instead
-#    #
-#    def execute_script(servers,script)
-#
-#      #
-#      # Executing just the first script from the array
-#      #
-#      script_href="right_script_href="+script[0][1]
-#      puts script_href
-#
-#      tasks = []
-#      # Maybe add the server name to the task list?
-#      servers.each { |s|
-#        tasks.push([s.show.name,s.show.run_executable(script_href)])
-#      }
-#
-#      begin
-#        i=0
-#        tasks_running=tasks.size
-#        tasks.each { |t|
-#          #query the api for the state of the task
-#          state=t[1].show.summary
-#          if state.include?("ompleted")
-#            puts t[0]+" - "+ state
-#            tasks.delete_at(i)
-#          else
-#            puts t[0]+" - "+state
-#          end
-#          i=i+1
-#        }
-#        sleep 10
-#      end while ( tasks_running > 0 )
-#      puts "All tasks completed"
-#
-#    end
-
-    # Look up the RightScript
+    
     #
-    # Returns: RestConnection::Executable
+    # Look up the RightScript
     #
     def detect_right_script_new(st, script)
             # if script is empty, we will list all common scripts
