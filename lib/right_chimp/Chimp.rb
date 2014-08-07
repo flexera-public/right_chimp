@@ -806,8 +806,6 @@ module Chimp
               #
 
               puts "script specified, looking into the common ones"
-              require 'pry'
-              binding.pry
               @op_scripts.each  do |rb|
                   script_name=rb[1].right_script.show.name
                   if script_name =~ Regexp.new(script)
