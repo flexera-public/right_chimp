@@ -295,7 +295,7 @@ module Chimp
       #################################
       #TEMPORARY
       #################################
-      puts "Looking for the rightscripts"
+      puts "Looking for the rightscripts (This might take some time)"
       # This needs to store a rightscript as similar to original as possible
       get_executable_info # Simulate a task taking an unknown amount of time
     
@@ -805,16 +805,17 @@ module Chimp
               # Maybe throw a warning if script is not on the list?
               #
 
-              puts "script specified, looking into the common ones"
               @op_scripts.each  do |rb|
-                  script_name=rb[1].right_script.show.name
-                  if script_name =~ Regexp.new(script)
+                  script_name=rb[0]
+                  if script_name.include?(script)
                       #We will only push the hrefs for the scripts since its the only ones we care
                       s=Executable.new
                       s.params['right_script']['href']=rb[1].right_script.show.href
                       s.params['right_script']['name']=script_name
                       @script_to_run=s
 #                     @script_to_run.push([script_name,rb[1].right_script.show.href])
+                      puts @script_to_run.inspect
+                      return @script_to_run
                       break
                   end
               end
@@ -822,18 +823,11 @@ module Chimp
               # If we reach here it means we didnt find the script in the operationals one
               # At this point we can make a full-on API query for the last revision of the script
               #
-              puts "Sorry, didnt find that, provide an URI instead"
+              if @script_to_run == nil
+                puts "Sorry, didnt find that, provide an URI instead"
+                exit 1
+              end
               # FIXME, only do this if script is an URI
-#              puts "Didnt find it, must be ANY script"
-#             
-#              result=@client.right_scripts.index(:filter => ["name==#{script}"] , :latest_only => true)
-#              if result.nil?
-#                puts "Sorry, didnt find that"
-#                exit
-#              else
-#                @script_to_run.push([result[0].name , result[0].href]) 
-#                puts "Found:" +result[0].name + ":" +   result[0].href
-#              end
             end
     end
     #
