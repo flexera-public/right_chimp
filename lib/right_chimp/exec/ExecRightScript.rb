@@ -13,22 +13,23 @@ module Chimp
       end
     
       run_with_retry do
-        audit_entry = server.run_executable(@exec, options)
-        audit_entry.wait_for_state("completed", @timeout)
-        @results = audit_entry.summary
+        task=Task.new
+        task.tasker = @server.run_executable(@exec, options)
+        task.wait_for_state("completed", @timeout)
+        @results = task.tasker.show.summary
       end
     end
     
     def describe_work
-      return "ExecRightScript job_id=#{@job_id} script=\"#{@exec['right_script']['name']}\" server=\"#{@server['nickname']}\""
+      return "ExecRightScript job_id=#{@job_id} script=\"#{@exec.params['right_script']['name']}\" server=\"#{@server.nickname}\""
     end
     
     def info
-      return @exec['right_script']['name']
+      return @exec.params['right_script']['name']
     end
     
     def target
-      return @server['nickname']
+      return @server.nickname
     end
     
   end
