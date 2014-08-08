@@ -359,7 +359,7 @@ module Chimp
     def get_template_info
       if not (@servers.empty? and @array_names.empty?)
         @server_template = detect_server_template_new(@servers, @array_names)
-        @server_template.each { |st| puts st[0] }
+        #@server_template.each { |st| puts st[0] }
       end
     end
 
@@ -369,8 +369,25 @@ module Chimp
     def get_executable_info
       if not (@servers.empty? )
         if (@script != nil)
-        @executable = detect_right_script_new(@server_template, @script)
-        puts "Using SSH command: \"#{@ssh}\"" if @action == :action_ssh
+        # If script is an uri/url no need to "detect it"
+        # https://my.rightscale.com/acct/9202/right_scripts/205347
+
+          if @script =~ /\A#{URI::regexp}\z/
+            puts "WARNING! You will be running this script on all server matches! (Press enter to continue)"
+            gets
+
+            script_number = File.basename(@script)
+           
+            s=Executable.new
+            s.params['right_script']['href']="right_script_href=/api/right_scripts/"+script_number
+            s.params['right_script']['name']="Specified ANY SCRIPT"
+            @executable=s
+             
+          else 
+
+            @executable = detect_right_script_new(@server_template, @script)
+            puts "Using SSH command: \"#{@ssh}\"" if @action == :action_ssh
+          end
         end
       end
     end 
@@ -630,9 +647,9 @@ module Chimp
            raise "Tag query returned no results: #{tags.join(" ")}"
         end
       end
-      servers.each do |s|
-        puts s.show.name
-      end
+    #  servers.each do |s|
+    #    puts s.show.name
+    #  end
       return(servers)
     end
 
