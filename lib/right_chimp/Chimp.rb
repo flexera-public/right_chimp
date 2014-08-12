@@ -261,7 +261,8 @@ module Chimp
 #      # ahead and start making API calls to select the objects
 #      # to operate upon
 #      #
-#      get_array_info
+      puts "Looking for arrays"
+      get_array_info
 
 
       puts "Looking for servers:"
@@ -587,6 +588,11 @@ module Chimp
     def get_array_info
       return if @array_names.empty?
 
+      # We will ALWAYS break arrays into instances
+      Log.debug "Breaking array into instances"
+      @servers += get_servers_by_array(@array_names)
+      @array_names = []
+
       #
       # Some operations (e.g. ExecSSH) require individual server information.
       # Check for @break_array_into_instances and break up the ServerArray
@@ -694,23 +700,31 @@ module Chimp
     #
     # Parse array names
     #
-    # Returns: array of RestConnection::Server objects
     #
     def get_servers_by_array(names)
       array_servers = []
+      all_arrays = []
+      result = []
       if names.size > 0
         names.each do |array_name|
-          all_arrays = ::Ec2ServerArray.find_by(:nickname) { |n| n =~ /^#{array_name}/i }
-
-          if all_arrays != nil and all_arrays.first != nil
-            all_arrays.first.instances.each do |s|
-              array_servers << s
+          #Find if arrays exist, if not raise warning.
+          result = @client.server_arrays(:filter => ["name==#{array_name}"]).index
+          if result.size != 0 
+           array_servers += result.first.current_instances.index
+          else
+            if @ignore_errors
+              puts "Could not find array #{array_name}"
+            else
+              raise "Cannot find array #{array_name}"
             end
-          end
         end
       end
+      if ( array_servers.empty? )
+        puts "Didnt find any arrays that matched!"
+      end 
 
       return(array_servers)
+    end
     end
 
 
