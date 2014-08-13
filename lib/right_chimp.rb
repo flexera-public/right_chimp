@@ -8,8 +8,6 @@ require 'singleton'
 require 'base64'
 require 'rake'
 
-#require 'rest_connection'
-#require 'rest-client'
 require 'progressbar'
 require 'json'
 
