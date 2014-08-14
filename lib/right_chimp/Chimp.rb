@@ -246,7 +246,7 @@ module Chimp
     end
 
       def show_wait_spinner(fps=10)
-        exit if (@use_chimpd) and @@quiet
+        return if (@use_chimpd) and @@quiet
         chars = %w[| / - \\]
         delay = 1.0/fps
         iter = 0
@@ -311,7 +311,11 @@ module Chimp
         list_of_objects = make_human_readable_list_of_objects
         confirm = (list_of_objects.size > 0 and @action != :action_none) or @action == :action_none
 
-        verify("Your command will be executed on the following:", list_of_objects, confirm)
+        if @script_to_run.nil?
+          verify("Your command will be executed on the following:", list_of_objects, confirm) 
+        else
+          verify("Your command \""+@script_to_run.params['right_script']['name']+"\" will be executed on the following:", list_of_objects, confirm)
+        end
       end
       #
       # Load the queue with work
