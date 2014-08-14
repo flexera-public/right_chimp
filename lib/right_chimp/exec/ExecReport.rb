@@ -26,26 +26,31 @@ module Chimp
         # messy.
         #
         begin
-          s = Server.find(@server.href)
-          s.settings
-          response = ::Tag.search_by_href(s.current_instance_href)
+          s=@server
+          response=Connection.client.tags.by_resource(:resource_hrefs => [@server.href]).first.tags
+#          s = Server.find(@server.href)
+#          s.settings
+#          response = ::Tag.search_by_href(s.current_instance_href)
         rescue Exception => ex
+          raise e
           s = @server
-          response = ::Tag.search_by_href(s.href)
+#          response = ::Tag.search_by_href(s.href)
+          response = nil
         end
 
-        s.tags = [] unless s.tags
+        s.params["tags"] = [] unless s.params["tags"]
         response.each do |t|
-          s.tags += [ t['name'] ]
+          s.params["tags"] += [ t['name'] ]
         end
         
         @fields.split(",").each do |f|
           if f =~ /^tag=([^,]+)/
             tag_search_string = $1
-            s.tags.each do |tag|
+            s.params["tags"].each do |tag|
               output << tag if tag =~ /^#{tag_search_string}/
             end
           else
+            # MARC- FIXME
             output << s.params[f]
           end
         end
