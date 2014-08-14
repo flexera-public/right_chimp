@@ -3,7 +3,39 @@
 #
 #
 module Chimp
+  require 'yaml'
+  class Connection
+    include Singleton 
+    attr_accessor :client
 
+    def initialize
+    end
+    def self.connect
+      require 'yaml'
+      require 'right_api_client'
+      begin
+        creds=YAML.load_file("#{ENV['HOME']}/.rest_connection/rest_api_config.yaml")
+        #
+        # Extract the account
+        #
+        creds[:account]=File.basename(creds[:api_url])
+        #
+        # Figure out url to hit:
+        #
+        creds[:api_url]="https://"+URI.parse(creds[:api_url]).host
+        @client=RightApi::Client.new(:email => creds[:user], :password => creds[:pass], :account_id => creds[:account], :api_url => creds[:api_url])
+      rescue
+        puts "##############################################################################"
+        puts "Error, credentials file: could not be loaded correctly"
+        puts "##############################################################################"
+        exit -1
+      end
+    end
+    def self.client
+      @client
+    end
+
+ end
   ######################################
   #Temporarely add my Task object here
   ######################################
@@ -197,26 +229,11 @@ module Chimp
       @chimpd_port                = 9055
       @chimpd_wait_until_done     = false
 
-      @creds = []
-      require 'yaml'
-      begin 
-        creds=YAML.load_file("#{ENV['HOME']}/.rest_connection/rest_api_config.yaml")
-        #
-        # Extract the account
-        #
-        creds[:account]=File.basename(creds[:api_url])
-        #
-        # Figure out url to hit:
-        #
-        creds[:api_url]="https://"+URI.parse(creds[:api_url]).host
-        @client=RightApi::Client.new(:email => creds[:user], :password => creds[:pass], :account_id => creds[:account], :api_url => creds[:api_url])
-      rescue
-        puts "##############################################################################"
-        puts "Error, credentials file: could not be loaded correctly"
-        puts "##############################################################################"
-        exit -1
-      end
-
+      #
+      #Connect to the API
+      # 
+      Connection.instance
+      Connection.connect
       #
       # Will contain the operational scripts we have found
       # In the form: [name, href]
@@ -228,54 +245,8 @@ module Chimp
       @script_to_run       = nil
     end
 
-    #
-    # Entry point for the chimp command line application
-    #
-    def run
-      queue = ChimpQueue.instance
-
-      parse_command_line if @interactive
-      check_option_validity if @interactive
-      #disable_logging unless @@verbose
-
-      puts "chimp #{VERSION} executing..." if (@interactive and not @use_chimpd) and not @@quiet
-
-#      #
-#      # Wait for chimpd to complete tasks
-#      #
-#      if @chimpd_wait_until_done
-#        chimpd_wait_until_done
-#        exit
-#      end
-#
-#      #
-#      # Send the command to chimpd for execution
-#      #
-#      if @use_chimpd
-#        ChimpDaemonClient.submit(@chimpd_host, @chimpd_port, self)
-#        exit
-#      end
-#
-#      #
-#      # If we're processing the command ourselves, then go
-#      # ahead and start making API calls to select the objects
-#      # to operate upon
-#      #
-      puts "Looking for arrays"
-      get_array_info
-
-
-      puts "Looking for servers:"
-      get_server_info
-      
-      puts "Looking for their STs"
-      get_template_info
-
-
-      #################################
-      #TEMPORARY
-      #################################
       def show_wait_spinner(fps=10)
+        exit if (@use_chimpd) and @@quiet
         chars = %w[| / - \\]
         delay = 1.0/fps
         iter = 0
@@ -291,50 +262,68 @@ module Chimp
           spinner.join   # …and wait for it to do so.
         }                # Use the block's return value as the method's
       end
-      
+    #
+    # Entry point for the chimp command line application
+    #
+    def run
+      queue = ChimpQueue.instance
 
-      #################################
-      #TEMPORARY
-      #################################
-      puts "Looking for the rightscripts (This might take some time)"
+      parse_command_line if @interactive
+      check_option_validity if @interactive
+      #disable_logging unless @@verbose
+
+      puts "chimp #{VERSION} executing..." if (@interactive and not @use_chimpd) and not @@quiet
+
+      #
+      # Wait for chimpd to complete tasks
+      #
+      if @chimpd_wait_until_done
+        chimpd_wait_until_done
+        exit
+      end
+
+      #
+      # Send the command to chimpd for execution
+      #
+      if @use_chimpd
+        ChimpDaemonClient.submit(@chimpd_host, @chimpd_port, self)
+        exit
+      end
+
+      #
+      # If we're processing the command ourselves, then go
+      # ahead and start making API calls to select the objects
+      # to operate upon
+      #
+      get_array_info
+      get_server_info
+      get_template_info
+
+      puts "Looking for the rightscripts (This might take some time)" if (@interactive and not @use_chimpd) and not @@quiet
       # This needs to store a rightscript as similar to original as possible
       get_executable_info # Simulate a task taking an unknown amount of time
     
-#      if ( ask_confirmation("Proceed?", false))
-#        puts "Executing..."
-#        puts @script_to_run[0][1]
-#        execute_script(@servers,@script_to_run)
-#      end
-
-#At this stage we should have all the scripts in @op_scripts
-#      #
-#      # Optionally display the list of objects to operate on
-#      # and prompt the user
-#      #
-      @prompt and @interactive
+      #
+      # Optionally display the list of objects to operate on
+      # and prompt the user
+      #
+      if @prompt and @interactive
         list_of_objects = make_human_readable_list_of_objects
         confirm = (list_of_objects.size > 0 and @action != :action_none) or @action == :action_none
-#
-        verify("Your command will be executed on the following:", list_of_objects, confirm)
-#       execute_script(@servers,@script_to_run)
 
-#
-#        if @servers.length >= 2 and @server_template and @executable and not @dont_check_templates_for_script
-#          warn_if_rightscript_not_in_all_servers @servers, @server_template, @executable
-#        end
-#      end
-#
-#      #
-#      # Load the queue with work
-#      #
-       jobs = generate_jobs(@servers, @server_template, @executable)
-       add_to_queue(jobs)
-#
-#      #
-#      # Exit early if there is nothing to do
-#      #
+        verify("Your command will be executed on the following:", list_of_objects, confirm)
+      end
+      #
+      # Load the queue with work
+      #
+      jobs = generate_jobs(@servers, @server_template, @executable)
+      add_to_queue(jobs)
+
+      #
+      # Exit early if there is nothing to do
+      #
       if @action == :action_none or queue.group[@group].size == 0
-        puts "No actions to perform." unless @@quiet
+        puts "No actions to perform." unless self.quiet
       else
         do_work
       end
@@ -579,7 +568,6 @@ module Chimp
     def get_server_info
       @servers += get_servers_by_tag(@tags)
       @servers += get_servers_by_deployment(@deployment_names)
-#      @servers = filter_out_non_operational_servers(@servers)
     end
 
     #
@@ -638,7 +626,7 @@ module Chimp
       #
       servers = []
 
-      search_results = @client.tags.by_tag(:resource_type => 'instances', :tags => tags, :match_all => @match_all)[0].resource
+      search_results = Connection.client.tags.by_tag(:resource_type => 'instances', :tags => tags, :match_all => @match_all)[0].resource
       if search_results.kind_of?(Array)
         servers = search_results
       else
@@ -672,7 +660,7 @@ module Chimp
           #
           # Returns an array
           # 
-          d = @client.deployments.index(:filter => ["name==#{deployment}"])
+          d = Connection.client.deployments.index(:filter => ["name==#{deployment}"])
           if d == nil
             if @ignore_errors
               puts "cannot find deployment #{deployment}"
@@ -708,7 +696,7 @@ module Chimp
       if names.size > 0
         names.each do |array_name|
           #Find if arrays exist, if not raise warning.
-          result = @client.server_arrays(:filter => ["name==#{array_name}"]).index
+          result = Connection.client.server_arrays(:filter => ["name==#{array_name}"]).index
           if result.size != 0 
            array_servers += result.first.current_instances.index
           else
@@ -844,8 +832,6 @@ module Chimp
                       s.params['right_script']['href']=rb[1].right_script.show.href
                       s.params['right_script']['name']=script_name
                       @script_to_run=s
-#                     @script_to_run.push([script_name,rb[1].right_script.show.href])
-                      puts @script_to_run.inspect
                       return @script_to_run
                       break
                   end
@@ -858,8 +844,8 @@ module Chimp
                 puts "Sorry, didnt find that, provide an URI instead"
                 exit 1
               end
-              # FIXME, only do this if script is an URI
-            end
+            end 
+      puts "Exiting search right_Script"
     end
     #
     # Load up the queue with work
@@ -932,8 +918,6 @@ module Chimp
         #
         # Construct the Server object
         #
-        puts "Creating Server object"
-        
         s = Server.new
         s.params['href'] = server.href
         s.params['current_instance_href'] = server.href
@@ -945,7 +929,6 @@ module Chimp
 
         # If @script has been passed
         if queue_executable
-          puts "Creating Script object"
           e = ExecRightScript.new(
             :server => s,
             :exec => queue_executable,
@@ -1140,7 +1123,7 @@ module Chimp
       get_server_info
       get_template_info
       get_executable_info
-      return generate_jobs(@servers, @arrays, @server_template, @executable)
+      return generate_jobs(@servers, @server_template, @executable)
     end
 
     #
