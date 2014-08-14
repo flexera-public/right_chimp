@@ -112,12 +112,12 @@ jobs.each do |j|
 
   status      = j.status
   id          = j.job_id
-
-  server_name = CGI::escapeHTML(j.server['nickname']) if j.server
+  
+  server_name = CGI::escapeHTML(j.server.params['nickname']) if j.server
 
   if j.exec
-    action      = j.exec.to_s
-    action      = j.exec['right_script']['name'] if j.exec['right_script']
+    action      = j.exec.params.to_s
+    action      = j.exec.params['right_script']['name'] if j.exec.params['right_script']
   else
     action      = "unknown"
   end

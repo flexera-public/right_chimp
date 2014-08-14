@@ -125,7 +125,7 @@ module Chimp
       }
 
       if not @verbose
-        opts[:Logger] = WEBrick::Log.new("/dev/null")
+        opts[:Logger] = WEBrick::Log.new("/tmp/brick.log")
         opts[:AccessLog] = [nil, nil]
       end
 
@@ -275,11 +275,12 @@ module Chimp
       # /group/<name>/<status>
       #
       def do_GET(req, resp)
+        
         jobs = {}
 
         group_name = req.request_uri.path.split('/')[-2]
         filter     = req.request_uri.path.split('/')[-1]
-
+        Log.error "GOT HERE"
         g = ChimpQueue[group_name.to_sym]
         raise WEBrick::HTTPStatus::NotFound, "Group not found" unless g
         jobs = g.get_jobs_by_status(filter)
