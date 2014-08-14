@@ -845,7 +845,6 @@ module Chimp
                 exit 1
               end
             end 
-      puts "Exiting search right_Script"
     end
     #
     # Load up the queue with work
