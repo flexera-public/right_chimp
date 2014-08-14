@@ -125,7 +125,7 @@ module Chimp
       }
 
       if not @verbose
-        opts[:Logger] = WEBrick::Log.new("/tmp/brick.log")
+        opts[:Logger] = WEBrick::Log.new("/dev/null")
         opts[:AccessLog] = [nil, nil]
       end
 
