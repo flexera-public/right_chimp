@@ -280,7 +280,6 @@ module Chimp
 
         group_name = req.request_uri.path.split('/')[-2]
         filter     = req.request_uri.path.split('/')[-1]
-        Log.error "GOT HERE"
         g = ChimpQueue[group_name.to_sym]
         raise WEBrick::HTTPStatus::NotFound, "Group not found" unless g
         jobs = g.get_jobs_by_status(filter)
