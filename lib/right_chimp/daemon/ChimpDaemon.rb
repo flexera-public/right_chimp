@@ -22,6 +22,9 @@ module Chimp
       @running     = false
       @queue       = ChimpQueue.instance
       @chimp_queue = Queue.new
+      
+      #Connect to the API
+      Connection.instance
     end
 
     #
@@ -193,28 +196,26 @@ module Chimp
         c = Chimp.new
         c.interactive = false
         c.quiet = true
-        c.tags = ["bogus:tag=true"]
+        #c.tags = ["bogus:tag=true"]
         c.run
       rescue StandardError
       end
-
       Log.debug "Spawning #{n} submission processing threads"
       (1..n).each do |n|
         @threads ||=[]
         @threads << Thread.new {
-          while true
+          while true  
             begin
               queued_request = @chimp_queue.pop
               group = queued_request.group
               queued_request.interactive = false
-
               tasks = queued_request.process
               tasks.each do |task|
                 ChimpQueue.instance.push(group, task)
               end
 
             rescue StandardError => ex
-              Log.error "submission processor: group=\"#{group}\" script=\"#{queued_request.script}\": #{ex}"
+              Log.error " submission processor: group=\"#{group}\" script=\"#{queued_request.script}\": #{ex}"
             end
           end
         }
@@ -274,11 +275,11 @@ module Chimp
       # /group/<name>/<status>
       #
       def do_GET(req, resp)
+        
         jobs = {}
 
         group_name = req.request_uri.path.split('/')[-2]
         filter     = req.request_uri.path.split('/')[-1]
-
         g = ChimpQueue[group_name.to_sym]
         raise WEBrick::HTTPStatus::NotFound, "Group not found" unless g
         jobs = g.get_jobs_by_status(filter)
