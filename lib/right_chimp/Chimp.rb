@@ -246,7 +246,7 @@ module Chimp
     end
 
       def show_wait_spinner(fps=10)
-        return if (@use_chimpd) and @@quiet
+        return if (@use_chimpd) 
         chars = %w[| / - \\]
         delay = 1.0/fps
         iter = 0
@@ -270,7 +270,7 @@ module Chimp
 
       parse_command_line if @interactive
       check_option_validity if @interactive
-      #disable_logging unless @@verbose
+      disable_logging unless @@verbose
 
       puts "chimp #{VERSION} executing..." if (@interactive and not @use_chimpd) and not @@quiet
 
@@ -298,9 +298,7 @@ module Chimp
       get_array_info
       get_server_info
       get_template_info
-
       puts "Looking for the rightscripts (This might take some time)" if (@interactive and not @use_chimpd) and not @@quiet
-      # This needs to store a rightscript as similar to original as possible
       get_executable_info # Simulate a task taking an unknown amount of time
     
       #
@@ -332,19 +330,6 @@ module Chimp
         do_work
       end
 
-    end
-
-    #
-    # Process a non-interactive chimp object command
-    # Used by chimpd
-    #
-    def process
-      get_array_info
-      get_server_info
-      get_template_info
-      get_executable_info
-      jobs = generate_jobs(@servers, @server_template, @executable)
-      return(jobs)
     end
 
     #
@@ -1122,6 +1107,7 @@ module Chimp
     # Completely process a non-interactive chimp object command
     #
     def process
+      puts "Processing task..."
       get_array_info
       get_server_info
       get_template_info
