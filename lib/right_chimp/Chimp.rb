@@ -506,6 +506,11 @@ module Chimp
             when '--chimpd'
               @use_chimpd = true
               @chimpd_port = arg.to_i unless arg.empty?
+              if @script.empty? || @script.nil?
+                puts "ERROR: --script cannot be empty when sending to chimpd"
+                help
+                exit 1 
+              end
             when '--chimpd-wait-until-done'
               @use_chimpd = true
               @chimpd_wait_until_done = true
