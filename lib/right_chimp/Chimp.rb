@@ -778,7 +778,7 @@ module Chimp
               end
 
               b.inject([]) do |res, (key, values)|
-              res << [key, values.first] if values.size >= 1
+              res << [key, values.first] if values.size >= size
               @op_scripts=res
               end 
               #@op_scripts = @op_scripts.detect{|i| @op_scripts.count(i) > size}
