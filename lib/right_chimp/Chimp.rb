@@ -246,15 +246,14 @@ module Chimp
     end
 
       def show_wait_spinner(fps=10)
-        return if (@use_chimpd) 
         chars = %w[| / - \\]
         delay = 1.0/fps
         iter = 0
         spinner = Thread.new do
           while iter do  # Keep spinning until told otherwise
-            print chars[(iter+=1) % chars.length]
+            print chars[(iter+=1) % chars.length] unless @use_chimpd
             sleep delay
-            print "\b"
+            print "\b" unless @use_chimpd
           end
         end
         yield.tap{       # After yielding to the block, save the return value
