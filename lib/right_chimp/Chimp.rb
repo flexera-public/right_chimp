@@ -924,9 +924,11 @@ module Chimp
         s = Server.new
         s.params['href'] = server.href
         s.params['current_instance_href'] = server.href
+        s.params['current-instance-href'] = s.params['current_instance_href']
         s.params['name'] = server.show.name
         s.params['nickname'] = server.show.name
         s.params['ip_address'] = server.show.public_ip_addresses
+        s.params['ip-address'] = s.params['ip_address']
         s.object=server
         e = nil
 
@@ -955,13 +957,14 @@ module Chimp
 #            :verbose => @@verbose,
 #            :quiet => @@quiet
 #          )
-#        elsif @report
-#          if s.href
-#            s.href = s.href.sub("/current","")
-#            e = ExecReport.new(:server => s, :verbose => @@verbose, :quiet => @@quiet)
-#            e.fields = @report
-#          end
-        elsif @set_tags.size > 0
+        elsif @report
+          if s.href
+            # MARC - We dont do this since we are treating instances as our "servers"
+            #s.href = s.href.sub("/current","")
+            e = ExecReport.new(:server => s, :verbose => @@verbose, :quiet => @@quiet)
+            e.fields = @report
+          end
+       elsif @set_tags.size > 0
           e = ExecSetTags.new(:server => s, :verbose => @@verbose, :quiet => @@quiet)
           e.tags = set_tags
         end
