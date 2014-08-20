@@ -635,9 +635,7 @@ module Chimp
            raise "Tag query returned no results: #{tags.join(" ")}"
         end
       end
-    #  servers.each do |s|
-    #    puts s.show.name
-    #  end
+
       return(servers)
     end
 
@@ -753,9 +751,9 @@ module Chimp
                       # IS THIS TIME WASTING HERE?
                       #Add rightscript objects to the
                       # only add the operational ones
-                      name=x.right_script.show.name
                       if x.sequence == "operational"
-                          @op_scripts.push([name, x])
+                        name=x.right_script.show.name
+                        @op_scripts.push([name, x])
                       end
                   end
               end
@@ -841,7 +839,7 @@ module Chimp
               #
               if @script_to_run == nil
                 puts "Sorry, didnt find that ( "+script+" ), provide an URI instead"
-                puts "I searched in: "+st
+                puts "I searched in: "+st.inspect
                 exit 1
               end
             end 
