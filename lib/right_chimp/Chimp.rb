@@ -618,8 +618,9 @@ module Chimp
       # This way we assure servers is always an array with instance objects
       #
       servers = []
+      search_results = Connection.client.tags.by_tag(:resource_type => 'instances', :tags => tags, :match_all => @match_all)[0]
+      search_results = search_results.resource if not search_results.nil?
 
-      search_results = Connection.client.tags.by_tag(:resource_type => 'instances', :tags => tags, :match_all => @match_all)[0].resource
       if search_results.kind_of?(Array)
         servers = search_results
       else
@@ -739,12 +740,17 @@ module Chimp
     # Look up the RightScript
     #
     def detect_right_script_new(st, script)
+            # In the event that chimpd find @op_scripts as nil, set it as an array.
+            if @op_scripts.nil?
+              @op_scripts = [] 
+            end
             # if script is empty, we will list all common scripts
             # if not empty, we will list the first matching one
             size = st.size-1
             show_wait_spinner{
               st.each do |s|
                   s[1].show.runnable_bindings.index.each do |x|
+                      # IS THIS TIME WASTING HERE?
                       #Add rightscript objects to the
                       # only add the operational ones
                       name=x.right_script.show.name
@@ -834,7 +840,8 @@ module Chimp
               # At this point we can make a full-on API query for the last revision of the script
               #
               if @script_to_run == nil
-                puts "Sorry, didnt find that, provide an URI instead"
+                puts "Sorry, didnt find that ( "+script+" ), provide an URI instead"
+                puts "I searched in: "+st
                 exit 1
               end
             end 
@@ -1112,6 +1119,7 @@ module Chimp
 
     #
     # Completely process a non-interactive chimp object command
+    # This is used by chimpd, when processing a task.
     #
     def process
       puts "Processing task..."

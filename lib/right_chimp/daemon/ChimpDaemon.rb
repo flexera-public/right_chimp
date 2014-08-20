@@ -339,7 +339,6 @@ module Chimp
         #  tasks.each do |task|
         #    q.push(group, task)
         #  end
-
         if verb == 'process' or verb == 'add'
           ChimpDaemon.instance.chimp_queue.push payload
           id = 0
