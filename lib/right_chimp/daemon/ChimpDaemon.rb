@@ -276,7 +276,6 @@ module Chimp
       # /group/<name>/<status>
       #
       def do_GET(req, resp)
-        
         jobs = {}
 
         group_name = req.request_uri.path.split('/')[-2]

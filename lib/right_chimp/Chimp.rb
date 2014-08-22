@@ -146,6 +146,17 @@ module Chimp
     def ip_address
       @params['ip_address']
     end
+    
+    def encode_with(coder)
+      vars = instance_variables.map{|x| x.to_s}
+      vars = vars - ['@object']
+
+      vars.each do |var|
+        var_val = eval(var)
+        coder[var.gsub('@', '')] = var_val
+      end
+    end
+
 
     def run_executable(exec, options)
       script_href="right_script_href="+exec.href
@@ -863,42 +874,6 @@ module Chimp
       if not ChimpQueue[@group]
         ChimpQueue.instance.create_group(@group, @group_type, @group_concurrency)
       end
-
-      #
-      # Process ServerArray selection
-      #
-#      Log.debug("processing queue selection")
-#      if not queue_arrays.empty?
-#        queue_arrays.each do |array|
-#          instances = filter_out_non_operational_servers(array.instances)
-#
-#          if not instances
-#            Log.error("no instances in array!")
-#            break
-#          end
-#
-#          instances.each do |array_instance|
-#            #
-#            # Handle limiting options
-#            #
-#            counter += 1
-#            next if @limit_start.to_i > 0 and counter < @limit_start.to_i
-#            break if @limit_end.to_i > 0 and counter > @limit_end.to_i
-#            a = ExecArray.new(
-#              :array => array,
-#              :server => array_instance,
-#              :exec => queue_executable,
-#              :inputs => @inputs,
-#              :template => queue_template,
-#              :timeout => @timeout,
-#              :verbose => @@verbose,
-#              :quiet => @@quiet
-#            )
-#            a.dry_run = @dry_run
-#            ChimpQueue.instance.push(@group, a)
-#          end
-#        end
-#      end
 
       #
       # Process Server selection

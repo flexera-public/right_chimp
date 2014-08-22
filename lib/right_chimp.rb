@@ -15,6 +15,7 @@ require 'highline/import'
 
 #NEW API CALS
 require 'right_api_client'
+require 'rest-client'
 require 'logger'
 
 module Chimp
