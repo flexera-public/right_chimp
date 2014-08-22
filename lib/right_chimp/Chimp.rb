@@ -701,7 +701,12 @@ module Chimp
           #Find if arrays exist, if not raise warning.
           result = Connection.client.server_arrays(:filter => ["name==#{array_name}"]).index
           if result.size != 0 
-           array_servers += result.first.current_instances.index
+            candidates=result.first.current_instances.index
+            candidates.each do |x|
+              if x.state=="operational"
+                array_servers += [x]
+              end
+            end
           else
             if @ignore_errors
               puts "Could not find array #{array_name}"
