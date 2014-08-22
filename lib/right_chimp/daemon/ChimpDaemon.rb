@@ -215,6 +215,7 @@ module Chimp
               end
 
             rescue StandardError => ex
+                puts ex.backtrace
               Log.error " submission processor: group=\"#{group}\" script=\"#{queued_request.script}\": #{ex}"
             end
           end
