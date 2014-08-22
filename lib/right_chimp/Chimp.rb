@@ -819,7 +819,7 @@ module Chimp
 
               @op_scripts.each  do |rb|
                   script_name=rb[0]
-                  if script_name.include?(script)
+                  if script_name.downcase.include?(script.downcase)
                       #We will only push the hrefs for the scripts since its the only ones we care
                       s=Executable.new
                       s.params['right_script']['href']=rb[1].right_script.show.href
