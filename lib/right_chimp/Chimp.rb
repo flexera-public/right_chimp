@@ -146,6 +146,17 @@ module Chimp
     def ip_address
       @params['ip_address']
     end
+    
+    def encode_with(coder)
+      vars = instance_variables.map{|x| x.to_s}
+      vars = vars - ['@object']
+
+      vars.each do |var|
+        var_val = eval(var)
+        coder[var.gsub('@', '')] = var_val
+      end
+    end
+
 
     def run_executable(exec, options)
       script_href="right_script_href="+exec.href
@@ -317,8 +328,10 @@ module Chimp
       #
       # Load the queue with work
       #
-      jobs = generate_jobs(@servers, @server_template, @executable)
-      add_to_queue(jobs)
+      if not @servers.first.nil? and not @executable.nil?
+        jobs = generate_jobs(@servers, @server_template, @executable)
+        add_to_queue(jobs)
+      end
 
       #
       # Exit early if there is nothing to do
@@ -335,9 +348,8 @@ module Chimp
     # Get the ServerTemplate info from the API
     #
     def get_template_info
-      if not (@servers.empty? and @array_names.empty?)
+      if not (@servers.first.nil? and @array_names.empty?)
         @server_template = detect_server_template_new(@servers, @array_names)
-        #@server_template.each { |st| puts st[0] }
       end
     end
 
@@ -347,9 +359,8 @@ module Chimp
     def get_executable_info
       if not (@servers.empty? )
         if (@script != nil)
-        # If script is an uri/url no need to "detect it"
-        # https://my.rightscale.com/acct/9202/right_scripts/205347
-
+          # If script is an uri/url no need to "detect it"
+          # https://my.rightscale.com/acct/9202/right_scripts/205347
           if @script =~ /\A#{URI::regexp}\z/
             puts "WARNING! You will be running this script on all server matches! (Press enter to continue)"
             gets
@@ -362,7 +373,7 @@ module Chimp
             @executable=s
              
           else 
-
+            #If its not an url, go ahead try to locate it in the ST"
             @executable = detect_right_script_new(@server_template, @script)
             puts "Using SSH command: \"#{@ssh}\"" if @action == :action_ssh
           end
@@ -490,11 +501,11 @@ module Chimp
             when '--chimpd'
               @use_chimpd = true
               @chimpd_port = arg.to_i unless arg.empty?
-              if @script.empty? || @script.nil?
-                puts "ERROR: --script cannot be empty when sending to chimpd"
-                help
-                exit 1 
-              end
+              #if @script.empty? || @script.nil?
+              #  puts "ERROR: --script cannot be empty when sending to chimpd"
+              #  help
+              #  exit 1 
+              #end
             when '--chimpd-wait-until-done'
               @use_chimpd = true
               @chimpd_wait_until_done = true
@@ -618,25 +629,24 @@ module Chimp
       # This way we assure servers is always an array with instance objects
       #
       servers = []
+      search_results = Connection.client.tags.by_tag(:resource_type => 'instances', :tags => tags, :match_all => @match_all)[0]
+      
+      if search_results.nil?
+        if @ignore_errors
+          Log.warn "Tag query returned no results: #{tags.join(" ")}"
+        else
+           raise "Tag query returned no results: #{tags.join(" ")}"
+        end
+      else
+        search_results = search_results.resource 
+      end
 
-      search_results = Connection.client.tags.by_tag(:resource_type => 'instances', :tags => tags, :match_all => @match_all)[0].resource
       if search_results.kind_of?(Array)
         servers = search_results
       else
         servers << search_results
       end
 
-
-      if tags.size > 0 and servers.nil? or servers.empty?
-        if @ignore_errors
-          puts  "Tag query returned no results: #{tags.join(" ")}"
-        else
-           raise "Tag query returned no results: #{tags.join(" ")}"
-        end
-      end
-    #  servers.each do |s|
-    #    puts s.show.name
-    #  end
       return(servers)
     end
 
@@ -691,7 +701,12 @@ module Chimp
           #Find if arrays exist, if not raise warning.
           result = Connection.client.server_arrays(:filter => ["name==#{array_name}"]).index
           if result.size != 0 
-           array_servers += result.first.current_instances.index
+            candidates=result.first.current_instances.index
+            candidates.each do |x|
+              if x.state=="operational"
+                array_servers += [x]
+              end
+            end
           else
             if @ignore_errors
               puts "Could not find array #{array_name}"
@@ -716,7 +731,9 @@ module Chimp
     #
     def detect_server_template_new(servers, array_names_to_detect)
       st = []
-
+      if servers[0].nil?
+        return (st)
+      end
       servers.each { |s|
         name=s.show.server_template.show.name
         if !(st.empty?)
@@ -739,28 +756,37 @@ module Chimp
     # Look up the RightScript
     #
     def detect_right_script_new(st, script)
+            executable=nil
+            # In the event that chimpd find @op_scripts as nil, set it as an array.
+            if @op_scripts.nil?
+              @op_scripts = [] 
+            end
+            if st.nil?
+              return executable
+            end
             # if script is empty, we will list all common scripts
             # if not empty, we will list the first matching one
             size = st.size-1
             show_wait_spinner{
               st.each do |s|
                   s[1].show.runnable_bindings.index.each do |x|
+                      # IS THIS TIME WASTING HERE?
                       #Add rightscript objects to the
                       # only add the operational ones
-                      name=x.right_script.show.name
                       if x.sequence == "operational"
-                          @op_scripts.push([name, x])
+                        name=x.right_script.show.name
+                        @op_scripts.push([name, x])
                       end
                   end
               end
             }
             #We now should only have operational runnable_bindings under the script_objects array
             if @op_scripts.length <= 1
-                puts "ERROR: No common operational scripts found on the server(s). "
+                raise "ERROR: No common operational scripts found on the server(s). "
                 st.each {|s| 
                   puts "         (Search performed on server template '#{s[0]}')"
                 }
-                exit
+                
             end
 
             # if script is empty, we will list all common scripts
@@ -781,7 +807,6 @@ module Chimp
               res << [key, values.first] if values.size >= size
               @op_scripts=res
               end 
-              #@op_scripts = @op_scripts.detect{|i| @op_scripts.count(i) > size}
 
 
               
@@ -806,16 +831,12 @@ module Chimp
                 s.params['right_script']['href']=@op_scripts[script_id][1].right_script.show.href
                 s.params['right_script']['name']=@op_scripts[script_id][0]
                 @script_to_run=s
-                #@script_to_run.push([@op_scripts[script_id][0],@op_scripts[script_id][1].right_script.show.href])
-                ########################
                #end of the break
 
             else
               # 
               # Try to find the first one matching, if none matches, try to run from ANY script - FIXME
               # The arrays is filled with  [name_of_the_script , #<RightApi::ResourceDetail resource_type="runnable_binding">]
-              # Maybe throw a warning if script is not on the list?
-              #
 
               @op_scripts.each  do |rb|
                   script_name=rb[0]
@@ -834,8 +855,11 @@ module Chimp
               # At this point we can make a full-on API query for the last revision of the script
               #
               if @script_to_run == nil
-                puts "Sorry, didnt find that, provide an URI instead"
-                exit 1
+                puts "ERROR: Sorry, didnt find that ( "+script+" ), provide an URI instead"
+                puts "I searched in: "+st.inspect
+                if not @ignore_errors
+                  exit 1
+                end
               end
             end 
     end
@@ -855,42 +879,6 @@ module Chimp
       if not ChimpQueue[@group]
         ChimpQueue.instance.create_group(@group, @group_type, @group_concurrency)
       end
-
-      #
-      # Process ServerArray selection
-      #
-#      Log.debug("processing queue selection")
-#      if not queue_arrays.empty?
-#        queue_arrays.each do |array|
-#          instances = filter_out_non_operational_servers(array.instances)
-#
-#          if not instances
-#            Log.error("no instances in array!")
-#            break
-#          end
-#
-#          instances.each do |array_instance|
-#            #
-#            # Handle limiting options
-#            #
-#            counter += 1
-#            next if @limit_start.to_i > 0 and counter < @limit_start.to_i
-#            break if @limit_end.to_i > 0 and counter > @limit_end.to_i
-#            a = ExecArray.new(
-#              :array => array,
-#              :server => array_instance,
-#              :exec => queue_executable,
-#              :inputs => @inputs,
-#              :template => queue_template,
-#              :timeout => @timeout,
-#              :verbose => @@verbose,
-#              :quiet => @@quiet
-#            )
-#            a.dry_run = @dry_run
-#            ChimpQueue.instance.push(@group, a)
-#          end
-#        end
-#      end
 
       #
       # Process Server selection
@@ -965,7 +953,6 @@ module Chimp
 
           tasks.push(e)
         end
-
       end
       return(tasks)
     end
@@ -1112,6 +1099,7 @@ module Chimp
 
     #
     # Completely process a non-interactive chimp object command
+    # This is used by chimpd, when processing a task.
     #
     def process
       puts "Processing task..."
@@ -1119,7 +1107,12 @@ module Chimp
       get_server_info
       get_template_info
       get_executable_info
-      return generate_jobs(@servers, @server_template, @executable)
+      if @servers.first.nil? or @executable.nil?
+        puts "Nothing to do"
+        return []
+      else
+        return generate_jobs(@servers, @server_template, @executable)
+      end
     end
 
     #
@@ -1360,7 +1353,7 @@ module Chimp
     def make_human_readable_list_of_objects
       list_of_objects = []
 
-      if @servers
+      if @servers and not @servers.first.nil?
         list_of_objects += @servers.map { |s| s.show.name }
       end
 

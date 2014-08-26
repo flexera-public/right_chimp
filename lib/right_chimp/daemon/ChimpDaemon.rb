@@ -215,6 +215,7 @@ module Chimp
               end
 
             rescue StandardError => ex
+                puts ex.backtrace
               Log.error " submission processor: group=\"#{group}\" script=\"#{queued_request.script}\": #{ex}"
             end
           end
@@ -275,7 +276,6 @@ module Chimp
       # /group/<name>/<status>
       #
       def do_GET(req, resp)
-        
         jobs = {}
 
         group_name = req.request_uri.path.split('/')[-2]
@@ -339,7 +339,6 @@ module Chimp
         #  tasks.each do |task|
         #    q.push(group, task)
         #  end
-
         if verb == 'process' or verb == 'add'
           ChimpDaemon.instance.chimp_queue.push payload
           id = 0
