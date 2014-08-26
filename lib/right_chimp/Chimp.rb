@@ -362,8 +362,13 @@ module Chimp
           # If script is an uri/url no need to "detect it"
           # https://my.rightscale.com/acct/9202/right_scripts/205347
           if @script =~ /\A#{URI::regexp}\z/
-            puts "WARNING! You will be running this script on all server matches! (Press enter to continue)"
-            gets
+            if not @use_chimpd 
+              puts "=================================================="
+              puts "WARNING! You will be running this script on all "
+              puts "server matches! (Press enter to continue)" 
+              puts "=================================================="
+              gets
+            end
 
             script_number = File.basename(@script)
            
