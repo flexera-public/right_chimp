@@ -909,6 +909,7 @@ module Chimp
         #
         s = Server.new
         result=server.show
+
         s.params['href'] = server.href
         s.params['current_instance_href'] = server.href
         s.params['current-instance-href'] = s.params['current_instance_href']
@@ -917,6 +918,7 @@ module Chimp
         s.params['ip_address'] = result.public_ip_addresses
         s.params['ip-address'] = s.params['ip_address']
         s.object=server
+
         e = nil
 
         # If @script has been passed
