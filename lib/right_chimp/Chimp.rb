@@ -704,13 +704,13 @@ module Chimp
       if names.size > 0
         names.each do |array_name|
           #Find if arrays exist, if not raise warning.
-          result = Connection.client.server_arrays(:filter => ["name==#{array_name}"]).index
+          result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
+          #Result is an array with all the server arrays
           if result.size != 0 
-            candidates=result.first.current_instances.index
-            candidates.each do |x|
-              if x.state=="operational"
-                array_servers += [x]
-              end
+            result.each do |array|
+              instances=array.current_instances.index(:filter => ["state==operational"])
+             #Need to store them into array_servers 
+             array_servers += instances
             end
           else
             if @ignore_errors
@@ -739,16 +739,20 @@ module Chimp
       if servers[0].nil?
         return (st)
       end
+
+
       servers.each { |s|
-        name=s.show.server_template.show.name
-        if !(st.empty?)
+        server_template = s.show.server_template
+          #name=server_template.show.name
+          href=server_template.href
+          if !(st.empty?)
           #Only store if its a new server template
-          if !(st.reduce(:concat).include?(name))
-            st.push([name, s.show.server_template])
+            if !(st.reduce(:concat).include?(href))
+              st.push([href, server_template])
+            end
+          else
+            st.push([href, server_template])
           end
-        else
-          st.push([name, s.show.server_template])
-        end
       }
       #
       # We return an array of server_template resources
@@ -775,8 +779,8 @@ module Chimp
             show_wait_spinner{
               st.each do |s|
                   s[1].show.runnable_bindings.index.each do |x|
-                      # IS THIS TIME WASTING HERE?
-                      #Add rightscript objects to the
+                      # IS THIS TIME WASTING HERE?  < YES
+                      # Add rightscript objects to the
                       # only add the operational ones
                       if x.sequence == "operational"
                         name=x.right_script.show.name
@@ -904,12 +908,13 @@ module Chimp
         # Construct the Server object
         #
         s = Server.new
+        result=server.show
         s.params['href'] = server.href
         s.params['current_instance_href'] = server.href
         s.params['current-instance-href'] = s.params['current_instance_href']
-        s.params['name'] = server.show.name
-        s.params['nickname'] = server.show.name
-        s.params['ip_address'] = server.show.public_ip_addresses
+        s.params['name'] = result.name
+        s.params['nickname'] = result.name
+        s.params['ip_address'] = result.public_ip_addresses
         s.params['ip-address'] = s.params['ip_address']
         s.object=server
         e = nil
