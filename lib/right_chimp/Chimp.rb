@@ -160,7 +160,9 @@ module Chimp
 
     def run_executable(exec, options)
       script_href = "right_script_href="+exec.href
-      task = self.object.show.run_executable(script_href)
+      # Construct the parameters to pass for the inputs
+      params=options.collect { |k, v| "&inputs[][name]=#{k}&inputs[][value]=#{v}" }.join('&')
+      task = self.object.show.run_executable(script_href + params)
       return task
     end
   end
