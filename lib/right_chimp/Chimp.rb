@@ -14,16 +14,16 @@ module Chimp
       require 'yaml'
       require 'right_api_client'
       begin
-        creds=YAML.load_file("#{ENV['HOME']}/.rest_connection/rest_api_config.yaml")
+        creds = YAML.load_file("#{ENV['HOME']}/.rest_connection/rest_api_config.yaml")
         #
         # Extract the account
         #
-        creds[:account]=File.basename(creds[:api_url])
+        creds[:account] = File.basename(creds[:api_url])
         #
         # Figure out url to hit:
         #
-        creds[:api_url]="https://"+URI.parse(creds[:api_url]).host
-        @client=RightApi::Client.new(:email => creds[:user], :password => creds[:pass], :account_id => creds[:account], :api_url => creds[:api_url])
+        creds[:api_url] = "https://"+URI.parse(creds[:api_url]).host
+        @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass], :account_id => creds[:account], :api_url => creds[:api_url])
       rescue
         puts "##############################################################################"
         puts "Error, credentials file: could not be loaded correctly"
@@ -81,7 +81,7 @@ module Chimp
     attr_reader :params
 
     def initialize
-      @params={
+      @params = {
         "position"=>5, 
         "right_script"=>{
           "created_at"=>"", 
@@ -119,7 +119,7 @@ module Chimp
     attr_accessor :run_executable
 
     def initialize
-      @params={
+      @params = {
         "href"=>"dummy href", 
         "current_instance_href"=>nil, 
         "current-instance-href"=>nil, 
@@ -159,8 +159,8 @@ module Chimp
 
 
     def run_executable(exec, options)
-      script_href="right_script_href="+exec.href
-      task=self.object.show.run_executable(script_href)
+      script_href = "right_script_href="+exec.href
+      task = self.object.show.run_executable(script_href)
       return task
     end
   end
@@ -708,7 +708,7 @@ module Chimp
           #Result is an array with all the server arrays
           if result.size != 0 
             result.each do |array|
-              instances=array.current_instances.index(:filter => ["state==operational"])
+              instances = array.current_instances.index(:filter => ["state==operational"])
              #Need to store them into array_servers 
              array_servers += instances
             end
@@ -744,7 +744,7 @@ module Chimp
       servers.each { |s|
         server_template = s.show.server_template
           #name=server_template.show.name
-          href=server_template.href
+          href = server_template.href
           if !(st.empty?)
           #Only store if its a new server template
             if !(st.reduce(:concat).include?(href))
@@ -765,7 +765,7 @@ module Chimp
     # Look up the RightScript
     #
     def detect_right_script_new(st, script)
-            executable=nil
+            executable = nil
             # In the event that chimpd find @op_scripts as nil, set it as an array.
             if @op_scripts.nil?
               @op_scripts = [] 
@@ -783,7 +783,7 @@ module Chimp
                       # Add rightscript objects to the
                       # only add the operational ones
                       if x.sequence == "operational"
-                        name=x.right_script.show.name
+                        name = x.right_script.show.name
                         @op_scripts.push([name, x])
                       end
                   end
@@ -814,7 +814,7 @@ module Chimp
 
               b.inject([]) do |res, (key, values)|
               res << [key, values.first] if values.size >= size
-              @op_scripts=res
+              @op_scripts = res
               end 
 
 
@@ -836,10 +836,10 @@ module Chimp
                 end
                 end
                 # Provide the name + href
-                s=Executable.new
-                s.params['right_script']['href']=@op_scripts[script_id][1].right_script.show.href
-                s.params['right_script']['name']=@op_scripts[script_id][0]
-                @script_to_run=s
+                s = Executable.new
+                s.params['right_script']['href'] = @op_scripts[script_id][1].right_script.show.href
+                s.params['right_script']['name'] = @op_scripts[script_id][0]
+                @script_to_run = s
                #end of the break
 
             else
@@ -848,13 +848,13 @@ module Chimp
               # The arrays is filled with  [name_of_the_script , #<RightApi::ResourceDetail resource_type="runnable_binding">]
 
               @op_scripts.each  do |rb|
-                  script_name=rb[0]
+                  script_name = rb[0]
                   if script_name.downcase.include?(script.downcase)
                       #We will only push the hrefs for the scripts since its the only ones we care
-                      s=Executable.new
-                      s.params['right_script']['href']=rb[1].right_script.show.href
-                      s.params['right_script']['name']=script_name
-                      @script_to_run=s
+                      s = Executable.new
+                      s.params['right_script']['href'] = rb[1].right_script.show.href
+                      s.params['right_script']['name'] = script_name
+                      @script_to_run = s
                       return @script_to_run
                       break
                   end
@@ -908,7 +908,7 @@ module Chimp
         # Construct the Server object
         #
         s = Server.new
-        result=server.show
+        result = server.show
 
         s.params['href'] = server.href
         s.params['current_instance_href'] = server.href
@@ -917,7 +917,7 @@ module Chimp
         s.params['nickname'] = result.name
         s.params['ip_address'] = result.public_ip_addresses
         s.params['ip-address'] = s.params['ip_address']
-        s.object=server
+        s.object = server
 
         e = nil
 
