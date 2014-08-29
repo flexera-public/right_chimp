@@ -54,6 +54,7 @@ module Chimp
           [ '--delay', '-d',        GetoptLong::REQUIRED_ARGUMENT ],
           [ '--retry', '-y',        GetoptLong::REQUIRED_ARGUMENT ],
           [ '--port', '-p',         GetoptLong::REQUIRED_ARGUMENT ],
+          [ '--help', '-h',         GetoptLong::NO_ARGUMENT ],
           [ '--exit', '-x', 				GetoptLong::NO_ARGUMENT ]
         )
 
@@ -74,6 +75,8 @@ module Chimp
               @quiet = true
             when '--port', '-p'
               @port = arg
+            when '--help', '-h'
+              help
             when '--exit', '-x'
             	uri = "http://localhost:#{@port}/admin"
 							response = RestClient.post uri, { 'shutdown' => true }.to_yaml
@@ -98,6 +101,33 @@ module Chimp
       if @quiet
         Log.threshold = Logger::WARN
       end
+
+    end
+ 
+    #
+    # Print out help information
+    #   
+    def help
+      puts
+      puts  "chimpd -- a RightScale Platform command-line tool"
+      puts
+      puts  "Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--verbose]"
+      puts  
+      puts  "Options:"
+      puts 
+      puts  " --logfile=<name>            Specifiy the desired log location"
+      puts  " --concurrency=<n>           Specify the level of concurrent actions"
+      puts  " --delay=<n>                 Specify the number of seconds to wait before executing the action"
+      puts  " --retry=<r>                 Specify the number of times chimpd should retry executing the action"
+      puts 
+      puts  " --verbose                   Run chimpd in verbose mode."
+      puts  " --quiet                     Supress non-essential output"
+      puts
+      puts  " --port=<port>               Specify the port number for chimpd to listen on (default: 9055)"
+      puts
+      puts  " --help                      Displays this menu"
+      puts
+      exit 0
 
     end
 
