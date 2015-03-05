@@ -5,53 +5,67 @@ module Chimp
   #
   class ChimpDaemonClient
     #
+    # self.submit
+    # self.quit
+    # self.retrieve_job_info
+    # self.retrieve_group_info
+    # self.set_job_status
+    # self.create_group
+    # self.retry_group
+
+    #
     # Submit a Chimp object to a remote chimpd
     #
-    def self.submit(host, port, chimp_object)
+    def self.submit(host, port, chimp_object, job_uuid)
       uri = "http://#{host}:#{port}/job/process"
       attempts = 3
 
       begin
+        # We are sending to the chimp host+port the actual chimp_object. 
         response = RestClient.post uri, chimp_object.to_yaml
+
 
         if response.code > 199 and response.code < 300
           id = YAML::load(response.body)['id']
+          #ID changes upon execution, not upon submission.
+          job_uuid = YAML::load(response.body)['job_uuid']
+          puts "["+job_uuid+"]"
           return true
         else
-          $stderr.puts "WARNING: error submitting to chimpd! response code: #{reponse.code}"
+          $stderr.puts "["+job_uuid+"] WARNING: error submitting to chimpd! response code: #{reponse.code}"
           return false
         end
 
       rescue RestClient::RequestTimeout => ex
-        $stderr.puts "WARNING: Request timeout talking to chimpd for job #{chimp_object.script}: #{ex.message} (#{ex.http_code})"
+        $stderr.puts "["+job_uuid+"] WARNING: Request timeout talking to chimpd for job #{chimp_object.script}: #{ex.message} (#{ex.http_code})"
         attempts -= 1
         sleep 5 and retry if attempts > 0
         return false
 
       rescue RestClient::InternalServerError => ex
-        $stderr.puts "WARNING: Error submitting job to chimpd: #{error_message}, retrying..."
+        $stderr.puts "["+job_uuid+"] WARNING: Error submitting job to chimpd: #{ex.message}, retrying..."
         attempts -= 1
         sleep 5 and retry if attempts > 0
         return false
 
       rescue Errno::ECONNRESET => ex
-        $stderr.puts "WARNING: Connection reset by peer, retrying..."
+        $stderr.puts "["+job_uuid+"] WARNING: Connection reset by peer, retrying..."
         attempts -= 1
         sleep 5 and retry if attempts > 0
         return false
 
       rescue Errno::EPIPE => ex
-        $stderr.puts "WARNING: broken pipe, retrying..."
+        $stderr.puts "["+job_uuid+"] WARNING: broken pipe, retrying..."
         attempts -= 1
         sleep 5 and retry if attempts > 0
         return false
 
       rescue Errno::ECONNREFUSED => ex
-        $stderr.puts "ERROR: connection refused, aborting"
+        $stderr.puts "["+job_uuid+"] ERROR: connection refused, aborting"
         return false
 
       rescue RestClient::Exception => ex
-        $stderr.puts "ERROR: Error submitting job to chimpd #{chimp_object.script}: #{ex.message}"
+        $stderr.puts "["+job_uuid+"] ERROR: Error submitting job to chimpd #{chimp_object.script}: #{ex.message}"
         return false
       end
     end

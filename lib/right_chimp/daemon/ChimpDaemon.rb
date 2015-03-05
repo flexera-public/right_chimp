@@ -6,6 +6,18 @@
 
 module Chimp
   class ChimpDaemon
+    #
+    # initialize
+    # run
+    # parse_command_line
+    # help
+    # spawn_queue_runner
+    # spawn_webserver
+    # run_forever
+    # install_signal_handlers
+    # quit
+    # spawn_chimpd_submission_processor
+
     attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count, :dry_run, :logfile, :chimp_queue
     attr_reader :queue, :running
 
@@ -101,7 +113,6 @@ module Chimp
       if @quiet
         Log.threshold = Logger::WARN
       end
-
     end
  
     #
@@ -128,7 +139,6 @@ module Chimp
       puts  " --help                      Displays this menu"
       puts
       exit 0
-
     end
 
     #
@@ -257,6 +267,11 @@ module Chimp
     # GenericServlet -- servlet superclass
     #
     class GenericServlet < WEBrick::HTTPServlet::AbstractServlet
+      # 
+      # get_verb
+      # get_id
+      # get_payload
+      # 
       def get_verb(req)
         r = req.request_uri.path.split('/')[2]
       end
@@ -267,6 +282,11 @@ module Chimp
         return id
       end
 
+      def get_job_uuid(req)
+        string = req.body.scan(/job_uuid: .{6}/).last
+        job_uuid = string.scan(/ (.{6})/).last.last
+        return job_uuid
+      end
       #
       # Get the body of the request-- assume YAML
       #
@@ -283,6 +303,9 @@ module Chimp
     # AdminServlet - admin functions
     #
     class AdminServlet < GenericServlet
+      # 
+      # get do_POST
+      #
       def do_POST(req, resp)
         payload = self.get_payload(req)
         shutdown = payload['shutdown'] || false
@@ -301,6 +324,11 @@ module Chimp
     # http://localhost:9055/group/default/running
     #
     class GroupServlet < GenericServlet
+      #
+      # do_GET
+      # do_POST
+      #
+
       #
       # GET a group by name and status
       # /group/<name>/<status>
@@ -340,8 +368,7 @@ module Chimp
           raise WEBrick::HTTPStatus::PreconditionFailed.new("invalid action")
         end
       end
-
-    end
+    end # GroupServlet
 
     #
     # JobServlet - job control
@@ -349,9 +376,15 @@ module Chimp
     # HTTP body is a yaml serialized chimp object
     #
     class JobServlet < GenericServlet
+      #
+      # do_POST
+      # do_GET
+      #
+
       def do_POST(req, resp)
         id      = -1
         job_id  = self.get_id(req)
+        job_uuid= self.get_job_uuid(req)
         verb    = self.get_verb(req)
 
         payload = self.get_payload(req)
@@ -377,7 +410,9 @@ module Chimp
           q.get_job(job_id).status = payload.status
         end
 
+
         resp.body = {
+          'job_uuid' => job_uuid , 
           'id' => id
         }.to_yaml
 
@@ -474,6 +509,10 @@ module Chimp
     # DisplayServlet
     #
     class DisplayServlet < GenericServlet
+      #
+      # do_GET
+      # 
+
       def do_GET(req, resp)
         #
         # First determine the path to the files to serve
@@ -523,5 +562,6 @@ module Chimp
         end
       end
     end # DisplayServlet
+
   end # ChimpDaemon
 end

@@ -5,7 +5,7 @@
 module Chimp
   class Executor
     attr_accessor :server, :array, :exec, :inputs, :template, :owner, :group,
-                  :job_id, :status, :dry_run, :verbose, :quiet, :timeout,
+                  :job_id, :job_uuid, :status, :dry_run, :verbose, :quiet, :timeout,
                   :retry_count, :retry_sleep, :time_start, :time_end, :error
     
     attr_reader   :results
@@ -23,6 +23,7 @@ module Chimp
       @template = h[:template]        || nil
 
       @job_id = h[:job_id]            || nil
+      @job_uuid = h[:job_uuid]        || nil
       @group = h[:group]              || nil
       @exec = h[:exec]                || nil
       @inputs = h[:inputs]            || nil
@@ -105,6 +106,7 @@ module Chimp
 
       @status = STATUS_RUNNING
       @time_start = Time.now
+
       Log.info self.describe_work_start unless @quiet
       
       #

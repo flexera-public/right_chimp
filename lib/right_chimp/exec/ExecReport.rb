@@ -50,7 +50,7 @@ module Chimp
               output << tag if tag =~ /^#{tag_search_string}/
             end
           else
-            # MARC- FIXME
+            # FIXME
             output << s.params[f]
           end
         end

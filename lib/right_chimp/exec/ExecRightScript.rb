@@ -21,7 +21,7 @@ module Chimp
     end
     
     def describe_work
-      return "ExecRightScript job_id=#{@job_id} script=\"#{@exec.params['right_script']['name']}\" server=\"#{@server.nickname}\""
+      return "[#{@job_uuid}] ExecRightScript job_id=#{@job_id} script=\"#{@exec.params['right_script']['name']}\" server=\"#{@server.nickname}\""
     end
     
     def info

@@ -2,44 +2,103 @@
 # The Chimp class encapsulates the command-line program logic
 #
 #
+# TODO: 
+#  - tags user or
+#  - make all references to my.rightscale use the creds[:api_url]
+#    for example in tasks and audit entries
+#  - Sending to chimpd doesnt work
+#  - Timeout error doesnt give uuid
+#
 module Chimp
   require 'yaml'
   class Connection
+    #
+    # initialize
+    # self.connect
+    # self.client
+    # self.endpoint
+    #
     include Singleton 
-    attr_accessor :client
+    attr_accessor :client, :all_instances
 
     def initialize
     end
+
     def self.connect
       require 'yaml'
       require 'right_api_client'
       begin
         creds = YAML.load_file("#{ENV['HOME']}/.rest_connection/rest_api_config.yaml")
-        #
+
         # Extract the account
-        #
         creds[:account] = File.basename(creds[:api_url])
-        #
+
         # Figure out url to hit:
-        #
         creds[:api_url] = "https://"+URI.parse(creds[:api_url]).host
-        @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass], :account_id => creds[:account], :api_url => creds[:api_url], :timeout => nil)
+
+        @endpoint = URI.parse(creds[:api_url]).host
+
+
+        @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass], 
+                                        :account_id => creds[:account], :api_url => creds[:api_url], 
+                                        :timeout => nil)
+
       rescue
         puts "##############################################################################"
         puts "Error, credentials file: could not be loaded correctly"
+        puts "or Connection couldnt be establishhed"
         puts "##############################################################################"
         exit -1
       end
     end
+
     def self.client
       @client
     end
 
- end
+    def self.endpoint
+      @endpoint
+    end
+
+    def self.all_instances
+      begin
+        #
+        #Upon initial connection we will make an api1.6 call to cache all operational instances
+        #
+        filters_list = "state=operational"
+        filters = CGI::escape(filters_list)
+
+        query="/api/instances?view=full&filter="+filters
+
+        get  = Net::HTTP::Get.new(query)
+        get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
+        get['X-Api_Version'] = '1.6'
+        get['X-Account']     = @client.account_id
+        
+        http = Net::HTTP.new(@endpoint, 443)
+        http.use_ssl = true
+        response   = http.request(get)
+
+        # Returns an array of results
+        @all_instances = JSON.parse(response.body)
+      rescue Exception => e  
+        puts e.message
+      end
+
+      return @all_instances
+    end
+  end
+
   ######################################
-  #Temporarely add my Task object here
+  # Tmp add my Task object here
   ######################################
   class Task
+    # 
+    # wait_for_state
+    # wait_for_completed
+    # state
+    # href
+    #
 
     attr_writer :tasker
     attr_reader :tasker
@@ -48,7 +107,7 @@ module Chimp
       while(timeout > 0)
         state=self.tasker.show.summary
       return true if self.state.match(desired_state)
-        friendly_url = "https://my.rightscale.com/audit_entries/"
+        friendly_url = "https://"+Connection.endpoint+"/audit_entries/"
         friendly_url += self.href.split(/\//).last
         friendly_url = friendly_url.tr('ae-','')
         raise "FATAL error, #{self.tasker.show.summary}\nSee Audit: API:#{self.href}, WWW:<a href='#{friendly_url}'>#{friendly_url}</a>\n" if self.state.match("failed")
@@ -71,11 +130,15 @@ module Chimp
     end
   end
 
-
   ######################################
-  #Temporarely add my Executable object
+  # Tmp add my Executable object
   ######################################
   class Executable
+    #
+    # initialize
+    # href
+    # name
+    #
 
     attr_writer :params
     attr_reader :params
@@ -104,14 +167,21 @@ module Chimp
     def name
       @params['right_script']['name']
     end
-
-
   end
-  
+
   ######################################
-  #Temporarely add my Server object here
+  #Tmp add my Server object here
   ######################################
   class Server
+    #
+    # initialize
+    # href
+    # name
+    # nickname
+    # ip_address
+    # encode_with
+    # run_executable
+    #
 
     attr_writer :params, :object
     attr_reader :params, :object
@@ -162,16 +232,61 @@ module Chimp
       script_href = "right_script_href="+exec.href
       # Construct the parameters to pass for the inputs
       params=options.collect { |k, v| "&inputs[][name]=#{k}&inputs[][value]=#{v}" }.join('&')
+      # self is the actual Server object
       task = self.object.show.run_executable(script_href + params)
       return task
     end
   end
 
   class Chimp
+    #
+    # initialize
+    # show_wait_spinner
+    # run
+    # get_template_info
+    # get_executable_info
+    # parse_command_line
+    # check_option_validity
+    # get_server_info
+    # api16_call
+    # get_array_info
+    # get_servers_by_tag
+    # get_servers_by_tag16
+    # get_servers_by_deployment
+    # get_servers_by_array
+    # get_hrefs_for_arrays
+    # detect_server_template_new
+    # detect_server_template_16
+    # detect_right_script_new
+    # detect_right_script_16
+    # generate_jobs
+    # add_to_queue
+    # queue_runner
+    # set_action
+    # verify_results
+    # get_results
+    # print_timings
+    # get_failures
+    # filter_out_non_operational_servers
+    # do_work
+    # process
+    # job_id
+    # ask_confirmation
+    # chimpd_wait_until_done
+    # disable_logging
+    # verify
+    # warn_if_rightscript_not_in_all_servers
+    # make_human_readable_list_of_objects
+    # help
+    #
+    # self.set_verbose
+    # self.verbose?
+
+
     attr_accessor :concurrency, :delay, :retry_count, :hold, :progress, :prompt,
                   :quiet, :use_chimpd, :chimpd_host, :chimpd_port, :tags, :array_names,
                   :deployment_names, :script, :servers, :ssh, :report, :interactive, :action,
-                  :limit_start, :limit_end, :dry_run, :group, :job_id, :verify
+                  :limit_start, :limit_end, :dry_run, :group, :job_id, :job_uuid, :verify
 
     #
     # These class variables control verbosity
@@ -217,11 +332,10 @@ module Chimp
       #
       @current          = true
       @match_all        = true
+
       # This is an array of json data for each instance
       @servers          = []
-      # This will store a giant json hash with all the account instances
-      @all_instances    = nil
-      @all_servers      = []
+
       @arrays           = []
       @tags             = []
       @array_names      = []
@@ -247,19 +361,14 @@ module Chimp
       @chimpd_wait_until_done     = false
 
       #
-      #Connect to the API
-      # 
-      Connection.instance
-      Connection.connect
-      #
       # Will contain the operational scripts we have found
       # In the form: [name, href]
-      @op_scripts                 = []
+      @op_scripts = []
 
       #
       # This will contain the href and the name of the script to be run
       # in the form: [name, href]
-      @script_to_run       = nil
+      @script_to_run = nil
     end
 
     def show_wait_spinner(fps=10)
@@ -278,6 +387,7 @@ module Chimp
         spinner.join   # …and wait for it to do so.
       }                # Use the block's return value as the method's
     end
+
     #
     # Entry point for the chimp command line application
     #
@@ -302,48 +412,31 @@ module Chimp
       # Send the command to chimpd for execution
       #
       if @use_chimpd
-        ChimpDaemonClient.submit(@chimpd_host, @chimpd_port, self)
+        timestamp=Time.now.to_i
+        self.job_uuid = rand(36**6).to_s(36)
+        ChimpDaemonClient.submit(@chimpd_host, @chimpd_port, self,self.job_uuid)
         exit
+      else
+        #Connect to the Api
+        Connection.instance
+        Connection.connect
       end
 
-      # We start by retrieving all operational instances we are aware of
-      # Sample for api16 call
-      filters_list = "state=operational"
-      #filters_list = "tag=info:shard_number=93&state=operational"
-      filters = CGI::escape(filters_list)
-      #instances=api16_call("/api/instances?view=full&filter="+filters)
-     
-
-      #TO get instances from array, first get the href for the array, then call instances
-      #filtered by parent_href
-      @all_instances=api16_call("/api/instances?view=full&filter="+filters)
-      @all_servers=@all_instances
-      # servers_from_array = []
-      # instances.each { |i|
-      #   if i['links']['incarnator']['kind'] == 'cm#server_array'
-      #     servers_from_array  += [i]
-      #   end
-      # }
-      
-
-      #Incarnators differ for server or array:
-      # "kind"=>"cm#server_array", "kind"=>"cm#server"
-      
-      # filters_list = "tag=info:api_id=16388762003&state=operational"
-      #
       # If we're processing the command ourselves, then go
       # ahead and start making API calls to select the objects
       # to operate upon
       #
+
       #Get elements if --array has been passed
       get_array_info
-      
+
       # Get elements if we are searching by tags
       get_server_info
-      
+
       # At this stage @servers should be populated with our findings
       # Get ST info for all elements
       get_template_info
+
       puts "Looking for the rightscripts (This might take some time)" if (@interactive and not @use_chimpd) and not @@quiet
       get_executable_info # Simulate a task taking an unknown amount of time
     
@@ -377,7 +470,36 @@ module Chimp
       else
         do_work
       end
+    end
 
+    #
+    # Load up @array with server arrays to operate on
+    #
+    def get_array_info
+      return if @array_names.empty?
+
+      # The first thing to do here is make an api1.5 call to get the array hrefs. 
+      arrays_hrefs=get_hrefs_for_arrays(@array_names)
+      # Then we filter on all the instances by this href
+      arrays_hrefs.each { |href|
+        Connection.all_instances.each { |s|
+          if s['links']['incarnator']['href'] == href 
+            @servers += [s]
+          end
+        }
+      }
+      # The result will be stored (not returned) into @servers
+    end
+
+    #
+    # Go through each of the various ways to specify servers via
+    # the command line (tags, deployments, etc.) and get all the info
+    # needed from the RightScale API.
+    #
+    def get_server_info
+      @servers += get_servers_by_tag16(@tags)
+      # Perhaps allow searchign by deployment
+      @servers += get_servers_by_deployment(@deployment_names)
     end
 
     #
@@ -423,7 +545,7 @@ module Chimp
           end
         end
       end
-    end 
+    end
 
     #
     # Parse command line options
@@ -583,7 +705,6 @@ module Chimp
       if @group_concurrency > @concurrency
         @concurrency = @group_concurrency
       end
-
     end
 
     #
@@ -609,100 +730,10 @@ module Chimp
     end
 
     #
-    # Go through each of the various ways to specify servers via
-    # the command line (tags, deployments, etc.) and get all the info
-    # needed from the RightScale API.
-    #
-    def get_server_info
-      @servers += get_servers_by_tag16(@tags)
-      # Perhaps allow searchign by deployment
-      @servers += get_servers_by_deployment(@deployment_names)
-    end
-
-    #
-    # Temporary location for api1.6 calls
-    #
-    def api16_call(query)
-
-      get  = Net::HTTP::Get.new(query)
-      get['Cookie']        = Connection.client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
-      get['X-Api_Version'] = '1.6'
-      get['X-Account']     = Connection.client.account_id
-
-      http = Net::HTTP.new('my.rightscale.com', 443)
-      http.use_ssl = true
-
-      begin
-        response   = http.request(get)
-      rescue Exception => e  
-        puts e.message
-      end
-
-      # Returns an array of results
-      return JSON.parse(response.body)
-    end
-  
-    #
-    # Load up @array with server arrays to operate on
-    #
-    def get_array_info
-      return if @array_names.empty?
-
-      # The first thing to do here is make an api1.5 call to get the array href. 
-      arrays_hrefs=get_hrefs_for_arrays(@array_names)
-      # Then we filter on all the instances by this href
-      arrays_hrefs.each { |href|
-
-        @all_servers.each { |s|
-          if s['links']['incarnator']['href'] == href 
-            @servers += [s]
-          end
-        }
-      }
-      # The result will be stored (not returned) into @servers
-    end
-
-    #
-    #
-    # Get servers to operate on via a tag query
-    #
-    # Returns: array of RestConnection::Server objects
-    #
-    def get_servers_by_tag(tags)
-      return([]) unless tags.size > 0
-      #
-      # The API behaves inconsisntently:
-      #
-      # [0].resource will be an array if multiple elements are found but
-      # it will be one object, i.e. NOT AN ARRAY OF SIZE1 if only one server
-      # is found.
-      #
-      # This way we assure servers is always an array with instance objects
-      #
-      servers = []
-      search_results = Connection.client.tags.by_tag(:resource_type => 'instances', :tags => tags, :match_all => @match_all)[0]
-      
-      if search_results.nil?
-        if @ignore_errors
-          Log.warn "Tag query returned no results: #{tags.join(" ")}"
-        else
-           raise "Tag query returned no results: #{tags.join(" ")}"
-        end
-      else
-        search_results = search_results.resource 
-      end
-
-      if search_results.kind_of?(Array)
-        servers = search_results
-      else
-        servers << search_results
-      end
-
-      return(servers)
-    end
     # Api1.6 equivalent
+    #
     def get_servers_by_tag16(tags)
-      servers = @all_servers
+      servers = Connection.all_instances
       results = [] 
       #
       # We will get all the instances in our giant blob, and extract the ones with matching tags
@@ -728,8 +759,7 @@ module Chimp
 
     #
     # Parse deployment names and get Server objects
-    #
-    # Returns: array of RestConnection::Server objects
+    # FIXME - Refactor in Api1.6
     #
     def get_servers_by_deployment(names)
       servers = []
@@ -765,46 +795,8 @@ module Chimp
     end
 
     #
-    # Parse array names
-    #
-    #
-    def get_servers_by_array(names)
-      array_servers = []
-      all_arrays = []
-      result = []
-      if names.size > 0
-        names.each do |array_name|
-          #Find if arrays exist, if not raise warning.
-          result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
-          #Result is an array with all the server arrays
-          if result.size != 0 
-            result.each do |array|
-              instances = array.current_instances.index(:filter => ["state==operational"])
-             #Need to store them into array_servers 
-             array_servers += instances
-            end
-          else
-            if @ignore_errors
-              puts "Could not find array #{array_name}"
-            else
-              raise "Cannot find array #{array_name}"
-            end
-        end
-        end
-        if ( array_servers.empty? )
-          puts "Didnt find any arrays that matched!"
-        end 
-
-        return(array_servers)
-      end
-    end
-
-    #
-    # Given an array href, returns the matching instances fromt he overall list.
-    #
-    
-    #
     # Given some array names, return the arrays hrefs
+    # Api1.5
     #
     def get_hrefs_for_arrays(names)
       result = []
@@ -836,37 +828,7 @@ module Chimp
 
       end
     end
-    #
-    # ServerTemplate auto-detection
-    #
-    # Returns [st_name, st_object]
-    #
-    def detect_server_template_new(servers, array_names_to_detect)
-      st = []
-      if servers[0].nil?
-        return (st)
-      end
 
-
-      servers.each { |s|
-        server_template = s.show.server_template
-          #name=server_template.show.name
-          href = server_template.href
-          if !(st.empty?)
-          #Only store if its a new server template
-            if !(st.reduce(:concat).include?(href))
-              st.push([href, server_template])
-            end
-          else
-            st.push([href, server_template])
-          end
-      }
-      #
-      # We return an array of server_template resources
-      # of the type [ name, st object ]
-      #
-      return(st)
-    end
     # 
     # Api1.6 implementation of this routine
     #
@@ -896,120 +858,10 @@ module Chimp
       #
       return(st)
     end
-    
+
     #
-    # Look up the RightScript
-    #
-    def detect_right_script_new(st, script)
-            executable = nil
-            # In the event that chimpd find @op_scripts as nil, set it as an array.
-            if @op_scripts.nil?
-              @op_scripts = [] 
-            end
-            if st.nil?
-              return executable
-            end
-            # if script is empty, we will list all common scripts
-            # if not empty, we will list the first matching one
-            size = st.size-1
-            show_wait_spinner{
-              st.each do |s|
-                  s[1].show.runnable_bindings.index.each do |x|
-                      # IS THIS TIME WASTING HERE?  < YES
-                      # Add rightscript objects to the
-                      # only add the operational ones
-                      if x.sequence == "operational"
-                        name = x.right_script.show.name
-                        @op_scripts.push([name, x])
-                      end
-                  end
-              end
-            }
-            #We now should only have operational runnable_bindings under the script_objects array
-            if @op_scripts.length <= 1
-                raise "ERROR: No common operational scripts found on the server(s). "
-                st.each {|s| 
-                  puts "         (Search performed on server template '#{s[0]}')"
-                }
-                
-            end
-
-            # if script is empty, we will list all common scripts
-            # if not empty, we will list the first matching one
-            if @script == "" and @script != nil
-              #list all operational scripts
-
-              #
-              # Reduce to only scripts that appear in ALL ST's
-              #
-              b = @op_scripts.inject({}) do |res, row|
-              res[row[0]] ||= []
-              res[row[0]] << row[1]
-              res
-              end
-
-              b.inject([]) do |res, (key, values)|
-              res << [key, values.first] if values.size >= size
-              @op_scripts = res
-              end 
-
-
-              
-              puts "List of available operational scripts:"
-              puts "------------------------------------------------------------"
-              for i in 0..@op_scripts.length - 1 
-              puts "  %3d. #{@op_scripts[i][0]}" % i
-              end
-              puts "------------------------------------------------------------"
-              while true
-              printf "Type the number of the script to run and press Enter (Ctrl-C to quit): "
-                script_id = Integer(gets.chomp) rescue -1
-                if script_id >= 0 && script_id < @op_scripts.length
-                puts "Script choice: #{script_id}. #{@op_scripts[ script_id ][0]}"
-                break
-                else
-                puts "#{script_id < 0 ? 'Invalid input' : 'Input out of range'}."
-                end
-                end
-                # Provide the name + href
-                s = Executable.new
-                s.params['right_script']['href'] = @op_scripts[script_id][1].right_script.show.href
-                s.params['right_script']['name'] = @op_scripts[script_id][0]
-                @script_to_run = s
-               #end of the break
-
-            else
-              # 
-              # Try to find the first one matching, if none matches, try to run from ANY script - FIXME
-              # The arrays is filled with  [name_of_the_script , #<RightApi::ResourceDetail resource_type="runnable_binding">]
-
-              @op_scripts.each  do |rb|
-                  script_name = rb[0]
-                  if script_name.downcase.include?(script.downcase)
-                      #We will only push the hrefs for the scripts since its the only ones we care
-                      s = Executable.new
-                      s.params['right_script']['href'] = rb[1].right_script.show.href
-                      s.params['right_script']['name'] = script_name
-                      @script_to_run = s
-                      return @script_to_run
-                      break
-                  end
-              end
-              #
-              # If we reach here it means we didnt find the script in the operationals one
-              # At this point we can make a full-on API query for the last revision of the script
-              #
-              if @script_to_run == nil
-                puts "ERROR: Sorry, didnt find that ( "+script+" ), provide an URI instead"
-                puts "I searched in: "+st.inspect
-                if not @ignore_errors
-                  exit 1
-                end
-              end
-            end 
-    end
-    #
-    #Api1.6 implementation
+    # Api1.6 implementation
+    # Some api1.5 calls
     #
     def detect_right_script_16(st, script)
             executable = nil
@@ -1032,13 +884,16 @@ module Chimp
                   #    "kind"=>"cm#server_template",
                   #    "version"=>5,
                   #    "href"=>"/api/server_templates/351930003"} ]
+                  # FIXME - Possible enhancement if we manage to get a filter in place
+                  # filtering on 'sequence' corresponds to the database 'server_template_executable.apply' field
+                  # the values are the same, so it's just a bit of plumbing to hook up the filtering
+                  # http://reference.rightscale.com/api1.5/resources/ResourceRunnableBindings.html#index
+
                   temp=Connection.client.resource(s[1]['href']) 
                   temp.show.runnable_bindings.index.each do |x|
-                      # IS THIS TIME WASTING HERE?  < YES
-                      # Add rightscript objects to the
                       # only add the operational ones
                       if x.sequence == "operational"
-                        name = x.right_script.show.name
+                        name = x.right_script.show.naame
                         @op_scripts.push([name, x])
                       end
                   end
@@ -1158,9 +1013,8 @@ module Chimp
       #
       Log.debug("Processing server selection")
 
-      queue_servers.sort! { |a,b| a.show.name <=> b.show.name }
+      queue_servers.sort! { |a,b| a['name'] <=> b['name'] }
       queue_servers.each do |server|
-
         #
         # Handle limiting options
         #
@@ -1189,6 +1043,7 @@ module Chimp
           e = ExecRightScript.new(
             :server => s,
             :exec => queue_executable,
+            :job_uuid => @job_uuid,
             :inputs => @inputs,
             :timeout => @timeout,
             :verbose => @@verbose,
@@ -1202,21 +1057,12 @@ module Chimp
             :verbose => @@verbose,
             :quiet => @@quiet
           )
-#        elsif queue_template and not clone
-#          e = ExecSetTemplate.new(
-#            :server => s,
-#            :template => queue_template,
-#            :verbose => @@verbose,
-#            :quiet => @@quiet
-#          )
         elsif @report
           if s.href
-            # MARC - We dont do this since we are treating instances as our "servers"
-            #s.href = s.href.sub("/current","")
             e = ExecReport.new(:server => s, :verbose => @@verbose, :quiet => @@quiet)
             e.fields = @report
           end
-       elsif @set_tags.size > 0
+        elsif @set_tags.size > 0
           e = ExecSetTags.new(:server => s, :verbose => @@verbose, :quiet => @@quiet)
           e.tags = set_tags
         end
@@ -1377,24 +1223,17 @@ module Chimp
     # This is used by chimpd, when processing a task.
     #
     def process
-      puts "Processing task..."
       get_array_info
       get_server_info
       get_template_info
       get_executable_info
+
       if @servers.first.nil? or @executable.nil?
-        puts "Nothing to do"
+        puts "["+self.job_uuid+"] Nothing to do "
         return []
       else
         return generate_jobs(@servers, @server_template, @executable)
       end
-    end
-
-    #
-    # Always returns 0. Used for chimpd compatibility.
-    #
-    def job_id
-      return 0
     end
 
     #
@@ -1478,14 +1317,6 @@ module Chimp
 
       STDOUT.sync = true
       STDERR.sync = true
-
-#      if @@verbose == true
-#        Log.threshold = Logger::DEBUG
-#      elsif @@quiet == true
-#        Log.threshold = Logger::WARN
-#      else
-#        Log.threshold = Logger::INFO
-#      end
     end
 
     def self.verbose?
