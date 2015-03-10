@@ -8,7 +8,12 @@
 #    for example in tasks and audit entries
 #  - Sending to chimpd doesnt work
 #  - Timeout error doesnt give uuid
-#
+#  - 500 error, for example, missing input doesnt render. 
+#  - Change Logger format to something more simple.
+#  - Any script doesnt give out name. This could easily be done. 
+#  - Added log file for chimpd web ui
+#  - VERY IMPORTANT HREF any script notation has now changed. 
+
 module Chimp
   require 'yaml'
   class Connection
@@ -233,7 +238,7 @@ module Chimp
       # Construct the parameters to pass for the inputs
       params=options.collect { |k, v| "&inputs[][name]=#{k}&inputs[][value]=#{v}" }.join('&')
       # self is the actual Server object
-      task = self.object.show.run_executable(script_href + params)
+      task = self.object.run_executable(script_href + params)
       return task
     end
   end
@@ -534,7 +539,9 @@ module Chimp
            
             s=Executable.new
             s.params['right_script']['href']="right_script_href=/api/right_scripts/"+script_number
-            s.params['right_script']['name']="Specified ANY SCRIPT"
+            #Make an 1.5 call to extract name, by loading resource. 
+            the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
+            s.params['right_script']['name'] = the_name
             @executable=s
              
           else 
@@ -890,10 +897,10 @@ module Chimp
                   # http://reference.rightscale.com/api1.5/resources/ResourceRunnableBindings.html#index
 
                   temp=Connection.client.resource(s[1]['href']) 
-                  temp.show.runnable_bindings.index.each do |x|
+                  temp.runnable_bindings.index.each do |x|
                       # only add the operational ones
                       if x.sequence == "operational"
-                        name = x.right_script.show.naame
+                        name = x.raw['right_script']['name']
                         @op_scripts.push([name, x])
                       end
                   end
@@ -956,7 +963,7 @@ module Chimp
                 end
                 # Provide the name + href
                 s = Executable.new
-                s.params['right_script']['href'] = @op_scripts[script_id][1].right_script.show.href
+                s.params['right_script']['href'] = @op_scripts[script_id][1].right_script.href
                 s.params['right_script']['name'] = @op_scripts[script_id][0]
                 @script_to_run = s
                #end of the break
@@ -971,7 +978,7 @@ module Chimp
                   if script_name.downcase.include?(script.downcase)
                       #We will only push the hrefs for the scripts since its the only ones we care
                       s = Executable.new
-                      s.params['right_script']['href'] = rb[1].right_script.show.href
+                      s.params['right_script']['href'] = rb[1].right_script.href
                       s.params['right_script']['name'] = script_name
                       @script_to_run = s
                       return @script_to_run

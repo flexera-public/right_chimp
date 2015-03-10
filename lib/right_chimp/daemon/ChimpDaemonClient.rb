@@ -32,7 +32,7 @@ module Chimp
           puts "["+job_uuid+"]"
           return true
         else
-          $stderr.puts "["+job_uuid+"] WARNING: error submitting to chimpd! response code: #{reponse.code}"
+          $stderr.puts "["+job_uuid+"] WARNING: error submitting to chimpd! response code: #{response.code}"
           return false
         end
 
@@ -43,6 +43,7 @@ module Chimp
         return false
 
       rescue RestClient::InternalServerError => ex
+        
         $stderr.puts "["+job_uuid+"] WARNING: Error submitting job to chimpd: #{ex.message}, retrying..."
         attempts -= 1
         sleep 5 and retry if attempts > 0

@@ -165,7 +165,8 @@ module Chimp
       }
 
       if not @verbose
-        opts[:Logger] = WEBrick::Log.new("/dev/null")
+        # FIXME - Enabling log. 
+        opts[:Logger] = WEBrick::Log.new("/tmp/bricky.log")
         opts[:AccessLog] = [nil, nil]
       end
 
