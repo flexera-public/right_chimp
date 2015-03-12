@@ -195,13 +195,20 @@ module Chimp
 
     def initialize
       @params = {
-        "href"=>"dummy href", 
-        "current_instance_href"=>nil, 
-        "current-instance-href"=>nil, 
-        "name"=>"dummy name", 
-        "nickname"=>"dummy nickname", 
-        "ip_address"=>nil, 
-        "ip-address"=>nil
+        "href"                    => "dummy href", 
+        "current_instance_href"   => nil, 
+        "current-instance-href "  => nil, 
+        "name"                    => "dummy name", 
+        "nickname"                => "dummy nickname", 
+        "ip_address"              => nil, 
+        "ip-address"              => nil,
+        "private-ip-address"      => nil,
+        "aws-id"                  => "",
+        "ec2-instance-type"       => "",
+        "dns-name"                => "",
+        "locked"                  => "",
+        "state"                   => "",
+        "datacenter"              => nil
       }
       @object = nil
     end
@@ -462,7 +469,7 @@ module Chimp
       #
       # Load the queue with work
       #
-      if not @servers.first.nil? and ( not @executable.nil? or @action == :action_ssh )
+      if not @servers.first.nil? and ( not @executable.nil? or @action == :action_ssh or @action == :action_report)
         jobs = generate_jobs(@servers, @server_template, @executable)
         add_to_queue(jobs)
       end
@@ -1036,13 +1043,36 @@ module Chimp
         #
         s = Server.new
 
-        s.params['href'] = server['href']
-        s.params['current_instance_href'] = server['href']
-        s.params['current-instance-href'] = s.params['current_instance_href']
-        s.params['name'] = server['name']
-        s.params['nickname'] = server['name']
-        s.params['ip_address'] = server['public_ip_addresses'].first
-        s.params['ip-address'] = s.params['ip_address']
+        s.params['href']                  = server['href']
+
+        s.params['current_instance_href'] = s.params['href']
+        s.params['current-instance-href'] = s.params['href']
+        
+        s.params['name']                  = server['name']
+        s.params['nickname']              = s.params['name']
+        
+        s.params['ip_address']            = server['public_ip_addresses'].first
+        s.params['ip-address']            = s.params['ip_address']
+        
+        s.params['private-ip-address']    = server['private_ip_addresses'].first
+        s.params['private_ip_address']    = s.params['private-ip-address']
+        
+        s.params['resource_uid']          = server['resource_uid']
+        s.params['resource-uid']          = s.params['resource_uid']
+        
+        s.params['instance-type']         = server['links']['instance_type']['name']
+        s.params['instance_type']         = s.params['instance-type']
+        s.params['ec2_instance_type']     = s.params['instance-type']
+        s.params['ec2-instance-type']     = s.params['instance-type']
+        
+        s.params['dns-name']              = server['public_dns_names'].first
+        s.params['dns_name']              = s.params['dns-name']
+        
+        s.params['locked']                = server['locked']
+        s.params['state']                 = server['state']
+        s.params['datacenter']            = server['links']['datacenter']['name']
+
+        #This will be useful for later on when we need to run scripts
         s.object = Connection.client.resource(server['href'])
 
         e = nil
@@ -1535,9 +1565,9 @@ module Chimp
       puts "Misc Notes:"
       puts "  * If you leave the name of a --script or --ssh command blank, chimp will prompt you"
       puts "  * You cannot operate on array instances by selecting them with tag queries"
-      puts "  * URIs must be API URIs in the format https://my.rightscale.com/api/acct/<acct>/ec2_server_templates/<id>"
-      puts "  * The following reporting keywords can be used: nickname, ip-address, state, server_type, href"
-      puts "    server_template_href, deployment_href, created_at, updated_at"
+      puts "  * URIs must be API URIs in the format https://us-3.rightscale.com/acct/<acct>/right_scripts/<script_id>"
+      puts "  * The following reporting keywords can be used: ip-address,name,href,private-ip-address,resource_uid,"
+      puts "  * ec2-instance-type,datacenter,dns-name,locked"
     end
   end
 end
