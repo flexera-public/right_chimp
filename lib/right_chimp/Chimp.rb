@@ -1567,7 +1567,7 @@ module Chimp
       puts "  * You cannot operate on array instances by selecting them with tag queries"
       puts "  * URIs must be API URIs in the format https://us-3.rightscale.com/acct/<acct>/right_scripts/<script_id>"
       puts "  * The following reporting keywords can be used: ip-address,name,href,private-ip-address,resource_uid,"
-      puts "  * ec2-instance-type,datacenter,dns-name,locked"
+      puts "  * ec2-instance-type,datacenter,dns-name,locked,tag=foo"
     end
   end
 end
