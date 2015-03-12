@@ -462,7 +462,7 @@ module Chimp
       #
       # Load the queue with work
       #
-      if not @servers.first.nil? and not @executable.nil?
+      if not @servers.first.nil? and ( not @executable.nil? or @action == :action_ssh )
         jobs = generate_jobs(@servers, @server_template, @executable)
         add_to_queue(jobs)
       end
@@ -543,11 +543,14 @@ module Chimp
             the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
             s.params['right_script']['name'] = the_name
             @executable=s
-             
           else 
             #If its not an url, go ahead try to locate it in the ST"
             @executable = detect_right_script_16(@server_template, @script)
             # @executable = detect_right_script_new(@server_template, @script)
+          end
+        else
+          # @script could be nil because we want to run ssh
+          if @action == :action_ssh
             puts "Using SSH command: \"#{@ssh}\"" if @action == :action_ssh
           end
         end
@@ -1007,7 +1010,6 @@ module Chimp
       counter = 0
       tasks = []
       Log.debug "Loading queue..."
-
       #
       # Configure group
       #
@@ -1039,7 +1041,7 @@ module Chimp
         s.params['current-instance-href'] = s.params['current_instance_href']
         s.params['name'] = server['name']
         s.params['nickname'] = server['name']
-        s.params['ip_address'] = server['public_ip_addressesi']
+        s.params['ip_address'] = server['public_ip_addresses'].first
         s.params['ip-address'] = s.params['ip_address']
         s.object = Connection.client.resource(server['href'])
 

@@ -11,14 +11,9 @@ module Chimp
     end
     
     def run
-      host = @server['ip_address'] || @server['ip-address'] || nil
+      host = @server.ip_address || nil
       @ssh_user ||= "root"
-      
-      if host == nil
-        @server.settings
-        host = @server['ip_address'] || @server['ip-address']
-      end
-      
+
       run_with_retry do
         Log.debug "ssh #{@ssh_user}@#{host} \"#{@exec}\""
         success = system("ssh -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no #{@ssh_user}@#{host} \"#{@exec}\"")
@@ -30,7 +25,7 @@ module Chimp
     end
     
     def describe_work
-      return "ExecSSH job_id=#{@job_id} command=\"#{@exec}\" server=\"#{@server['nickname']}\""
+      return "ExecSSH job_id=#{@job_id} command=\"#{@exec}\" server=\"#{@server.nickname}\""
     end
     
     def info
@@ -38,7 +33,7 @@ module Chimp
     end
     
     def target
-      return @server['nickname']
+      return @server.nickname
     end
     
   end
