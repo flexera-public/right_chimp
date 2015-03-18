@@ -7,13 +7,14 @@ require 'webrick'
 require 'singleton'
 require 'base64'
 require 'rake'
+require 'yaml'
 
 require 'progressbar'
 require 'json'
+require 'yaml'
 
 require 'highline/import'
 
-#NEW API CALS
 require 'right_api_client'
 require 'rest-client'
 require 'logger'
@@ -34,4 +35,5 @@ module Chimp
   require 'right_chimp/exec/ExecSSH'
   require 'right_chimp/exec/ExecReport'
   require 'right_chimp/exec/ExecNoop'
+  require 'right_chimp/objects/ChimpObjects'
 end
