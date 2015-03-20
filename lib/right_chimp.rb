@@ -7,7 +7,6 @@ require 'webrick'
 require 'singleton'
 require 'base64'
 require 'rake'
-require 'yaml'
 
 require 'progressbar'
 require 'json'
