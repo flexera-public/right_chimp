@@ -3,7 +3,6 @@
 #
 #
 # TODO:
-#  - 500 error, for example, missing input doesnt render.
 #  - VERY IMPORTANT HREF any script notation has now changed.
 #  - Update NOT and ANDS to correct form.
 
@@ -234,14 +233,9 @@ module Chimp
       # TODO: Update all_instances to take a filter like this:
       #  :filter => "parent_href==/api/server_arrays/1,/api/server_arrays/2/api/server_arrays/3"
       arrays_hrefs.each { |href|
-        @servers = Connection.all_instances().select {|s|
+        @servers += Connection.all_instances().select {|s|
           s['links']['incarnator']['href'] == href
         }
-        # Connection.all_instances.each { |s|
-        #   if s['links']['incarnator']['href'] == href
-        #     @servers += [s]
-        #   end
-        # }
       }
       # The result will be stored (not returned) into @servers
     end
@@ -252,9 +246,9 @@ module Chimp
     # needed from the RightScale API.
     #
     def get_server_info
-      @servers += get_servers_by_tag(@tags)
+      @servers += get_servers_by_tag(@tags) unless tags.empty?
       # Perhaps allow searchign by deployment
-      @servers += get_servers_by_deployment(@deployment_names)
+      @servers += get_servers_by_deployment(@deployment_names) unless @deployment_names.empty?
     end
 
     #
@@ -263,8 +257,7 @@ module Chimp
     def get_template_info
       # If we have a server or an array
       if not (@servers.first.nil? and @array_names.empty?)
-        @server_template = detect_server_template(@servers, @array_names)
-        # @server_template = detect_server_template_new(@servers, @array_names)
+        @server_template = detect_server_template(@servers)
       end
     end
 
@@ -494,21 +487,19 @@ module Chimp
     #
     def get_servers_by_tag(tags)
       # Take tags and collapse it, 
-      t = tags.join("&tag=") 
-      filter = "tag=#{t}"
-      servers = Connection.instances(filter)
-
-
-      # #
-      # # We will get all the instances in our giant blob, and extract the ones with matching tags
-      # # We need to pay special attention to when more than one tag is present
-      # #
-      # # Default case, tag is AND
-      # return([]) unless tags.size > 0
-
-      # tags.each { |tag|
-      #   servers=servers.reject { |s| !s['tags'].include?(tag) }
-      # }
+      # Default case, tag is AND
+      # FIXME: API1.6 isnt working with tags OR case, only AND.
+      if @match_all
+        t = tags.join("&tag=") 
+        filter = "tag=#{t}"
+        servers = Connection.instances(filter)
+      else
+        raise "TAG OR not currently implemented"
+        t = tags.join(",tag=") 
+        filter = "tag=#{t}"
+        servers = Connection.instances(filter)
+      end
+      
 
       if servers.empty?
         if @ignore_errors
@@ -543,16 +534,12 @@ module Chimp
       arrays_hrefs = []
       if names.size > 0
         names.each do |array_name|
-          #Find if arrays exist, if not raise warning.
-          #One API call per array
+          # Find if arrays exist, if not raise warning.
+          # One API call per array
           result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
-          #Result is an array with all the server arrays
+          # Result is an array with all the server arrays
           if result.size != 0
-            arrays_hrefs = result.collect(&:href)
-            # result.each do |array|
-            #   array_href = array.href
-            #   arrays_hrefs+= [array.href]
-            # end
+            arrays_hrefs += result.collect(&:href)
           else
             if @ignore_errors
               puts "Could not find array #{array_name}"
@@ -571,9 +558,9 @@ module Chimp
     end
 
     #
-    # Api1.6 implementation of this routine
+    # Given a list of servers
     #
-    def detect_server_template(servers, array_names_to_detect)
+    def detect_server_template(servers)
       st = []
       if servers[0].nil?
         return (st)
@@ -583,20 +570,6 @@ module Chimp
         [s['href'],s['server_template']]
       }.uniq {|a| a[0]}
 
-      # servers.each { |s|
-      #   server_template = s['server_template']
-      #     #name=server_template['href']
-      #     href = server_template['href']
-      #     if !(st.empty?)
-      #     #Only store if its a new server template
-      #       if !(st.reduce(:concat).include?(href))
-      #         st.push([href, server_template])
-      #       end
-      #     else
-      #       st.push([href, server_template])
-      #     end
-      # }
-
       #
       # We return an array of server_template resources
       # of the type [ name, st object ]
@@ -604,10 +577,6 @@ module Chimp
       return(st)
     end
 
-    #
-    # Api1.6 implementation
-    # Some api1.5 calls
-    # TODO: Refactor into individual methods
     def detect_right_script(st, script)
       executable = nil
       # In the event that chimpd find @op_scripts as nil, set it as an array.
@@ -617,82 +586,24 @@ module Chimp
       if st.nil?
         return executable
       end
-      # if script is empty, we will list all common scripts
-      # if not empty, we will list the first matching one
-      size = st.size
-      st.each do |s|
-        # Example of s structure
-        # ["/api/server_templates/351930003",
-        #   {"id"=>351930003,
-        #    "name"=>"RightScale Right_Site - 2015q1",
-        #    "kind"=>"cm#server_template",
-        #    "version"=>5,
-        #    "href"=>"/api/server_templates/351930003"} ]
 
-        temp=Connection.client.resource(s[1]['href'])
-        temp.runnable_bindings.index.each do |x|
-          # only add the operational ones
-          if x.sequence == "operational"
-            name = x.raw['right_script']['name']
-            @op_scripts.push([name, x])
-          end
-        end
-      end
-      
-
-      #We now only have operational runnable_bindings under the script_objects array
-      if @op_scripts.length <= 1
-          raise "ERROR: No operational scripts found on the server(s). "
-          st.each {|s|
-            puts "         (Search performed on server template '#{s[1]['name']}')"
-          }
-
-      end
+      # Start from the ST's
+      @op_scripts = extract_operational_scripts(st)
 
       # if script is empty, we will list all common scripts
       # if not empty, we will list the first matching one
       if @script == "" and @script != nil
         #list all operational scripts
 
-        #
-        # Reduce to only scripts that appear in ALL ST's
-        #
-        counts = Hash.new 0
-        @op_scripts.each { |s| counts[s[0]] +=1 }
+        reduce_to_common_scripts(st.size)
 
-        b = @op_scripts.inject({}) do |res, row|
-          res[row[0]] ||= []
-          res[row[0]] << row[1]
-          res
-        end
+        script_id = list_and_select_op_script
 
-        b.inject([]) do |res, (key, values)|
-          res << [key, values.first] if values.size >= size
-          @op_scripts = res
-        end
-
-        puts "List of available operational scripts:"
-        puts "------------------------------------------------------------"
-        for i in 0..@op_scripts.length - 1
-          puts "  %3d. #{@op_scripts[i][0]}" % i
-        end
-        puts "------------------------------------------------------------"
-        while true
-          printf "Type the number of the script to run and press Enter (Ctrl-C to quit): "
-          script_id = Integer(gets.chomp) rescue -1
-          if script_id >= 0 && script_id < @op_scripts.length
-            puts "Script choice: #{script_id}. #{@op_scripts[ script_id ][0]}"
-            break
-          else
-            puts "#{script_id < 0 ? 'Invalid input' : 'Input out of range'}."
-          end
-        end
         # Provide the name + href
         s = Executable.new
         s.params['right_script']['href'] = @op_scripts[script_id][1].right_script.href
         s.params['right_script']['name'] = @op_scripts[script_id][0]
         @script_to_run = s
-        #end of the break
 
       else
         # Try to find the first one matching, if none matches, try to run from ANY script - FIXME
@@ -721,6 +632,88 @@ module Chimp
           end
         end
       end
+    end
+
+    #
+    # Presents the user with a list of scripts contained in @op_scripts
+    # and Returns an integer indicating the selection
+    # 
+    #
+    def list_and_select_op_script
+      puts "List of available operational scripts:"
+      puts "------------------------------------------------------------"
+      for i in 0..@op_scripts.length - 1
+        puts "  %3d. #{@op_scripts[i][0]}" % i
+      end
+      puts "------------------------------------------------------------"
+      while true
+        printf "Type the number of the script to run and press Enter (Ctrl-C to quit): "
+        script_id = Integer(gets.chomp) rescue -1
+        if script_id >= 0 && script_id < @op_scripts.length
+          puts "Script choice: #{script_id}. #{@op_scripts[ script_id ][0]}"
+          break
+        else
+          puts "#{script_id < 0 ? 'Invalid input' : 'Input out of range'}."
+        end
+      end
+
+      return script_id
+    end
+
+    #
+    # Takes the number of st's to search in, 
+    # and reduces @op_scripts to only those who are 
+    # repeated enough times. 
+    #
+    def reduce_to_common_scripts(number_of_st)
+        counts = Hash.new 0
+        @op_scripts.each { |s| counts[s[0]] +=1 }
+
+        b = @op_scripts.inject({}) do |res, row|
+          res[row[0]] ||= []
+          res[row[0]] << row[1]
+          res
+        end
+
+        b.inject([]) do |res, (key, values)|
+          res << [key, values.first] if values.size >= number_of_st
+          @op_scripts = res
+        end
+    end
+
+    #
+    # Returns all matching operational scripts in the st list passed
+    #
+    def extract_operational_scripts(st)
+      op_scripts = []
+      size = st.size
+      st.each do |s|
+        # Example of s structure
+        # ["/api/server_templates/351930003",
+        #   {"id"=>351930003,
+        #    "name"=>"RightScale Right_Site - 2015q1",
+        #    "kind"=>"cm#server_template",
+        #    "version"=>5,
+        #    "href"=>"/api/server_templates/351930003"} ]
+
+        temp=Connection.client.resource(s[1]['href'])
+        temp.runnable_bindings.index.each do |x|
+          # only add the operational ones
+          if x.sequence == "operational"
+            name = x.raw['right_script']['name']
+            op_scripts.push([name, x])
+          end
+        end
+      end
+
+      #We now only have operational runnable_bindings under the script_objects array
+      if op_scripts.length < 1
+        raise "ERROR: No operational scripts found on the server(s). "
+        st.each {|s|
+          puts "         (Search performed on server template '#{s[1]['name']}')"
+        }
+      end
+      return op_scripts
     end
     #
     # Load up the queue with work
@@ -1259,7 +1252,6 @@ module Chimp
       puts
       puts "Misc Notes:"
       puts "  * If you leave the name of a --script or --ssh command blank, chimp will prompt you"
-      puts "  * You cannot operate on array instances by selecting them with tag queries"
       puts "  * URIs must be API URIs in the format https://us-3.rightscale.com/acct/<acct>/right_scripts/<script_id>"
       puts "  * The following reporting keywords can be used: ip-address,name,href,private-ip-address,resource_uid,"
       puts "  * ec2-instance-type,datacenter,dns-name,locked,tag=foo"
