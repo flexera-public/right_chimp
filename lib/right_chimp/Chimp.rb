@@ -195,7 +195,7 @@ module Chimp
         confirm = (list_of_objects.size > 0 and @action != :action_none) or @action == :action_none
 
         if @script_to_run.nil?
-          verify("Your command \""+@executable.params['right_script']['name']+"\" will be executed on the following:", list_of_objects, confirm)
+          verify("Your command will be executed on the following:", list_of_objects, confirm)
         else
           verify("Your command \""+@script_to_run.params['right_script']['name']+"\" will be executed on the following:", list_of_objects, confirm)
         end
@@ -493,28 +493,28 @@ module Chimp
     # Api1.6 equivalent
     #
     def get_servers_by_tag(tags)
-      # TODO: Try querying all instances with a filter on tag.
-      # OR together the results for multiple tags.
-      # An alternative is wait until the ORing or tags bug is
-      # fixed.
-      servers = Connection.all_instances
-      results = []
-      #
-      # We will get all the instances in our giant blob, and extract the ones with matching tags
-      # We need to pay special attention to when more than one tag is present
-      #
-      # Default case, tag is AND
-      return([]) unless tags.size > 0
+      # Take tags and collapse it, 
+      t = tags.join("&tag=") 
+      filter = "tag=#{t}"
+      servers = Connection.instances(filter)
 
-      tags.each { |tag|
-        servers=servers.reject { |s| !s['tags'].include?(tag) }
-      }
+
+      # #
+      # # We will get all the instances in our giant blob, and extract the ones with matching tags
+      # # We need to pay special attention to when more than one tag is present
+      # #
+      # # Default case, tag is AND
+      # return([]) unless tags.size > 0
+
+      # tags.each { |tag|
+      #   servers=servers.reject { |s| !s['tags'].include?(tag) }
+      # }
 
       if servers.empty?
         if @ignore_errors
           Log.warn "Tag query returned no results: #{tags.join(" ")}"
         else
-           raise "Tag query returned no results: #{tags.join(" ")}"
+           raise "Tag query returned no results: #{tags.join(" ")}\n"
         end
       end
 
@@ -523,38 +523,14 @@ module Chimp
 
     #
     # Parse deployment names and get Server objects
-    # TODO: - Refactor in Api1.6
     #
     def get_servers_by_deployment(names)
       servers = []
+      all_instances = Connection.all_instances
 
-      if names.size > 0
-        names.each do |deployment|
-          #
-          # Returns an array
-          #
-          d = Connection.client.deployments.index(:filter => ["name==#{deployment}"])
-          if d == nil
-            if @ignore_errors
-              puts "cannot find deployment #{deployment}"
-            else
-              raise "cannot find deployment #{deployment}"
-            end
-          else
-            # It is possible to find more than one deployment matching
-            d.each do |dp|
-              dp.servers.index.each do |i|
-                #
-                # Only store the instance object if its operational
-                #
-                if i.show.state == "operational"
-                  servers << i.current_instance
-                end
-              end
-            end
-          end
-        end
-      end
+      result = all_instances.select {|i| names.include?(i['links']['deployment']['name'])}
+      servers = result
+
       return(servers)
     end
 

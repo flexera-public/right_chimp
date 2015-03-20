@@ -111,6 +111,28 @@ module Chimp
       return @all_instances
     end
 
+    # 
+    # Provides a way to make an api1.6 call directly
+    #
+    def self.api16_call(query)
+      begin
+        get  = Net::HTTP::Get.new(query)
+        get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
+        get['X-Api_Version'] = '1.6'
+        get['X-Account']     = @client.account_id
+
+        http = Net::HTTP.new(@endpoint, 443)
+        http.use_ssl = true
+        response = http.request(get)
+        response = JSON.parse(response.body)
+
+      rescue Exception => e
+        puts e.message
+      end
+      
+      return response
+    end
+
   end
 
   #
