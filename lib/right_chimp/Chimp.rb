@@ -549,7 +549,7 @@ module Chimp
           end
         end
         if ( arrays_hrefs.empty? )
-          puts "Didnt find any arrays that matched!"
+          puts "Did not find any arrays that matched!"
         end
 
         return(arrays_hrefs)
