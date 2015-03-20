@@ -103,12 +103,12 @@ module Chimp
         response   = http.request(get)
 
         # Returns an array of results
-        @all_instances = JSON.parse(response.body)
+        instances = JSON.parse(response.body)
       rescue Exception => e
         puts e.message
       end
 
-      return @all_instances
+      return instances
     end
 
     # 
