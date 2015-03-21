@@ -566,13 +566,9 @@ module Chimp
         return (st)
       end
 
-     # st += servers.collect { |s|
-     #   [s['href'],s['server_template']]
-     # }.uniq {|a| a[0]}
-      
       st += servers.collect { |s|
         [s['server_teplate']['href'],s['server_template']]
-      }
+      }.uniq {|a| a[0]}
 
       #
       # We return an array of server_template resources
