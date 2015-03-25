@@ -567,7 +567,7 @@ module Chimp
       end
 
       st += servers.collect { |s|
-        [s['server_teplate']['href'],s['server_template']]
+        [s['href'],s['server_template']]
       }.uniq {|a| a[0]}
 
       #
