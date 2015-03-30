@@ -494,8 +494,7 @@ module Chimp
         filter = "tag=#{t}"
         servers = Connection.instances(filter)
       else
-        raise "TAG OR not currently implemented"
-        t = tags.join(",tag=") 
+        t = tags.join(",") 
         filter = "tag=#{t}"
         servers = Connection.instances(filter)
       end
@@ -1240,7 +1239,7 @@ module Chimp
       puts "  --progress                        toggle progress indicator"
       puts "  --noprompt                        don't prompt with list of objects to run against"
       puts "  --noverify                        disable interactive verification of errors"
-      puts "  --verbose                         display rest_connection log messages"
+      puts "  --verbose                         be more verbose"
       puts "  --dont-check-templates            don't check for script even if servers have diff. templates"
       puts "  --quiet                           suppress non-essential output"
       puts "  --version                         display version and exit"
