@@ -74,8 +74,11 @@ module Chimp
         http.use_ssl = true
         response   = http.request(get)
 
+        # Validate our response
+        @all_instances = validate_response(response)
+
         # Returns an array of results
-        @all_instances = JSON.parse(response.body)
+        # @all_instances = JSON.parse(response)
       rescue Exception => e
         puts e.message
       end
@@ -102,8 +105,11 @@ module Chimp
         http.use_ssl = true
         response   = http.request(get)
 
+        # Validate our response
+        instances = validate_response(response)
+
         # Returns an array of results
-        instances = JSON.parse(response.body)
+        # instances = JSON.parse(response.body)
       rescue Exception => e
         puts e.message
       end
@@ -124,13 +130,67 @@ module Chimp
         http = Net::HTTP.new(@endpoint, 443)
         http.use_ssl = true
         response = http.request(get)
-        response = JSON.parse(response.body)
+        # Validate our response
+        instances = validate_response(response)
+
+        # response = JSON.parse(response.body)
 
       rescue Exception => e
         puts e.message
       end
-      
-      return response
+
+      return instances
+    end
+
+    #
+    # Verify the results are valid JSON
+    #
+    def Connection.validate_response(response)
+      resp_code = response.code
+      # handle response codes we want to work with (200 or 404) and verify json hash from github
+      if resp_code == "200" || resp_code == "404"
+        body_data = response.body
+        # verify json hash is valid and operate accordingly
+        begin
+          result = JSON.parse(body_data)
+          if result.is_a?(Array)
+            # Operate on a 200 or 404 with valid JSON response, catch error messages from github in json hash
+            if result.include? 'message'
+              raise "Error: Problem with API request: '#{resp_code} #{result['message']}'" #we know this checkout will fail (branch input, repo name, etc. wrong)
+            end
+            if result.include? 'Error'
+              Log.error "Warning: Got response: '#{resp_code} #{result['Error']}'."
+              return {} # Return an empty json
+            end
+            # extract the most recent commit on designated branch from hash
+            Log.debug "We received a valid JSON data, therefore returning it."
+            return result
+          end
+
+          # if result.is_a?(Hash)
+          #   # Operate on a 200 or 404 with valid JSON response, catch error messages from github in json hash
+          #   if result.has_key? 'message'
+          #     raise "Error: Problem with API request: '#{resp_code} #{result['message']}'" #we know this checkout will fail (branch input, repo name, etc. wrong)
+          #   end
+          #   if result.has_key? 'Error'
+          #     Log.error "Warning: Got response: '#{resp_code} #{result['Error']}'.  Attempting full code checkout anyways!"
+          #     return {} # Return an empty json
+          #   end
+          #   # extract the most recent commit on designated branch from hash
+          #   Log.debug "We received a valid JSON data, therefore returning it."
+          #   return result
+          # end
+        rescue JSON::ParserError
+          Logger.log "Warning: Expected JSON response but was unable to parse!"
+          Logger.log "Warning: #{response.body}!"
+
+          return {} # Return an empty result
+        end
+      else
+        # Any http response code that is not 200 or 404 should error out.
+        Log.error "Warning: Got '#{resp_code} #{response.msg}' response from api!  "
+        raise "Couldnt contact the API"
+      end
     end
 
   end
