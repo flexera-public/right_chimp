@@ -501,7 +501,7 @@ module Chimp
       end
       
 
-      if servers.empty?
+      if servers.empty? unless servers.nil?
         if @ignore_errors
           Log.warn "Tag query returned no results: #{tags.join(" ")}"
         else
