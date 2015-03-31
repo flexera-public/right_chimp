@@ -500,15 +500,21 @@ module Chimp
         servers = Connection.instances(filter)
       end
       
-
-      if servers.empty? unless servers.nil?
+      if !servers.nil?  
+        if servers.empty? 
+          if @ignore_errors
+            Log.warn "Tag query returned no results: #{tags.join(" ")}"
+          else
+             raise "Tag query returned no results: #{tags.join(" ")}\n"
+          end
+        end
+      else
         if @ignore_errors
           Log.warn "Tag query returned no results: #{tags.join(" ")}"
         else
-           raise "Tag query returned no results: #{tags.join(" ")}\n"
+         raise "Tag query returned no results: #{tags.join(" ")}\n"
         end
-      end
-
+      end 
       return(servers)
     end
 
