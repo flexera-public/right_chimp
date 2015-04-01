@@ -163,8 +163,9 @@ module Chimp
           end
         end
 
-
-        # response = JSON.parse(response.body)
+        if attempts == retries
+          raise "Api call failed more than 3 times."
+        end
 
       rescue Exception => e
         puts e.message
