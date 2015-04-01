@@ -233,11 +233,16 @@ module Chimp
       # Then we filter on all the instances by this href
       # TODO: Update all_instances to take a filter like this:
       #  :filter => "parent_href==/api/server_arrays/1,/api/server_arrays/2/api/server_arrays/3"
-      arrays_hrefs.each { |href|
-        @servers += Connection.all_instances().select {|s|
-          s['links']['incarnator']['href'] == href
+      all_instances = Connection.all_instances()
+      if all_instances.nil?
+        Log.debug "No results from API query"
+      else
+        arrays_hrefs.each { |href|
+          @servers += all_instances.select {|s|
+            s['links']['incarnator']['href'] == href
+          }
         }
-      }
+      end
       # The result will be stored (not returned) into @servers
     end
 
@@ -411,6 +416,7 @@ module Chimp
               @limit_start, @limit_end = arg.split(',')
             when '--verbose', '-v'
               @@verbose = true
+              Log.threshold = Logger::DEBUG
             when '--quiet', '-q'
               @@quiet = true
             when '--dont-check-templates', '-0'
@@ -567,6 +573,8 @@ module Chimp
     # Given a list of servers
     #
     def detect_server_template(servers)
+
+      Log.debug "Looking for server template"
       st = []
       if servers[0].nil?
         return (st)
@@ -580,10 +588,13 @@ module Chimp
       # We return an array of server_template resources
       # of the type [ st_href, st object ]
       #
+      Log.debug "Found server templates"
+
       return(st)
     end
 
     def detect_right_script(st, script)
+      Log.debug  "Looking for rightscript"
       executable = nil
       # In the event that chimpd find @op_scripts as nil, set it as an array.
       if @op_scripts.nil?
@@ -623,6 +634,8 @@ module Chimp
             s.params['right_script']['href'] = rb[1].right_script.href
             s.params['right_script']['name'] = script_name
             @script_to_run = s
+
+            Log.debug "Found rightscript"
             return @script_to_run
           end
         end
@@ -1059,6 +1072,8 @@ module Chimp
 
       STDOUT.sync = true
       STDERR.sync = true
+      
+      Log.threshold= Logger::DEBUG if @@verbose
     end
 
     def self.verbose?

@@ -65,20 +65,8 @@ module Chimp
 
         query="/api/instances?view=full&filter="+filters
 
-        get  = Net::HTTP::Get.new(query)
-        get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
-        get['X-Api_Version'] = '1.6'
-        get['X-Account']     = @client.account_id
+        @all_instances = Connection.api16_call(query)
 
-        http = Net::HTTP.new(@endpoint, 443)
-        http.use_ssl = true
-        response   = http.request(get)
-
-        # Validate our response
-        @all_instances = validate_response(response)
-
-        # Returns an array of results
-        # @all_instances = JSON.parse(response)
       rescue Exception => e
         puts e.message
       end
@@ -96,20 +84,8 @@ module Chimp
 
         query="/api/instances?view=full&filter="+filters
 
-        get  = Net::HTTP::Get.new(query)
-        get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
-        get['X-Api_Version'] = '1.6'
-        get['X-Account']     = @client.account_id
+        instances = Connection.api16_call(query)
 
-        http = Net::HTTP.new(@endpoint, 443)
-        http.use_ssl = true
-        response   = http.request(get)
-
-        # Validate our response
-        instances = validate_response(response)
-
-        # Returns an array of results
-        # instances = JSON.parse(response.body)
       rescue Exception => e
         puts e.message
       end
@@ -117,10 +93,39 @@ module Chimp
       return instances
     end
 
+    # # 
+    # # Provides a way to make an api1.6 call directly
+    # # DELETEME
+    # def self.api16_call(query)
+    #   begin
+    #     puts "IF YOU SEE THIS ITS BAD"
+    #     get  = Net::HTTP::Get.new(query)
+    #     get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
+    #     get['X-Api_Version'] = '1.6'
+    #     get['X-Account']     = @client.account_id
+
+    #     http = Net::HTTP.new(@endpoint, 443)
+    #     http.use_ssl = true
+
+    #     Log.debug "Querying API for: #{query}"
+
+    #     response = http.request(get)
+    #     # Validate our response
+    #     instances = validate_response(response)
+
+    #     # response = JSON.parse(response.body)
+
+    #   rescue Exception => e
+    #     puts e.message
+    #   end
+
+    #   return instances
+    # end
+
     # 
     # Provides a way to make an api1.6 call directly
     #
-    def self.api16_call(query)
+    def Connection.api16_call(query)
       begin
         get  = Net::HTTP::Get.new(query)
         get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
@@ -129,9 +134,17 @@ module Chimp
 
         http = Net::HTTP.new(@endpoint, 443)
         http.use_ssl = true
-        response = http.request(get)
-        # Validate our response
-        instances = validate_response(response)
+
+        Log.debug "Querying API for: #{query}"
+
+        time = Benchmark.measure do
+          @response = http.request(get)
+          # Validate our response
+        end
+
+        Log.debug "API Request time: #{time.real} seconds"
+
+        @instances = validate_response(@response, query)
 
         # response = JSON.parse(response.body)
 
@@ -139,13 +152,13 @@ module Chimp
         puts e.message
       end
 
-      return instances
+      return @instances
     end
 
     #
     # Verify the results are valid JSON
     #
-    def Connection.validate_response(response)
+    def Connection.validate_response(response, query)
       resp_code = response.code
       # handle response codes we want to work with (200 or 404) and verify json hash from github
       if resp_code == "200" || resp_code == "404"
@@ -156,40 +169,39 @@ module Chimp
           if result.is_a?(Array)
             # Operate on a 200 or 404 with valid JSON response, catch error messages from github in json hash
             if result.include? 'message'
-              raise "Error: Problem with API request: '#{resp_code} #{result['message']}'" #we know this checkout will fail (branch input, repo name, etc. wrong)
+              raise "[CONTENT] Error: Problem with API request: '#{resp_code} #{response.body}'" #we know this checkout will fail (branch input, repo name, etc. wrong)
             end
             if result.include? 'Error'
-              Log.error "Warning: Got response: '#{resp_code} #{result['Error']}'."
+              Log.error "[CONTENT] Warning BAD CONTENT: Response content: '#{response.body}'."
               return {} # Return an empty json
             end
             # extract the most recent commit on designated branch from hash
-            Log.debug "We received a valid JSON data, therefore returning it."
+            # Log.debug "We received a valid JSON response, therefore returning it."
             return result
           end
-
-          # if result.is_a?(Hash)
-          #   # Operate on a 200 or 404 with valid JSON response, catch error messages from github in json hash
-          #   if result.has_key? 'message'
-          #     raise "Error: Problem with API request: '#{resp_code} #{result['message']}'" #we know this checkout will fail (branch input, repo name, etc. wrong)
-          #   end
-          #   if result.has_key? 'Error'
-          #     Log.error "Warning: Got response: '#{resp_code} #{result['Error']}'.  Attempting full code checkout anyways!"
-          #     return {} # Return an empty json
-          #   end
-          #   # extract the most recent commit on designated branch from hash
-          #   Log.debug "We received a valid JSON data, therefore returning it."
-          #   return result
-          # end
         rescue JSON::ParserError
-          Logger.log "Warning: Expected JSON response but was unable to parse!"
-          Logger.log "Warning: #{response.body}!"
+          Log.error "Warning: Expected JSON response but was unable to parse!"
+          Log.error "Warning: #{response.body}!"
 
           return {} # Return an empty result
         end
+
+      elsif resp_code == "502"
+        Log.error "Api returned code: 502"
+        Log.error "Query was: #{query}"
+
+      elsif resp_code == "500"
+        Log.error "Api returned code: 500"
+        Log.error "Query was: #{query}"
+
       else
-        # Any http response code that is not 200 or 404 should error out.
+        # We are here because response was not 200 or 404
+        # FIXME Handle 500's
+        # Any http response code that is not 200 / 404 / 500 / 502 should error out.
         Log.error "Warning: Got '#{resp_code} #{response.msg}' response from api!  "
+        Log.error "Query was: #{query}"
         raise "Couldnt contact the API"
+        return {}
       end
     end
 

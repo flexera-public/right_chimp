@@ -108,6 +108,9 @@ module Chimp
       if not @verbose
       	ENV['REST_CONNECTION_LOG'] = "/dev/null"
       	ENV['RESTCLIENT_LOG'] = "/dev/null"
+        Log.threshold= Logger::INFO
+      else
+        Log.threshold= Logger::DEBUG
       end
 
       if @quiet
