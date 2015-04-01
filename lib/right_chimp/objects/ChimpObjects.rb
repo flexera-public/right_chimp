@@ -14,7 +14,7 @@ module Chimp
     # self.endpoint
     #
     include Singleton
-    attr_accessor :client, :all_instances
+    attr_accessor :client, :all_instances, :retry
 
     def initialize
     end
@@ -33,6 +33,7 @@ module Chimp
 
         @endpoint = URI.parse(creds[:api_url]).host
 
+        Log.debug "Logging into Api 1.5 right_api_client"
 
         @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass],
                                         :account_id => creds[:account], :api_url => creds[:api_url],
@@ -126,6 +127,11 @@ module Chimp
     # Provides a way to make an api1.6 call directly
     #
     def Connection.api16_call(query)
+
+      @retry = true
+      retries = 3
+      attempts = 0
+
       begin
         get  = Net::HTTP::Get.new(query)
         get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
@@ -137,14 +143,26 @@ module Chimp
 
         Log.debug "Querying API for: #{query}"
 
-        time = Benchmark.measure do
-          @response = http.request(get)
-          # Validate our response
+
+        while attempts < retries 
+          if @retry
+            Log.debug "Attempt # #{attempts+1} at querying the API" unless attempts == 0
+
+            time = Benchmark.measure do
+              @response = http.request(get)
+              attempts += 1
+            end
+
+            Log.debug "API Request time: #{time.real} seconds"
+
+            # Validate API response
+            @instances = validate_response(@response, query)
+          else
+            # We dont retry, exit the loop.
+            break
+          end
         end
 
-        Log.debug "API Request time: #{time.real} seconds"
-
-        @instances = validate_response(@response, query)
 
         # response = JSON.parse(response.body)
 
@@ -159,6 +177,9 @@ module Chimp
     # Verify the results are valid JSON
     #
     def Connection.validate_response(response, query)
+
+      Log.debug "Validating API response"
+
       resp_code = response.code
       # handle response codes we want to work with (200 or 404) and verify json hash from github
       if resp_code == "200" || resp_code == "404"
@@ -177,6 +198,7 @@ module Chimp
             end
             # extract the most recent commit on designated branch from hash
             # Log.debug "We received a valid JSON response, therefore returning it."
+            @retry = false
             return result
           end
         rescue JSON::ParserError
@@ -189,10 +211,16 @@ module Chimp
       elsif resp_code == "502"
         Log.error "Api returned code: 502"
         Log.error "Query was: #{query}"
+        Log.error "Retrying..."
+
+        @retry = true
 
       elsif resp_code == "500"
         Log.error "Api returned code: 500"
         Log.error "Query was: #{query}"
+        Log.error "Retrying..."
+
+        @retry = true
 
       else
         # We are here because response was not 200 or 404
