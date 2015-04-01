@@ -154,6 +154,7 @@ module Chimp
             end
 
             Log.debug "API Request time: #{time.real} seconds"
+            Log.debug "API Query was: #{query}"
 
             # Validate API response
             @instances = validate_response(@response, query)
