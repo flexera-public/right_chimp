@@ -50,7 +50,7 @@ module Chimp
         puts "Error: "
         puts " - credentials file could not be loaded correctly"
         puts "or                           "
-        puts "Connection couldnt be establishhed"
+        puts " - connection couldnt be establishhed"
         puts "##############################################################################"
         exit -1
       end
