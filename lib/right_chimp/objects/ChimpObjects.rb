@@ -42,7 +42,7 @@ module Chimp
         # FIXME Make an initial call for ALL instances, and die if a 200 isnt received
         Log.debug "Making initial Api1.6 call to cache entries."
         result = self.all_instances
-        if result.empty || result.nil?
+        if result.empty? || result.nil?
           Log.error "Couldnt contact API1.6 correctly, will now exit."
         end
       rescue
