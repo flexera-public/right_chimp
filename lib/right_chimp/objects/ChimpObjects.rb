@@ -131,6 +131,7 @@ module Chimp
       @retry = true
       retries = 3
       attempts = 0
+      sleep_for = 20
 
       begin
         get  = Net::HTTP::Get.new(query)
@@ -146,6 +147,13 @@ module Chimp
 
         while attempts < retries 
           if @retry
+            if attempts > 0
+              sleep_time = sleep_for * attempts
+
+              Log.debug "Sleeping between retries for #{sleep_time}"
+              sleep(sleep_time)
+            end
+
             Log.debug "Attempt # #{attempts+1} at querying the API" unless attempts == 0
 
             time = Benchmark.measure do
@@ -165,7 +173,7 @@ module Chimp
         end
 
         if attempts == retries
-          raise "Api call failed more than 3 times."
+          raise "[#{Chimp.get_job_uuid}] Api call failed more than 3 times. "
         end
 
       rescue Exception => e
@@ -226,7 +234,6 @@ module Chimp
 
       else
         # We are here because response was not 200 or 404
-        # FIXME Handle 500's
         # Any http response code that is not 200 / 404 / 500 / 502 should error out.
         Log.error "Warning: Got '#{resp_code} #{response.msg}' response from api!  "
         Log.error "Query was: #{query}"

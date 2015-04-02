@@ -974,10 +974,23 @@ module Chimp
     end
 
     #
+    # Allow the set/retrieval of job_uuid from outside
+    #
+    def self.get_job_uuid
+      @job_uuid
+    end
+
+    def self.set_job_uuid(value)
+      @job_uuid = value
+    end
+
+    #
     # Completely process a non-interactive chimp object command
     # This is used by chimpd, when processing a task.
     #
     def process
+      Log.debug "Processing task"
+      Chimp.set_job_uuid(self.job_uuid)
       get_array_info
       get_server_info
       get_template_info
@@ -1085,6 +1098,18 @@ module Chimp
     #
     def job_id
       return 0
+    end
+
+    def self.get_job_uuid
+      @job_uuid
+    end
+
+    def self.failure
+      return @failure
+    end
+
+    def self.set_failure(status)
+      @failure = status
     end
 
     ####################################################
