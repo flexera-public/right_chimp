@@ -44,6 +44,7 @@ module Chimp
         result = self.all_instances
         if result.empty? || result.nil?
           Log.error "Couldnt contact API1.6 correctly, will now exit."
+          exit -1
         end
       rescue
         puts "##############################################################################"
