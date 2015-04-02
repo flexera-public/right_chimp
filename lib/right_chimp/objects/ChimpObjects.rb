@@ -135,7 +135,7 @@ module Chimp
               sleep(sleep_time)
             end
 
-            Log.error "Attempt # #{attempts+1} at querying the API" unless attempts == 0
+            Log.debug "Attempt # #{attempts+1} at querying the API" unless attempts == 0
 
             time = Benchmark.measure do
               @response = http.request(get)
@@ -201,23 +201,23 @@ module Chimp
         end
 
       elsif resp_code == "502"
-        Log.error "Api returned code: 502"
-        Log.error "Query was: #{query}"
-        Log.error "Retrying..."
+        Log.debug "Api returned code: 502"
+        Log.debug "Query was: #{query}"
+        Log.debug "Retrying..."
 
         @retry = true
 
       elsif resp_code == "500"
-        Log.error "Api returned code: 500"
-        Log.error "Query was: #{query}"
-        Log.error "Retrying..."
+        Log.debug "Api returned code: 500"
+        Log.debug "Query was: #{query}"
+        Log.debug "Retrying..."
 
         @retry = true
 
       else
         # We are here because response was not 200 or 404
         # Any http response code that is not 200 / 404 / 500 / 502 should error out.
-        Log.error "Warning: Got '#{resp_code} #{response.msg}' response from api!  "
+        Log.error "ERROR: Got '#{resp_code} #{response.msg}' response from api!  "
         Log.error "Query was: #{query}"
         raise "Couldnt contact the API"
         return {}
