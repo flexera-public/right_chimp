@@ -4,7 +4,7 @@
 module Chimp
   #
   # This class contains all the necessary to make calls to api1.5 via the right_api_client gem
-  # or obtain a list of instances via api1.6 calls. 
+  # or obtain a list of instances via api1.6 calls.
   #
   class Connection
     #
@@ -39,10 +39,18 @@ module Chimp
                                         :account_id => creds[:account], :api_url => creds[:api_url],
                                         :timeout => nil)
 
+        # FIXME Make an initial call for ALL instances, and die if a 200 isnt received
+        Log.debug "Making initial Api1.6 call to cache entries."
+        result = self.all_instances
+        if result.empty || result.nil?
+          Log.error "Couldnt contact API1.6 correctly, will now exit."
+        end
       rescue
         puts "##############################################################################"
-        puts "Error, credentials file: could not be loaded correctly"
-        puts "or Connection couldnt be establishhed"
+        puts "Error: "
+        puts " - credentials file could not be loaded correctly"
+        puts "or                           "
+        puts "Connection couldnt be establishhed"
         puts "##############################################################################"
         exit -1
       end
@@ -94,36 +102,7 @@ module Chimp
       return instances
     end
 
-    # # 
-    # # Provides a way to make an api1.6 call directly
-    # # DELETEME
-    # def self.api16_call(query)
-    #   begin
-    #     puts "IF YOU SEE THIS ITS BAD"
-    #     get  = Net::HTTP::Get.new(query)
-    #     get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
-    #     get['X-Api_Version'] = '1.6'
-    #     get['X-Account']     = @client.account_id
-
-    #     http = Net::HTTP.new(@endpoint, 443)
-    #     http.use_ssl = true
-
-    #     Log.debug "Querying API for: #{query}"
-
-    #     response = http.request(get)
-    #     # Validate our response
-    #     instances = validate_response(response)
-
-    #     # response = JSON.parse(response.body)
-
-    #   rescue Exception => e
-    #     puts e.message
-    #   end
-
-    #   return instances
-    # end
-
-    # 
+    #
     # Provides a way to make an api1.6 call directly
     #
     def Connection.api16_call(query)
@@ -132,6 +111,7 @@ module Chimp
       retries = 3
       attempts = 0
       sleep_for = 20
+      # FIXME Add random amount of seconds
 
       begin
         get  = Net::HTTP::Get.new(query)
@@ -145,7 +125,7 @@ module Chimp
         Log.debug "Querying API for: #{query}"
 
 
-        while attempts < retries 
+        while attempts < retries
           if @retry
             if attempts > 0
               sleep_time = sleep_for * attempts
@@ -154,7 +134,7 @@ module Chimp
               sleep(sleep_time)
             end
 
-            Log.debug "Attempt # #{attempts+1} at querying the API" unless attempts == 0
+            Log.error "Attempt # #{attempts+1} at querying the API" unless attempts == 0
 
             time = Benchmark.measure do
               @response = http.request(get)
@@ -173,7 +153,8 @@ module Chimp
         end
 
         if attempts == retries
-          raise "[#{Chimp.get_job_uuid}] Api call failed more than 3 times. "
+          Chimp.set_failure(true)
+          raise "[#{Chimp.get_job_uuid}] Api call failed more than 3 times."
         end
 
       rescue Exception => e
@@ -325,9 +306,9 @@ module Chimp
     end
   end
 
-  # 
+  #
   # This class holds all necessary information regarding an instance
-  # and provides a way of executing a script on  it via the run_executable method. 
+  # and provides a way of executing a script on  it via the run_executable method.
   #
   class Server
     #

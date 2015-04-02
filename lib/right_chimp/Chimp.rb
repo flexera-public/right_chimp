@@ -158,7 +158,7 @@ module Chimp
       #
       if @use_chimpd
         timestamp=Time.now.to_i
-        length=6 
+        length=6
         self.job_uuid = (36**(length-1) + rand(36**length)).to_s(36)
         ChimpDaemonClient.submit(@chimpd_host, @chimpd_port, self,self.job_uuid)
         exit
@@ -186,6 +186,9 @@ module Chimp
       puts "Looking for the rightscripts (This might take some time)" if (@interactive and not @use_chimpd) and not @@quiet
       get_executable_info # Simulate a task taking an unknown amount of time
 
+      if Chimp.failure
+        # If we hit here, we had a failure, offer user ability to retry
+      end
       #
       # Optionally display the list of objects to operate on
       # and prompt the user
@@ -493,21 +496,21 @@ module Chimp
     # Api1.6 equivalent
     #
     def get_servers_by_tag(tags)
-      # Take tags and collapse it, 
+      # Take tags and collapse it,
       # Default case, tag is AND
       # FIXME: API1.6 isnt working with tags OR case, only AND.
       if @match_all
-        t = tags.join("&tag=") 
+        t = tags.join("&tag=")
         filter = "tag=#{t}"
         servers = Connection.instances(filter)
       else
-        t = tags.join(",") 
+        t = tags.join(",")
         filter = "tag=#{t}"
         servers = Connection.instances(filter)
       end
-      
-      if !servers.nil?  
-        if servers.empty? 
+
+      if !servers.nil?
+        if servers.empty?
           if @ignore_errors
             Log.warn "Tag query returned no results: #{tags.join(" ")}"
           else
@@ -520,7 +523,7 @@ module Chimp
         else
          raise "Tag query returned no results: #{tags.join(" ")}\n"
         end
-      end 
+      end
       return(servers)
     end
 
@@ -656,7 +659,7 @@ module Chimp
     #
     # Presents the user with a list of scripts contained in @op_scripts
     # and Returns an integer indicating the selection
-    # 
+    #
     #
     def list_and_select_op_script
       puts "List of available operational scripts:"
@@ -680,9 +683,9 @@ module Chimp
     end
 
     #
-    # Takes the number of st's to search in, 
-    # and reduces @op_scripts to only those who are 
-    # repeated enough times. 
+    # Takes the number of st's to search in,
+    # and reduces @op_scripts to only those who are
+    # repeated enough times.
     #
     def reduce_to_common_scripts(number_of_st)
         counts = Hash.new 0
@@ -1085,7 +1088,7 @@ module Chimp
 
       STDOUT.sync = true
       STDERR.sync = true
-      
+
       Log.threshold= Logger::DEBUG if @@verbose
     end
 
