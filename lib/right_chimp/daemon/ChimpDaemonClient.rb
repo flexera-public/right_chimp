@@ -5,15 +5,6 @@ module Chimp
   #
   class ChimpDaemonClient
     #
-    # self.submit
-    # self.quit
-    # self.retrieve_job_info
-    # self.retrieve_group_info
-    # self.set_job_status
-    # self.create_group
-    # self.retry_group
-
-    #
     # Submit a Chimp object to a remote chimpd
     #
     def self.submit(host, port, chimp_object, job_uuid)

@@ -1,10 +1,11 @@
 module Chimp
   class Log
     @@logger = Logger.new(STDOUT)
+
     # SeverityID, [DateTime #pid] SeverityLabel -- ProgName: message
     @@logger.datetime_format = '%H:%M:%S'
     @@logger.sev_threshold=Logger::INFO
-    
+
     def self.logger=(l)
       @@logger = l
     end
@@ -20,7 +21,7 @@ module Chimp
     def self.debug(m)
       @@logger.debug(m)
     end
-    
+
     def self.info(m)
       @@logger.info(m)
     end
@@ -28,9 +29,9 @@ module Chimp
     def self.warn(m)
       @@logger.warn(m)
     end
-    
+
     def self.error(m)
       @@logger.error(m)
-    end    
+    end
   end
 end

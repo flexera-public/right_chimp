@@ -7,12 +7,7 @@ module Chimp
   # or obtain a list of instances via api1.6 calls.
   #
   class Connection
-    #
-    # initialize
-    # self.connect
-    # self.client
-    # self.endpoint
-    #
+
     include Singleton
     attr_accessor :client, :all_instances, :retry
 
@@ -121,7 +116,6 @@ module Chimp
       retries = 3
       attempts = 0
       sleep_for = 20
-      # FIXME Add random amount of seconds
 
       begin
         get  = Net::HTTP::Get.new(query)
@@ -242,12 +236,6 @@ module Chimp
   # This class allows to check on the status of any of the tasks created.
   #
   class Task
-    #
-    # wait_for_state
-    # wait_for_completed
-    # state
-    # href
-    #
 
     attr_writer :tasker
     attr_reader :tasker
@@ -284,11 +272,6 @@ module Chimp
   # This task contains parameters that describe a script/task to be executed
   #
   class Executable
-    #
-    # initialize
-    # href
-    # name
-    #
 
     attr_writer :params
     attr_reader :params
@@ -324,15 +307,6 @@ module Chimp
   # and provides a way of executing a script on  it via the run_executable method.
   #
   class Server
-    #
-    # initialize
-    # href
-    # name
-    # nickname
-    # ip_address
-    # encode_with
-    # run_executable
-    #
 
     attr_writer :params, :object
     attr_reader :params, :object

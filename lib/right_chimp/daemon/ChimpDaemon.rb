@@ -6,17 +6,6 @@
 
 module Chimp
   class ChimpDaemon
-    #
-    # initialize
-    # run
-    # parse_command_line
-    # help
-    # spawn_queue_runner
-    # spawn_webserver
-    # run_forever
-    # install_signal_handlers
-    # quit
-    # spawn_chimpd_submission_processor
 
     attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count, :dry_run, :logfile, :chimp_queue
     attr_reader :queue, :running
@@ -214,8 +203,6 @@ module Chimp
     #
     # Quit by waiting for all chimp jobs to finish, not allowing
     # new jobs on the queue, and killing the web server.
-    #
-    # TODO: call @queue.quit, but with a short timeout?
     #
     def quit
       @running = false

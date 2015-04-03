@@ -1,48 +1,8 @@
 #
 # The Chimp class encapsulates the command-line program logic
 #
-#
-# TODO:
-#  - VERY IMPORTANT HREF any script notation has now changed.
-#  - Update NOT and ANDS to correct form.
-
 module Chimp
   class Chimp
-    #
-    # initialize
-    # show_wait_spinner
-    # run
-    # get_template_info
-    # get_executable_info
-    # parse_command_line
-    # check_option_validity
-    # get_server_info
-    # get_array_info
-    # get_servers_by_tag
-    # get_servers_by_deployment
-    # get_servers_by_array
-    # get_hrefs_for_arrays
-    # generate_jobs
-    # add_to_queue
-    # queue_runner
-    # set_action
-    # verify_results
-    # get_results
-    # print_timings
-    # get_failures
-    # do_work
-    # process
-    # job_id
-    # ask_confirmation
-    # chimpd_wait_until_done
-    # disable_logging
-    # verify
-    # warn_if_rightscript_not_in_all_servers
-    # make_human_readable_list_of_objects
-    # help
-    #
-    # self.set_verbose
-    # self.verbose?
 
     attr_accessor :concurrency, :delay, :retry_count, :hold, :progress, :prompt,
                   :quiet, :use_chimpd, :chimpd_host, :chimpd_port, :tags, :array_names,
@@ -180,7 +140,7 @@ module Chimp
       # to operate upon
       #
 
-      #Get elements if --array has been passed
+      # Get elements if --array has been passed
       get_array_info
 
       # Get elements if we are searching by tags
@@ -243,14 +203,8 @@ module Chimp
       return if @array_names.empty?
 
       # The first thing to do here is make an api1.5 call to get the array hrefs.
-      # FIXME: Investigate doing the following instead of an API 1.5 call:
-      #    1) Make an API 1.6 Deployments#index call
-      #    2) Collect all the server_arrays in all deployments
-      #    3) Remove any server_arrays that don't match your name
       arrays_hrefs=get_hrefs_for_arrays(@array_names)
       # Then we filter on all the instances by this href
-      # FIXME: Update all_instances to take a filter like this:
-      #  :filter => "parent_href==/api/server_arrays/1,/api/server_arrays/2/api/server_arrays/3"
       all_instances = Connection.all_instances() unless arrays_hrefs.empty?
       if all_instances.nil?
         Log.debug "No results from API query"
@@ -519,7 +473,6 @@ module Chimp
     def get_servers_by_tag(tags)
       # Take tags and collapse it,
       # Default case, tag is AND
-      # FIXME: API1.6 isnt working with tags OR case, only AND.
       if @match_all
         t = tags.join("&tag=")
         filter = "tag=#{t}"
@@ -639,8 +592,7 @@ module Chimp
       # if script is empty, we will list all common scripts
       # if not empty, we will list the first matching one
       if @script == "" and @script != nil
-        #list all operational scripts
-
+        # list all operational scripts
         reduce_to_common_scripts(st.size)
 
         script_id = list_and_select_op_script
@@ -655,7 +607,7 @@ module Chimp
         @op_scripts.each  do |rb|
           script_name = rb[0]
           if script_name.downcase.include?(script.downcase)
-            #We only need the name and the href
+            # We only need the name and the href
             s = Executable.new
             s.params['right_script']['href'] = rb[1].right_script.href
             s.params['right_script']['name'] = script_name
@@ -697,7 +649,7 @@ module Chimp
     end
 
     def search_for_script_in_sts(script, st)
-      #Loop and look inside every st
+      # Loop and look inside every st
       st.each do |s|
         Log.debug "Making API 1.5 call: client.resource(#{s[1]['href']})"
         temp=Connection.client.resource(s[1]['href'])
@@ -802,8 +754,6 @@ module Chimp
     #
     # Load up the queue with work
     #
-    # FIXME this needs to be refactored
-    #
     def generate_jobs(queue_servers, queue_template, queue_executable)
       counter = 0
       tasks = []
@@ -863,7 +813,7 @@ module Chimp
         s.params['state']                 = server['state']
         s.params['datacenter']            = server['links']['datacenter']['name']
 
-        #This will be useful for later on when we need to run scripts
+        # This will be useful for later on when we need to run scripts
         Log.debug "Making API 1.5 call: client.resource"
         s.object = Connection.client.resource(server['href'])
 
