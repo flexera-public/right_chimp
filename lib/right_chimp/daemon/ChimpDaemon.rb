@@ -34,7 +34,7 @@ module Chimp
       @running     = false
       @queue       = ChimpQueue.instance
       @chimp_queue = Queue.new
-      
+
       #Connect to the API
       Connection.instance
     end
@@ -46,7 +46,8 @@ module Chimp
       install_signal_handlers
       parse_command_line
 
-      puts "chimpd #{VERSION} launching with #{@concurrency} workers"
+      #puts "chimpd #{VERSION} launching with #{@concurrency} workers"
+      puts "Loading..."
       spawn_queue_runner
       spawn_webserver
       spawn_chimpd_submission_processor
@@ -117,23 +118,23 @@ module Chimp
         Log.threshold = Logger::WARN
       end
     end
- 
+
     #
     # Print out help information
-    #   
+    #
     def help
       puts
       puts  "chimpd -- a RightScale Platform command-line tool"
       puts
       puts  "Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--verbose]"
-      puts  
+      puts
       puts  "Options:"
-      puts 
+      puts
       puts  " --logfile=<name>            Specifiy the desired log location"
       puts  " --concurrency=<n>           Specify the level of concurrent actions"
       puts  " --delay=<n>                 Specify the number of seconds to wait before executing the action"
       puts  " --retry=<r>                 Specify the number of times chimpd should retry executing the action"
-      puts 
+      puts
       puts  " --verbose                   Run chimpd in verbose mode."
       puts  " --quiet                     Supress non-essential output"
       puts
@@ -243,11 +244,15 @@ module Chimp
         c.run
       rescue StandardError
       end
+
+      puts "chimpd #{VERSION} launched with #{@concurrency} workers"
+
       Log.debug "Spawning #{n} submission processing threads"
+
       (1..n).each do |n|
         @threads ||=[]
         @threads << Thread.new {
-          while true  
+          while true
             begin
               queued_request = @chimp_queue.pop
               group = queued_request.group
@@ -270,11 +275,11 @@ module Chimp
     # GenericServlet -- servlet superclass
     #
     class GenericServlet < WEBrick::HTTPServlet::AbstractServlet
-      # 
+      #
       # get_verb
       # get_id
       # get_payload
-      # 
+      #
       def get_verb(req)
         r = req.request_uri.path.split('/')[2]
       end
@@ -306,7 +311,7 @@ module Chimp
     # AdminServlet - admin functions
     #
     class AdminServlet < GenericServlet
-      # 
+      #
       # get do_POST
       #
       def do_POST(req, resp)
@@ -415,7 +420,7 @@ module Chimp
 
 
         resp.body = {
-          'job_uuid' => job_uuid , 
+          'job_uuid' => job_uuid ,
           'id' => id
         }.to_yaml
 
@@ -514,7 +519,7 @@ module Chimp
     class DisplayServlet < GenericServlet
       #
       # do_GET
-      # 
+      #
 
       def do_GET(req, resp)
         #

@@ -170,7 +170,7 @@ module Chimp
     #
     def Connection.validate_response(response, query)
 
-      Log.debug "Validating API response"
+      #Log.debug "Validating API response"
 
       resp_code = response.code
       # handle response codes we want to work with (200 or 404) and verify json hash from github

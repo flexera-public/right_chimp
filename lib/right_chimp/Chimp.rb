@@ -44,12 +44,10 @@ module Chimp
     # self.set_verbose
     # self.verbose?
 
-
     attr_accessor :concurrency, :delay, :retry_count, :hold, :progress, :prompt,
                   :quiet, :use_chimpd, :chimpd_host, :chimpd_port, :tags, :array_names,
                   :deployment_names, :script, :servers, :ssh, :report, :interactive, :action,
-                  :limit_start, :limit_end, :dry_run, :group, :job_id, :job_uuid, :verify
-
+                  :limit_start, :limit_end, :dry_run, :group, :job_id, :job_uuid, :verify, :cli_args
     #
     # These class variables control verbosity
     #
@@ -139,9 +137,14 @@ module Chimp
     def run
       queue = ChimpQueue.instance
 
+
+      self.cli_args = ARGV.join(" ")
+
       parse_command_line if @interactive
+
       check_option_validity if @interactive
       disable_logging unless @@verbose
+
 
       puts "chimp #{VERSION} executing..." if (@interactive and not @use_chimpd) and not @@quiet
 
@@ -187,7 +190,13 @@ module Chimp
       get_executable_info # Simulate a task taking an unknown amount of time
 
       if Chimp.failure
-        # If we hit here, we had a failure, offer user ability to retry
+        #This is the faailure point when executing standalone
+        Log.error "##################################################"
+        Log.error " API CALL FAILED FOR:"
+        Log.error " chimp #{@cli_args} "
+        Log.error " Run manually!"
+        Log.error "##################################################"
+        exit 1
       end
       #
       # Optionally display the list of objects to operate on
@@ -430,11 +439,6 @@ module Chimp
             when '--chimpd'
               @use_chimpd = true
               @chimpd_port = arg.to_i unless arg.empty?
-              #if @script.empty? || @script.nil?
-              #  puts "ERROR: --script cannot be empty when sending to chimpd"
-              #  help
-              #  exit 1
-              #end
             when '--chimpd-wait-until-done'
               @use_chimpd = true
               @chimpd_wait_until_done = true
@@ -456,6 +460,17 @@ module Chimp
               @verify = false
           end
         end
+
+        if @use_chimpd && ( @script.nil? || @script.empty? )
+          if @chimpd_wait_until_done == false
+            puts "#######################################################"
+            puts "ERROR: --script cannot be empty when sending to chimpd"
+            puts "#######################################################"
+            exit 1
+          end
+        end
+
+
       rescue GetoptLong::InvalidOption => ex
         help
         exit 1
@@ -557,14 +572,14 @@ module Chimp
             arrays_hrefs += result.collect(&:href)
           else
             if @ignore_errors
-              puts "Could not find array #{array_name}"
+              Log.debug "[#{Chimp.get_job_uuid}] Could not find array \"#{array_name}\""
             else
-              raise "Cannot find array #{array_name}"
+              Log.error "[#{Chimp.get_job_uuid}] Could not find array \"#{array_name}\""
             end
           end
         end
         if ( arrays_hrefs.empty? )
-          puts "Did not find any arrays that matched!"
+          Log.debug "[#{Chimp.get_job_uuid}] Did not find any arrays that matched!" unless names.size == 1
         end
 
         return(arrays_hrefs)
@@ -993,17 +1008,28 @@ module Chimp
     #
     def process
       Log.debug "Processing task"
-      Chimp.set_job_uuid(self.job_uuid)
-      get_array_info
-      get_server_info
-      get_template_info
-      get_executable_info
 
-      if @servers.first.nil? or @executable.nil?
-        puts "["+self.job_uuid+"] Nothing to do "
-        return []
+      Chimp.set_failure(false)
+      Chimp.set_job_uuid(self.job_uuid)
+
+      get_array_info unless Chimp.failure
+      get_server_info unless Chimp.failure
+      get_template_info unless Chimp.failure
+      get_executable_info unless Chimp.failure
+
+      if Chimp.failure
+        Log.error "##################################################"
+        Log.error "["+self.job_uuid+"] API CALL FAILED FOR:"
+        Log.error "["+self.job_uuid+"] chimp #{@cli_args} "
+        Log.error "["+self.job_uuid+"] Run manually!"
+        Log.error "##################################################"
       else
-        return generate_jobs(@servers, @server_template, @executable)
+        if @servers.first.nil? or @executable.nil?
+          Log.info "["+self.job_uuid+"] Nothing to do for \"chimp #{@cli_args}\"."
+          return []
+        else
+          return generate_jobs(@servers, @server_template, @executable)
+        end
       end
     end
 
