@@ -207,7 +207,7 @@ module Chimp
           end
         rescue JSON::ParserError
           Log.error "Warning: Expected JSON response but was unable to parse!"
-          Log.error "Warning: #{response.body}!"
+          #Log.error "Warning: #{response.body}!"
 
           return {} # Return an empty result
         end
