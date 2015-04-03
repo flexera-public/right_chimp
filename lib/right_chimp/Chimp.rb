@@ -313,7 +313,6 @@ module Chimp
           else
             #If its not an url, go ahead try to locate it in the ST"
             @executable = detect_right_script(@server_template, @script)
-            # @executable = detect_right_script_new(@server_template, @script)
           end
         else
           # @script could be nil because we want to run ssh
@@ -668,13 +667,18 @@ module Chimp
         # At this point we can make a full-on API query for the last revision of the script
         #
         if @script_to_run == nil
-          puts "ERROR: Sorry, didnt find that ( "+script+" ), provide an URI instead"
-          puts "I searched in:"
-          st.each { |s|
-            puts "   *  "+s[1]['name']+"  [Rev"+s[1]['version'].to_s+"]"
-          }
-          if not @ignore_errors
-            exit 1
+          if @interactive
+            puts "ERROR: Sorry, didnt find that ( "+script+" ), provide an URI instead"
+            puts "I searched in:"
+            st.each { |s|
+              puts "   *  "+s[1]['name']+"  [Rev"+s[1]['version'].to_s+"]"
+            }
+            if not @ignore_errors
+              exit 1
+            end
+          else
+            Log.error "["+self.job_uuid+"] Sorry, didnt find the script: ( "+script+" )!"
+            return nil
           end
         end
       end

@@ -21,11 +21,13 @@ module Chimp
       attempts = 3
 
       begin
-        # We are sending to the chimp host+port the actual chimp_object. 
+        # We are sending to the chimp host+port the actual chimp_object.
+        Log.debug "Sending job to chimpd webserver"
         response = RestClient.post uri, chimp_object.to_yaml
 
 
         if response.code > 199 and response.code < 300
+          Log.debug "Response code was #{response.code}"
           id = YAML::load(response.body)['id']
           #ID changes upon execution, not upon submission.
           job_uuid = YAML::load(response.body)['job_uuid']
@@ -43,7 +45,7 @@ module Chimp
         return false
 
       rescue RestClient::InternalServerError => ex
-        
+
         $stderr.puts "["+job_uuid+"] WARNING: Error submitting job to chimpd: #{ex.message}, retrying..."
         attempts -= 1
         sleep 5 and retry if attempts > 0

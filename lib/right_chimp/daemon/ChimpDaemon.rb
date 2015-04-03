@@ -47,7 +47,7 @@ module Chimp
       parse_command_line
 
       #puts "chimpd #{VERSION} launching with #{@concurrency} workers"
-      puts "Loading..."
+      puts "Loading... please wait"
       spawn_queue_runner
       spawn_webserver
       spawn_chimpd_submission_processor
