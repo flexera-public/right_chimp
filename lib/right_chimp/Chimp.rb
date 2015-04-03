@@ -665,7 +665,10 @@ module Chimp
         #
         if @script_to_run == nil
           puts "ERROR: Sorry, didnt find that ( "+script+" ), provide an URI instead"
-          puts "I searched in: "+st.inspect
+          puts "I searched in:"
+          st.each { |s|
+            puts "   *  "+s[1]['name']+"  [Rev"+s[1]['version'].to_s+"]"
+          }
           if not @ignore_errors
             exit 1
           end
