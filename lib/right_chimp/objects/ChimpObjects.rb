@@ -19,7 +19,24 @@ module Chimp
     def initialize
     end
 
+    def self.connect_and_cache
+
+      self.start_right_api_client
+
+      Log.debug "Making initial Api1.6 call to cache entries."
+
+      result = self.all_instances
+      if result.empty? || result.nil?
+        Log.error "Couldnt contact API1.6 correctly, will now exit."
+        exit -1
+      end
+    end
+
     def self.connect
+      self.start_right_api_client
+    end
+
+    def self.start_right_api_client
       require 'yaml'
       require 'right_api_client'
       begin
@@ -38,14 +55,6 @@ module Chimp
         @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass],
                                         :account_id => creds[:account], :api_url => creds[:api_url],
                                         :timeout => nil)
-
-        # FIXME Make an initial call for ALL instances, and die if a 200 isnt received
-        Log.debug "Making initial Api1.6 call to cache entries."
-        result = self.all_instances
-        if result.empty? || result.nil?
-          Log.error "Couldnt contact API1.6 correctly, will now exit."
-          exit -1
-        end
       rescue
         puts "##############################################################################"
         puts "Error: "

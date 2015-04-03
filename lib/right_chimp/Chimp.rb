@@ -168,7 +168,11 @@ module Chimp
       else
         #Connect to the Api
         Connection.instance
-        Connection.connect
+        if @interactive
+          Connection.connect
+        else
+          Connection.connect_and_cache
+        end
       end
 
       # If we're processing the command ourselves, then go
