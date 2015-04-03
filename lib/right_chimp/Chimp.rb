@@ -307,6 +307,7 @@ module Chimp
             s=Executable.new
             s.params['right_script']['href']="right_script_href=/api/right_scripts/"+script_number
             #Make an 1.5 call to extract name, by loading resource.
+            Log.debug "Making API 1.5 call : client.resource"
             the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
             s.params['right_script']['name'] = the_name
             @executable=s
@@ -571,6 +572,7 @@ module Chimp
         names.each do |array_name|
           # Find if arrays exist, if not raise warning.
           # One API call per array
+          Log.debug "Making API 1.5 call: client.server_arrays"
           result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
           # Result is an array with all the server arrays
           if result.size != 0
@@ -745,7 +747,7 @@ module Chimp
         #    "kind"=>"cm#server_template",
         #    "version"=>5,
         #    "href"=>"/api/server_templates/351930003"} ]
-
+        Log.debug "Making API 1.5 call: client.resource"
         temp=Connection.client.resource(s[1]['href'])
         temp.runnable_bindings.index.each do |x|
           # only add the operational ones
@@ -830,6 +832,7 @@ module Chimp
         s.params['datacenter']            = server['links']['datacenter']['name']
 
         #This will be useful for later on when we need to run scripts
+        Log.debug "Making API 1.5 call: client.resource"
         s.object = Connection.client.resource(server['href'])
 
         e = nil

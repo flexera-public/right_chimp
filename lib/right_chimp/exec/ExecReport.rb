@@ -10,7 +10,7 @@ module Chimp
   class ExecReport < Executor
     attr_reader :server, :fields
     attr_writer :server, :fields
-    
+
     def info
       return "report on server #{fields.inspect}"
     end
@@ -18,7 +18,7 @@ module Chimp
     def run
       run_with_retry do
         output = []
-        
+
         #
         # The API and rest_connection return very different data
         # depending on the API call made (here, tag query vs. array)
@@ -27,6 +27,7 @@ module Chimp
         #
         begin
           s=@server
+          Log.debug "Making API 1.5 call: client.tags"
           response=Connection.client.tags.by_resource(:resource_hrefs => [@server.href]).first.tags
 #          s = Server.find(@server.href)
 #          s.settings
@@ -42,7 +43,7 @@ module Chimp
         response.each do |t|
           s.params["tags"] += [ t['name'] ]
         end
-        
+
         @fields.split(",").each do |f|
           if f =~ /^tag=([^,]+)/
             tag_search_string = $1
@@ -53,7 +54,7 @@ module Chimp
             output << s.params[f]
           end
         end
-        
+
         puts output.join(",")
       end
     end
