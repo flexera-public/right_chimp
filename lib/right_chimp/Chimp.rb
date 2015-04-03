@@ -162,7 +162,7 @@ module Chimp
       if @use_chimpd
         timestamp=Time.now.to_i
         length=6
-        self.job_uuid = (36**(length-1) + rand(36**length)).to_s(36)
+        self.job_uuid = (36**(length-1) + rand(36**length - 36**(length-1))).to_s(36)
         ChimpDaemonClient.submit(@chimpd_host, @chimpd_port, self,self.job_uuid)
         exit
       else
