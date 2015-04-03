@@ -1074,7 +1074,7 @@ module Chimp
         return []
       else
         if @servers.first.nil? or @executable.nil?
-          Log.info "["+self.job_uuid+"] Nothing to do for \"chimp #{@cli_args}\"."
+          Log.warn "["+self.job_uuid+"] Nothing to do for \"chimp #{@cli_args}\"."
           return []
         else
           return generate_jobs(@servers, @server_template, @executable)
