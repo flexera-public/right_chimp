@@ -184,10 +184,12 @@ module Chimp
 
       # At this stage @servers should be populated with our findings
       # Get ST info for all elements
-      get_template_info
+      if not @servers.empty?
+        get_template_info unless @servers.empty?
 
-      puts "Looking for the rightscripts (This might take some time)" if (@interactive and not @use_chimpd) and not @@quiet
-      get_executable_info # Simulate a task taking an unknown amount of time
+        puts "Looking for the rightscripts (This might take some time)" if (@interactive and not @use_chimpd) and not @@quiet
+        get_executable_info # Simulate a task taking an unknown amount of time
+      end
 
       if Chimp.failure
         #This is the faailure point when executing standalone
@@ -237,15 +239,15 @@ module Chimp
       return if @array_names.empty?
 
       # The first thing to do here is make an api1.5 call to get the array hrefs.
-      # TODO: Investigate doing the following instead of an API 1.5 call:
+      # FIXME: Investigate doing the following instead of an API 1.5 call:
       #    1) Make an API 1.6 Deployments#index call
       #    2) Collect all the server_arrays in all deployments
       #    3) Remove any server_arrays that don't match your name
       arrays_hrefs=get_hrefs_for_arrays(@array_names)
       # Then we filter on all the instances by this href
-      # TODO: Update all_instances to take a filter like this:
+      # FIXME: Update all_instances to take a filter like this:
       #  :filter => "parent_href==/api/server_arrays/1,/api/server_arrays/2/api/server_arrays/3"
-      all_instances = Connection.all_instances()
+      all_instances = Connection.all_instances() unless arrays_hrefs.empty?
       if all_instances.nil?
         Log.debug "No results from API query"
       else
