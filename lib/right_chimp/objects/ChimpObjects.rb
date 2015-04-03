@@ -168,7 +168,10 @@ module Chimp
         end
 
       rescue Exception => e
-        puts e.message
+        Log.debug "Catched exception on http request to the api"
+        Log.debug "#{e.message}"
+        attempts += 1
+        retry
       end
 
       return @instances

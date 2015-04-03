@@ -1039,6 +1039,7 @@ module Chimp
         Log.error "["+self.job_uuid+"] chimp #{@cli_args} "
         Log.error "["+self.job_uuid+"] Run manually!"
         Log.error "##################################################"
+        return []
       else
         if @servers.first.nil? or @executable.nil?
           Log.info "["+self.job_uuid+"] Nothing to do for \"chimp #{@cli_args}\"."
