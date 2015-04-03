@@ -1378,7 +1378,7 @@ module Chimp
       puts "  * If you leave the name of a --script or --ssh command blank, chimp will prompt you"
       puts "  * URIs must be API URIs in the format https://us-3.rightscale.com/acct/<acct>/right_scripts/<script_id>"
       puts "  * The following reporting keywords can be used: ip-address,name,href,private-ip-address,resource_uid,"
-      puts "  * ec2-instance-type,datacenter,dns-name,locked,tag=foo"
+      puts "  * ec2-instance-type,datacenter,dns-name,locked"
     end
   end
 end

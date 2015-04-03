@@ -4,9 +4,11 @@ require "right_chimp/version"
 
 Gem::Specification.new do |s|
   s.name        = "right_chimp"
+  s.license = 'MIT'
+
   s.version     = Chimp::VERSION
-  s.authors     = ["Marc Goujon"]
-  s.email       = ["marc@rightscale.com"]
+  s.authors     = ["RightScale Operations"]
+  s.email       = ["ops@rightscale.com"]
   s.homepage    = "https://github.com/rightscale/right_chimp"
   s.summary     = %q{RightScale platform command-line tool}
   s.description = %q{The Chimp is a tool for managing servers using the RightScale platform.}

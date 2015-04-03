@@ -137,4 +137,4 @@ Version 1.1.3
 
 Version 2.0
 -----------
-* Feature: Beginning of the refactor to drop legacy api calls.
+* Feature: Deprecated all Rightscale API1.0 calls in favor of Rightscale API1.5 and API1.6 calls.
