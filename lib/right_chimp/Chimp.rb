@@ -46,7 +46,7 @@ module Chimp
 
     attr_accessor :concurrency, :delay, :retry_count, :hold, :progress, :prompt,
                   :quiet, :use_chimpd, :chimpd_host, :chimpd_port, :tags, :array_names,
-                  :deployment_names, :script, :servers, :ssh, :report, :interactive, :action,
+                  :deployment_names, :script, :all_scripts, :servers, :ssh, :report, :interactive, :action,
                   :limit_start, :limit_end, :dry_run, :group, :job_id, :job_uuid, :verify, :cli_args
     #
     # These class variables control verbosity
@@ -192,11 +192,11 @@ module Chimp
         get_template_info unless @servers.empty?
 
         puts "Looking for the rightscripts (This might take some time)" if (@interactive and not @use_chimpd) and not @@quiet
-        get_executable_info # Simulate a task taking an unknown amount of time
+        get_executable_info
       end
 
       if Chimp.failure
-        #This is the faailure point when executing standalone
+        #This is the failure point when executing standalone
         Log.error "##################################################"
         Log.error " API CALL FAILED FOR:"
         Log.error " chimp #{@cli_args} "
@@ -307,7 +307,7 @@ module Chimp
             s=Executable.new
             s.params['right_script']['href']="right_script_href=/api/right_scripts/"+script_number
             #Make an 1.5 call to extract name, by loading resource.
-            Log.debug "Making API 1.5 call : client.resource"
+            Log.debug "Making API 1.5 call : client.resource(#{s.params['right_script']['href'].scan(/=(.*)/).last.last})"
             the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
             s.params['right_script']['name'] = the_name
             @executable=s
@@ -572,7 +572,7 @@ module Chimp
         names.each do |array_name|
           # Find if arrays exist, if not raise warning.
           # One API call per array
-          Log.debug "Making API 1.5 call: client.server_arrays"
+          Log.debug "Making API 1.5 call: client.server_arrays.index(:filter => [#{array_name}])"
           result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
           # Result is an array with all the server arrays
           if result.size != 0
@@ -618,6 +618,10 @@ module Chimp
       return(st)
     end
 
+    #
+    # This function returns @script_to_run which is extracted from matching
+    # the desired script against all server templates or the script URL
+    #
     def detect_right_script(st, script)
       Log.debug  "Looking for rightscript"
       executable = nil
@@ -629,7 +633,7 @@ module Chimp
         return executable
       end
 
-      # Start from the ST's
+      # Take the sts and extract all operational scripts
       @op_scripts = extract_operational_scripts(st)
 
       # if script is empty, we will list all common scripts
@@ -646,15 +650,12 @@ module Chimp
         s.params['right_script']['href'] = @op_scripts[script_id][1].right_script.href
         s.params['right_script']['name'] = @op_scripts[script_id][0]
         @script_to_run = s
-
       else
-        # Try to find the first one matching, if none matches, try to run from ANY script - FIXME
-        # The arrays is filled with  [name_of_the_script , #<RightApi::ResourceDetail resource_type="runnable_binding">]
-
+        # Try to find the rightscript in our list of common operational scripts
         @op_scripts.each  do |rb|
           script_name = rb[0]
           if script_name.downcase.include?(script.downcase)
-            #We will only push the hrefs for the scripts since its the only ones we care
+            #We only need the name and the href
             s = Executable.new
             s.params['right_script']['href'] = rb[1].right_script.href
             s.params['right_script']['name'] = script_name
@@ -665,25 +666,55 @@ module Chimp
           end
         end
         #
-        # If we reach here it means we didnt find the script in the operationals one
-        # At this point we can make a full-on API query for the last revision of the script
+        # If we reach here it means we didnt find the script in the operationals
         #
         if @script_to_run == nil
-          if @interactive
-            puts "ERROR: Sorry, didnt find that ( "+script+" ), provide an URI instead"
-            puts "I searched in:"
-            st.each { |s|
-              puts "   *  "+s[1]['name']+"  [Rev"+s[1]['version'].to_s+"]"
-            }
-            if not @ignore_errors
-              exit 1
+          # Search outside common op scripts
+          search_for_script_in_sts(script, st)
+          if @script_to_run.nil?
+            if @interactive
+              puts "ERROR: Sorry, didnt find that ( "+script+" ), provide an URI instead"
+              puts "I searched in:"
+              st.each { |s|
+                puts "   *  "+s[1]['name']+"  [Rev"+s[1]['version'].to_s+"]"
+              }
+              if not @ignore_errors
+                exit 1
+              end
+            else
+              Log.error "["+self.job_uuid+"] Sorry, didnt find the script: ( "+script+" )!"
+              return nil
             end
           else
-            Log.error "["+self.job_uuid+"] Sorry, didnt find the script: ( "+script+" )!"
-            return nil
+            if self.job_uuid.nil?
+              self.job_uuid = ""
+            end
+            Log.warn "["+self.job_uuid+"]\"#{@script_to_run.params['right_script']['name']}\" is not a common operational script!"
+            return @script_to_run
           end
         end
       end
+    end
+
+    def search_for_script_in_sts(script, st)
+      #Loop and look inside every st
+      st.each do |s|
+        Log.debug "Making API 1.5 call: client.resource(#{s[1]['href']})"
+        temp=Connection.client.resource(s[1]['href'])
+        temp.runnable_bindings.index.each do |x|
+          # Look for first match
+          if x.raw['right_script']['name'].downcase.include?(script.downcase)
+            Log.debug "Found requested righscript: #{script}"
+            # Provide the name + href
+            s = Executable.new
+            s.params['right_script']['href'] = x.raw['right_script']['href']
+            s.params['right_script']['name'] = x.raw['right_script']['name']
+            @script_to_run = s
+          end
+        end
+      end
+      # If we hit here, we never found the desired script
+      return
     end
 
     #
@@ -767,6 +798,7 @@ module Chimp
       end
       return op_scripts
     end
+
     #
     # Load up the queue with work
     #
