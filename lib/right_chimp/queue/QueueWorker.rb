@@ -30,10 +30,6 @@ module Chimp
             sleep 1
           end
 
-        #
-        # the rest_connection gem raises RuntimeErrors so we need to
-        # rescue Exception here
-        #
         rescue Exception => ex
           Log.error "Exception in QueueWorker.run: #{ex}"
           Log.debug ex.inspect

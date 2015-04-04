@@ -26,54 +26,32 @@ REPORTING
 ---------
 
 Via the --report command line option it's possible to generate a CSV
-report based on a tag query. Multiple fields to include in a report can
-be specified in a comma delimited list:
+report. Multiple fields to include in a report can be specified in a comma
+delimited list:
 
-  chimp --report="nickname,ip-address"
+  chimp --report="nickname,ip-address,tag=myservice:version" --array="MyAppServers"
 
-Would include both the server nickname and ip address to the report:
+Would include both the server nickname and ip address to the report as well as the specified tag:
 
-  server1-1.rightscale.com,192.168.0.1
-  server1-2.rightscale.com,192.168.0.2
-  server1-3.rightscale.com,192.168.0.3
-  server1-4.rightscale.com,192.168.0.4
+  server1-1.rightscale.com,192.168.0.1,myservice:version=production
+  server1-2.rightscale.com,192.168.0.2,myservice:version=production
+  server1-3.rightscale.com,192.168.0.3,myservice:version=staging
+  server1-4.rightscale.com,192.168.0.4,myservice:version=info
 
-Any field present on a rest_connection Server object can be queried. This
-includes:
+Any field present in the following list can be queried:
 
-  Field                               Example
-  ----------------------------------- ----------------------------
-  aws-id                              i-12345
-  aws-platform                        Linux/Unix
-  cloud_id
-  created_at
-  current_instance_href
-  deployment_href
-  dns-name                            ec2-50-17-195-218.compute-1.amazonaws.com
-  ec2-availability-zone               us-east-1a
-  ec2-instance-type                   c1.medium
-  ec2-security-groups-href
-  ec2-ssh-key-href
+  Field
+  -----------------------------------
+  ip-address
+  name
   href
-  ip-address                          50.17.195.12
-  locked                              false
-  nickname
-  pricing                             on_demand
-  private-dns-name
-  private-ip-address                  10.10.1.1
-  server_template_href
-  server_type                         ec2
-  state                               operational
-  updated_at                          2011/10/18 21:53:56 +0000
-
-Additionally you can report on instance tags:
-
-  chimp --report="nickname,tag=service:myservice"
-
-  server1-1.rightscale.com,service:id=1
-  server1-2.rightscale.com,service:id=2
-  server1-3.rightscale.com,service:id=3
-  server1-4.rightscale.com,service:id=4
+  private-ip-address
+  resource_uid
+  ec2-instance-type
+  datacenter
+  dns-name
+  locked
+  tag=mytag
 
 OBLIGATORY MAINTENANCE STRING
 -----------------------------

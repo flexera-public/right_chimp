@@ -10,13 +10,16 @@ require 'rake'
 
 require 'progressbar'
 require 'json'
+require 'yaml'
 
 require 'highline/import'
 
-#NEW API CALS
 require 'right_api_client'
 require 'rest-client'
 require 'logger'
+
+require "benchmark"
+
 
 module Chimp
   require 'right_chimp/version'
@@ -34,4 +37,5 @@ module Chimp
   require 'right_chimp/exec/ExecSSH'
   require 'right_chimp/exec/ExecReport'
   require 'right_chimp/exec/ExecNoop'
+  require 'right_chimp/objects/ChimpObjects'
 end

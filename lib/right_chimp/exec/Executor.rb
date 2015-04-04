@@ -5,7 +5,7 @@
 module Chimp
   class Executor
     attr_accessor :server, :array, :exec, :inputs, :template, :owner, :group,
-                  :job_id, :status, :dry_run, :verbose, :quiet, :timeout,
+                  :job_id, :job_uuid, :status, :dry_run, :verbose, :quiet, :timeout,
                   :retry_count, :retry_sleep, :time_start, :time_end, :error
     
     attr_reader   :results
@@ -23,6 +23,7 @@ module Chimp
       @template = h[:template]        || nil
 
       @job_id = h[:job_id]            || nil
+      @job_uuid = h[:job_uuid]        || nil
       @group = h[:group]              || nil
       @exec = h[:exec]                || nil
       @inputs = h[:inputs]            || nil
@@ -105,6 +106,7 @@ module Chimp
 
       @status = STATUS_RUNNING
       @time_start = Time.now
+
       Log.info self.describe_work_start unless @quiet
       
       #
@@ -124,7 +126,7 @@ module Chimp
             @status = STATUS_DONE
             @group.job_completed
           else
-            Log.warn "Ownership of job_id #{job_id} lost. User cancelled operation?"
+            Log.warn "[#{@job_uuid}] Ownership of job_id #{job_id} lost. User cancelled operation?"
           end
         
         rescue SystemExit, Interrupt => ex
@@ -138,7 +140,7 @@ module Chimp
         
           if @retry_count > 0
             @status = STATUS_RETRYING
-            Log.error "Error executing on \"#{name}\". Retrying in #{@retry_sleep} seconds..."
+            Log.error "[#{@job_uuid}] Error executing on \"#{name}\". Retrying in #{@retry_sleep} seconds..."
             @retry_count -= 1
             sleep @retry_sleep
             retry
@@ -146,7 +148,7 @@ module Chimp
         
           @status = STATUS_ERROR
           @error = ex
-          Log.error "Error executing on \"#{name}\": #{ex}"
+          Log.error "[#{@job_uuid}] Error executing on \"#{name}\": #{ex}"
           
         ensure 
           @time_end = Time.now
@@ -154,7 +156,7 @@ module Chimp
         end
         
       rescue RuntimeError => ex
-        Log.error "Caught RuntimeError: #{ex}. Aborting job."
+        Log.error "[#{@job_uuid}] Caught RuntimeError: #{ex}. Aborting job."
         Log.error ex.inspect
         Log.error ex.backtrace
         @status = STATUS_ERROR

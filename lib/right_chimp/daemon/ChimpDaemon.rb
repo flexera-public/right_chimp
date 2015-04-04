@@ -6,6 +6,7 @@
 
 module Chimp
   class ChimpDaemon
+
     attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count, :dry_run, :logfile, :chimp_queue
     attr_reader :queue, :running
 
@@ -22,7 +23,7 @@ module Chimp
       @running     = false
       @queue       = ChimpQueue.instance
       @chimp_queue = Queue.new
-      
+
       #Connect to the API
       Connection.instance
     end
@@ -34,7 +35,8 @@ module Chimp
       install_signal_handlers
       parse_command_line
 
-      puts "chimpd #{VERSION} launching with #{@concurrency} workers"
+      #puts "chimpd #{VERSION} launching with #{@concurrency} workers"
+      puts "Loading... please wait"
       spawn_queue_runner
       spawn_webserver
       spawn_chimpd_submission_processor
@@ -96,30 +98,32 @@ module Chimp
       if not @verbose
       	ENV['REST_CONNECTION_LOG'] = "/dev/null"
       	ENV['RESTCLIENT_LOG'] = "/dev/null"
+        Log.threshold= Logger::INFO
+      else
+        Log.threshold= Logger::DEBUG
       end
 
       if @quiet
         Log.threshold = Logger::WARN
       end
-
     end
- 
+
     #
     # Print out help information
-    #   
+    #
     def help
       puts
       puts  "chimpd -- a RightScale Platform command-line tool"
       puts
       puts  "Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--verbose]"
-      puts  
+      puts
       puts  "Options:"
-      puts 
+      puts
       puts  " --logfile=<name>            Specifiy the desired log location"
       puts  " --concurrency=<n>           Specify the level of concurrent actions"
       puts  " --delay=<n>                 Specify the number of seconds to wait before executing the action"
       puts  " --retry=<r>                 Specify the number of times chimpd should retry executing the action"
-      puts 
+      puts
       puts  " --verbose                   Run chimpd in verbose mode."
       puts  " --quiet                     Supress non-essential output"
       puts
@@ -128,7 +132,6 @@ module Chimp
       puts  " --help                      Displays this menu"
       puts
       exit 0
-
     end
 
     #
@@ -201,8 +204,6 @@ module Chimp
     # Quit by waiting for all chimp jobs to finish, not allowing
     # new jobs on the queue, and killing the web server.
     #
-    # TODO: call @queue.quit, but with a short timeout?
-    #
     def quit
       @running = false
       @server.shutdown
@@ -230,11 +231,15 @@ module Chimp
         c.run
       rescue StandardError
       end
+
+      puts "chimpd #{VERSION} launched with #{@concurrency} workers"
+
       Log.debug "Spawning #{n} submission processing threads"
+
       (1..n).each do |n|
         @threads ||=[]
         @threads << Thread.new {
-          while true  
+          while true
             begin
               queued_request = @chimp_queue.pop
               group = queued_request.group
@@ -257,6 +262,11 @@ module Chimp
     # GenericServlet -- servlet superclass
     #
     class GenericServlet < WEBrick::HTTPServlet::AbstractServlet
+      #
+      # get_verb
+      # get_id
+      # get_payload
+      #
       def get_verb(req)
         r = req.request_uri.path.split('/')[2]
       end
@@ -267,6 +277,11 @@ module Chimp
         return id
       end
 
+      def get_job_uuid(req)
+        string = req.body.scan(/job_uuid: .{6}/).last
+        job_uuid = string.scan(/ (.{6})/).last.last
+        return job_uuid
+      end
       #
       # Get the body of the request-- assume YAML
       #
@@ -283,6 +298,9 @@ module Chimp
     # AdminServlet - admin functions
     #
     class AdminServlet < GenericServlet
+      #
+      # get do_POST
+      #
       def do_POST(req, resp)
         payload = self.get_payload(req)
         shutdown = payload['shutdown'] || false
@@ -301,6 +319,11 @@ module Chimp
     # http://localhost:9055/group/default/running
     #
     class GroupServlet < GenericServlet
+      #
+      # do_GET
+      # do_POST
+      #
+
       #
       # GET a group by name and status
       # /group/<name>/<status>
@@ -340,8 +363,7 @@ module Chimp
           raise WEBrick::HTTPStatus::PreconditionFailed.new("invalid action")
         end
       end
-
-    end
+    end # GroupServlet
 
     #
     # JobServlet - job control
@@ -349,9 +371,15 @@ module Chimp
     # HTTP body is a yaml serialized chimp object
     #
     class JobServlet < GenericServlet
+      #
+      # do_POST
+      # do_GET
+      #
+
       def do_POST(req, resp)
         id      = -1
         job_id  = self.get_id(req)
+        job_uuid= self.get_job_uuid(req)
         verb    = self.get_verb(req)
 
         payload = self.get_payload(req)
@@ -377,7 +405,9 @@ module Chimp
           q.get_job(job_id).status = payload.status
         end
 
+
         resp.body = {
+          'job_uuid' => job_uuid ,
           'id' => id
         }.to_yaml
 
@@ -474,6 +504,10 @@ module Chimp
     # DisplayServlet
     #
     class DisplayServlet < GenericServlet
+      #
+      # do_GET
+      #
+
       def do_GET(req, resp)
         #
         # First determine the path to the files to serve
@@ -523,5 +557,6 @@ module Chimp
         end
       end
     end # DisplayServlet
+
   end # ChimpDaemon
 end

@@ -288,10 +288,6 @@ module Chimp
       @concurrency = 25
     end
 
-    #
-    # FIXME - we're not currently using the @concurrency setting to limit execution
-    #         due to an unknown bug...
-    #
     def ready?
       return (get_jobs_by_status(Executor::STATUS_NONE).size > 0) # and get_jobs_by_status(Executor::STATUS_RUNNING).size < @concurrency)
     end
