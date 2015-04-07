@@ -659,7 +659,7 @@ module Chimp
             Log.debug "Found requested righscript: #{script}"
             # Provide the name + href
             s = Executable.new
-            s.params['right_script']['href'] = x.raw['right_script']['href']
+            s.params['right_script']['href'] = x.raw['links'].find{|i| i['rel'] == 'right_script'}['href']
             s.params['right_script']['name'] = x.raw['right_script']['name']
             @script_to_run = s
           end
