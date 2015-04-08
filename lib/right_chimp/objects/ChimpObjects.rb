@@ -363,7 +363,13 @@ module Chimp
     def run_executable(exec, options)
       script_href = "right_script_href="+exec.href
       # Construct the parameters to pass for the inputs
-      params=options.collect { |k, v| "&inputs[][name]=#{k}&inputs[][value]=#{v}" }.join('&')
+      params=options.collect { |k, v|
+        "&inputs[][name]=#{k}&inputs[][value]=#{v}" unless k == :ignore_lock
+        }.join('&')
+
+      if options[:ignore_lock]
+        params+="&ignore_lock=true"
+      end
       # self is the actual Server object
       task = self.object.run_executable(script_href + params)
       return task
