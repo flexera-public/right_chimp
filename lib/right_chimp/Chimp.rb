@@ -483,21 +483,20 @@ module Chimp
         servers = Connection.instances(filter)
       end
 
-      if !servers.nil?
-        if servers.empty?
-          if @ignore_errors
-            Log.warn "Tag query returned no results: #{tags.join(" ")}"
-          else
-             raise "Tag query returned no results: #{tags.join(" ")}\n"
-          end
-        end
-      else
+      if servers.nil?
         if @ignore_errors
-          Log.warn "Tag query returned no results: #{tags.join(" ")}"
+          Log.warn "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}"
         else
-         raise "Tag query returned no results: #{tags.join(" ")}\n"
+          raise "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}\n"
+        end
+      elsif servers.empty?
+        if @ignore_errors
+          Log.warn "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}"
+        else
+          raise "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}\n"
         end
       end
+
       return(servers)
     end
 
@@ -1005,10 +1004,10 @@ module Chimp
     # This is used by chimpd, when processing a task.
     #
     def process
-      Log.debug "Processing task"
-
       Chimp.set_failure(false)
       Chimp.set_job_uuid(self.job_uuid)
+
+      Log.debug "[#{Chimp.get_job_uuid}] Processing task"
 
       get_array_info unless Chimp.failure
       get_server_info unless Chimp.failure

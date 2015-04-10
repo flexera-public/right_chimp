@@ -24,6 +24,8 @@ module Chimp
       if result.empty? || result.nil?
         Log.error "Couldnt contact API1.6 correctly, will now exit."
         exit -1
+      else
+        Log.debug "API lists #{result.count} operational instances in the account"
       end
     end
 
@@ -132,6 +134,7 @@ module Chimp
         while attempts < retries
           if @retry
             if attempts > 0
+              Log.debug "Retrying..."
               sleep_time = sleep_for * attempts
 
               Log.debug "Sleeping between retries for #{sleep_time}"
@@ -146,10 +149,10 @@ module Chimp
             end
 
             Log.debug "API Request time: #{time.real} seconds"
-            Log.debug "API Query was: #{query}"
+            Log.debug "[#{Chimp.get_job_uuid}] API Query was: #{query}"
 
             # Validate API response
-            @instances = validate_response(@response, query)
+            instances = validate_response(@response, query)
           else
             # We dont retry, exit the loop.
             break
@@ -158,17 +161,23 @@ module Chimp
 
         if attempts == retries
           Chimp.set_failure(true)
-          raise "[#{Chimp.get_job_uuid}] Api call failed more than 3 times."
+          instances = []
+          raise "[#{Chimp.get_job_uuid}] Api call failed more than #{retries} times."
         end
 
       rescue Exception => e
         Log.debug "Catched exception on http request to the api"
         Log.debug "#{e.message}"
+        Chimp.set_failure(true)
+
+        instances = []
         attempts += 1
         retry
       end
 
-      return @instances
+      Log.debug "[#{Chimp.get_job_uuid}] #{instances.count} instances matching"
+
+      return instances
     end
 
     #
@@ -209,14 +218,12 @@ module Chimp
       elsif resp_code == "502"
         Log.debug "Api returned code: 502"
         Log.debug "Query was: #{query}"
-        Log.debug "Retrying..."
 
         @retry = true
 
       elsif resp_code == "500"
         Log.debug "Api returned code: 500"
         Log.debug "Query was: #{query}"
-        Log.debug "Retrying..."
 
         @retry = true
 
