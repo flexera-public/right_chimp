@@ -507,7 +507,7 @@ module Chimp
       servers = []
       all_instances = Connection.all_instances
 
-      result = all_instances.select {|i| names.include?(i['links']['deployment']['name'])}
+      result = all_instances.select {|i| names.any? {|n| i['links']['deployment']['name'] =~ /#{n}/ }}
       servers = result
 
       return(servers)
