@@ -497,9 +497,41 @@ module Chimp
         end
       end
 
+      servers = verify_tagged_instances(servers,tags)
+
       return(servers)
     end
 
+    #
+    # Verify that all returned instances from the API match our tag request
+    #
+    def verify_tagged_instances(servers,tags)
+      array_list = servers
+      # servers is an array of hashes
+      # verify that each object contains the tags.
+      if @match_all
+        # has to contain BOTH
+        matching_servers = array_list.select { |instance| (tags - instance['tags']).empty? }
+
+      else
+        # has to contain ANY
+        matching_servers = array_list.select { |instance| tags.any? {|tag| instance['tags'].include?(tag)  }}
+      end
+
+      # Shall there be a discrepancy, we need to raise an error and end the run.
+      if matching_servers.size != servers.size
+        if @ignore_errors
+          Log.error "[#{Chimp.get_job_uuid}] #{servers.size - matching_servers.size} instances didnt match tag selection."
+          Log.error "[#{Chimp.get_job_uuid}] #{tags.join(" ")}"
+          Chimp.set_failure(true)
+          servers = []
+        else
+          raise "[#{Chimp.get_job_uuid}] #{servers.size - matching_servers.size} instances didnt match tag selection"
+        end
+      end
+
+      return servers
+    end
     #
     # Parse deployment names and get Server objects
     #
