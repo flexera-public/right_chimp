@@ -115,7 +115,7 @@ module Chimp
     def Connection.api16_call(query)
 
       @retry = true
-      retries = 3
+      retries = 5
       attempts = 0
       sleep_for = 20
 
