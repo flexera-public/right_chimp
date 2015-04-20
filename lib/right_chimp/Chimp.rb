@@ -97,8 +97,16 @@ module Chimp
     def run
       queue = ChimpQueue.instance
 
+      arguments = []
 
-      self.cli_args = ARGV.join(" ")
+      ARGV.each { |arg| arguments << arg.clone }
+
+      self.cli_args=arguments.collect {|param|
+        param.gsub(/(?<==).*/) do |match|
+          match='"'+match+'"'
+        end
+      }.join(" ")
+
 
       parse_command_line if @interactive
 

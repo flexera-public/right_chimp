@@ -115,7 +115,7 @@ module Chimp
     def Connection.api16_call(query)
 
       @retry = true
-      retries = 3
+      retries = 5
       attempts = 0
       sleep_for = 20
 
@@ -136,6 +136,8 @@ module Chimp
             if attempts > 0
               Log.debug "Retrying..."
               sleep_time = sleep_for * attempts
+              # Add a random amount to avoid staggering calls
+              sleep_time += rand(15)
 
               Log.debug "Sleeping between retries for #{sleep_time}"
               sleep(sleep_time)
@@ -226,6 +228,12 @@ module Chimp
         Log.debug "Query was: #{query}"
 
         @retry = true
+
+      elsif resp_code == "504"
+          Log.debug "Api returned code: 504"
+          Log.debug "Query was: #{query}"
+
+          @retry = true
 
       else
         # We are here because response was not 200 or 404
