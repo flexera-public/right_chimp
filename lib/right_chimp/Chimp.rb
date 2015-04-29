@@ -197,7 +197,7 @@ module Chimp
       #
       # Exit early if there is nothing to do
       #
-      if @action == :action_none or queue.group[@group].size == 0
+      if @action == :action_none or ( queue.group[@group].nil? || queue.group[@group].size == 0)
         puts "No actions to perform." unless self.quiet
       else
         do_work
