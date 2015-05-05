@@ -1048,11 +1048,15 @@ module Chimp
       Chimp.set_job_uuid(self.job_uuid)
 
       Log.debug "[#{Chimp.get_job_uuid}] Processing task"
+      # Add to our "processing" counter
 
       get_array_info unless Chimp.failure
       get_server_info unless Chimp.failure
       get_template_info unless Chimp.failure
       get_executable_info unless Chimp.failure
+
+      # All elements of task have been processed
+      ChimpDaemon.instance.proc_counter -= 1
 
       if Chimp.failure
         Log.error "##################################################"

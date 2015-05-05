@@ -7,7 +7,7 @@
 module Chimp
   class ChimpDaemon
 
-    attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count, :dry_run, :logfile, :chimp_queue
+    attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count, :dry_run, :logfile, :chimp_queue, :proc_counter
     attr_reader :queue, :running
 
     include Singleton
@@ -23,6 +23,8 @@ module Chimp
       @running     = false
       @queue       = ChimpQueue.instance
       @chimp_queue = Queue.new
+
+      @proc_counter= 0
 
       #Connect to the API
       Connection.instance
@@ -399,6 +401,8 @@ module Chimp
         #  end
         if verb == 'process' or verb == 'add'
           ChimpDaemon.instance.chimp_queue.push payload
+          ChimpDaemon.instance.proc_counter +=1
+          Log.debug "Tasks in the processing queue: #{ChimpDaemon.instance.proc_counter.to_s}"
           id = 0
         elsif verb == 'update'
           puts "UPDATE"
