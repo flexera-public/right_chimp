@@ -47,6 +47,9 @@ SINCE 2012</p>
 </tr><tr>
   <td>Jobs completed:</td>
   <td><%= count_jobs_done %>
+</tr><tr>
+  <td>Jobs being processed:</td>
+  <td><%= ChimpDaemon.instance.proc_counter.to_s %>
 </tr>
 </table>
 
@@ -112,7 +115,7 @@ jobs.each do |j|
 
   status      = j.status
   id          = j.job_id
-  
+
   server_name = CGI::escapeHTML(j.server.params['nickname']) if j.server
 
   if j.exec
@@ -171,4 +174,3 @@ jobs.each do |j|
 </div>
 
 </body></html>
-

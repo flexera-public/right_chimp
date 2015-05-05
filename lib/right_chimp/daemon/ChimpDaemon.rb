@@ -555,6 +555,7 @@ module Chimp
           count_jobs_holding  = queue.get_jobs_by_status(:holding).size
           count_jobs_failed  = queue.get_jobs_by_status(:error).size
           count_jobs_done    = queue.get_jobs_by_status(:done).size
+          count_jobs_processing = queue.get_jobs_by_status(:processing).size
 
           resp.body = @template.result(binding)
           raise WEBrick::HTTPStatus::OK
