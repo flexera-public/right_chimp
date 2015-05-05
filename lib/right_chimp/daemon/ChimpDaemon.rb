@@ -523,6 +523,22 @@ module Chimp
         end
 
         #
+        # Check if we are asked for stats
+        #
+        if req.request_uri.path =~ /stats/
+          queue = ChimpQueue.instance
+          stats = ""
+          stats << "running: #{queue.get_jobs_by_status(:running).size} / "
+          stats << "failed: #{queue.get_jobs_by_status(:error).size} / "
+          stats << "done: #{queue.get_jobs_by_status(:done).size} / "
+          stats << "processing: #{ChimpDaemon.instance.proc_counter.to_s} / "
+
+          resp.body = stats
+
+          raise WEBrick::HTTPStatus::OK
+        end
+
+        #
         # Check for static CSS files and serve them
         #
         if req.request_uri.path =~ /\.(css|js)$/
