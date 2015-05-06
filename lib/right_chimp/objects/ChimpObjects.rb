@@ -128,29 +128,29 @@ module Chimp
         http = Net::HTTP.new(@endpoint, 443)
         http.use_ssl = true
 
-        Log.debug "Querying API for: #{query}"
+        Log.debug "[#{Chimp.get_job_uuid}] Querying API for: #{query}"
 
 
         while attempts < retries
           if @retry
             if attempts > 0
-              Log.debug "Retrying..."
+              Log.debug "[#{Chimp.get_job_uuid}] Retrying..."
               sleep_time = sleep_for * attempts
               # Add a random amount to avoid staggering calls
               sleep_time += rand(15)
 
-              Log.debug "Sleeping between retries for #{sleep_time}"
+              Log.debug "[#{Chimp.get_job_uuid}] Sleeping between retries for #{sleep_time}"
               sleep(sleep_time)
             end
 
-            Log.debug "Attempt # #{attempts+1} at querying the API" unless attempts == 0
+            Log.debug "[#{Chimp.get_job_uuid}] Attempt # #{attempts+1} at querying the API" unless attempts == 0
 
             time = Benchmark.measure do
               @response = http.request(get)
               attempts += 1
             end
 
-            Log.debug "API Request time: #{time.real} seconds"
+            Log.debug "[#{Chimp.get_job_uuid}] API Request time: #{time.real} seconds"
             Log.debug "[#{Chimp.get_job_uuid}] API Query was: #{query}"
 
             # Validate API response
@@ -171,8 +171,8 @@ module Chimp
         end
 
       rescue Exception => e
-        Log.error "#{e.message}"
-        Log.error "Catched exception on http request to the api, retrying"
+        Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
+        Log.error "[#{Chimp.get_job_uuid}] Catched exception on http request to the api, retrying"
 
         # Failure to be set only on maximum retries
         # Chimp.set_failure(true)
