@@ -770,13 +770,18 @@ module Chimp
         #    "version"=>5,
         #    "href"=>"/api/server_templates/351930003"} ]
         Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (ST)"
-        temp=Connection.client.resource(s[1]['href'])
-        temp.runnable_bindings.index.each do |x|
-          # only add the operational ones
-          if x.sequence == "operational"
-            name = x.raw['right_script']['name']
-            op_scripts.push([name, x])
+        begin
+          temp=Connection.client.resource(s[1]['href'])
+          temp.runnable_bindings.index.each do |x|
+            # only add the operational ones
+            if x.sequence == "operational"
+              name = x.raw['right_script']['name']
+              op_scripts.push([name, x])
+            end
           end
+        rescue  Exception => e
+          Log.error "[#{Chimp.get_job_uuid}] API 1.5 call client.resource (ST) failed"
+          Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
         end
       end
 
