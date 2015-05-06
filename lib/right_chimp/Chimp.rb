@@ -493,15 +493,15 @@ module Chimp
 
       if servers.nil?
         if @ignore_errors
-          Log.warn "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}"
+          Log.warn "[#{Chimp.get_job_uuid}] Tag query returned no results: #{tags.join(" ")}"
         else
-          raise "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}\n"
+          raise "[#{Chimp.get_job_uuid}] Tag query returned no results: #{tags.join(" ")}\n"
         end
       elsif servers.empty?
         if @ignore_errors
-          Log.warn "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}"
+          Log.warn "[#{Chimp.get_job_uuid}] Tag query returned no results: #{tags.join(" ")}"
         else
-          raise "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}\n"
+          raise "[#{Chimp.get_job_uuid}] Tag query returned no results: #{tags.join(" ")}\n"
         end
       end
 
@@ -564,7 +564,7 @@ module Chimp
         names.each do |array_name|
           # Find if arrays exist, if not raise warning.
           # One API call per array
-          Log.debug "Making API 1.5 call: client.server_arrays.index(:filter => [#{array_name}])"
+          Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index(:filter => [#{array_name}])"
           result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
           # Result is an array with all the server arrays
           if result.size != 0
@@ -591,7 +591,7 @@ module Chimp
     #
     def detect_server_template(servers)
 
-      Log.debug "Looking for server template"
+      Log.debug "[#{Chimp.get_job_uuid}] Looking for server template"
       st = []
       if servers[0].nil?
         return (st)
@@ -605,7 +605,7 @@ module Chimp
       # We return an array of server_template resources
       # of the type [ st_href, st object ]
       #
-      Log.debug "Found server templates"
+      Log.debug "[#{Chimp.get_job_uuid}] Found server templates"
 
       return(st)
     end
@@ -615,7 +615,7 @@ module Chimp
     # the desired script against all server templates or the script URL
     #
     def detect_right_script(st, script)
-      Log.debug  "Looking for rightscript"
+      Log.debug  "[#{Chimp.get_job_uuid}] Looking for rightscript"
       executable = nil
       # In the event that chimpd find @op_scripts as nil, set it as an array.
       if @op_scripts.nil?
@@ -690,7 +690,7 @@ module Chimp
     def search_for_script_in_sts(script, st)
       # Loop and look inside every st
       st.each do |s|
-        Log.debug "Making API 1.5 call: client.resource(#{s[1]['href']})"
+        Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource(#{s[1]['href']})"
         temp=Connection.client.resource(s[1]['href'])
         temp.runnable_bindings.index.each do |x|
           # Look for first match
@@ -769,7 +769,7 @@ module Chimp
         #    "kind"=>"cm#server_template",
         #    "version"=>5,
         #    "href"=>"/api/server_templates/351930003"} ]
-        Log.debug "Making API 1.5 call: client.resource"
+        Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource"
         temp=Connection.client.resource(s[1]['href'])
         temp.runnable_bindings.index.each do |x|
           # only add the operational ones
