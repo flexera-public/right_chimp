@@ -1049,9 +1049,13 @@ module Chimp
 
       Log.debug "[#{Chimp.get_job_uuid}] Processing task"
 
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get array_info"
       get_array_info unless Chimp.failure
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get server_info"
       get_server_info unless Chimp.failure
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get template_info"
       get_template_info unless Chimp.failure
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get executable_info"
       get_executable_info unless Chimp.failure
 
       if Chimp.failure

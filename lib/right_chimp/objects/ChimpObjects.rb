@@ -168,10 +168,11 @@ module Chimp
         end
 
       rescue Exception => e
-        Log.error "Catched exception on http request to the api"
+        Log.error "Catched exception on http request to the api, retrying"
         Log.error "#{e.message}"
 
-        Chimp.set_failure(true)
+        # Failure to be set only on maximum retries
+        # Chimp.set_failure(true)
 
         instances = []
         attempts += 1
