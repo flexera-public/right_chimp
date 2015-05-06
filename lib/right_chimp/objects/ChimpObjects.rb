@@ -162,14 +162,17 @@ module Chimp
         end
 
         if attempts == retries
+
+          Log.error "[#{Chimp.get_job_uuid}] Api call failed more than #{retries} times."
+
           Chimp.set_failure(true)
           instances = []
           raise "[#{Chimp.get_job_uuid}] Api call failed more than #{retries} times."
         end
 
       rescue Exception => e
-        Log.error "Catched exception on http request to the api, retrying"
         Log.error "#{e.message}"
+        Log.error "Catched exception on http request to the api, retrying"
 
         # Failure to be set only on maximum retries
         # Chimp.set_failure(true)
