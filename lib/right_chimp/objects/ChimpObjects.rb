@@ -84,7 +84,8 @@ module Chimp
         @all_instances = Connection.api16_call(query)
 
       rescue Exception => e
-        puts e.message
+        Log.error "[#{Chimp.get_job_uuid}] self.all_instaces"
+        Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
       end
 
       return @all_instances
@@ -103,7 +104,8 @@ module Chimp
         instances = Connection.api16_call(query)
 
       rescue Exception => e
-        puts e.message
+        Log.error "[#{Chimp.get_job_uuid}] self.instances"
+        Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
       end
 
       return instances

@@ -215,7 +215,7 @@ module Chimp
       # Then we filter on all the instances by this href
       all_instances = Connection.all_instances() unless arrays_hrefs.empty?
       if all_instances.nil?
-        Log.debug "No results from API query"
+        Log.debug "[#{Chimp.get_job_uuid}] No results from API query"
       else
         arrays_hrefs.each { |href|
           @servers += all_instances.select {|s|
