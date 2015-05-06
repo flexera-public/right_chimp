@@ -148,7 +148,17 @@ module Chimp
             Log.debug "[#{Chimp.get_job_uuid}] Attempt # #{attempts+1} at querying the API" unless attempts == 0
 
             time = Benchmark.measure do
-              @response = http.request(get)
+              begin
+                @response = http.request(get)
+              rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
+                Log.error "################################################"
+                Log.error "################################################"
+                Log.error "FAILED on HTTP REQUEST"
+                Log.error "################################################"
+                Log.error "################################################"
+                Log.error "################################################"
+                exit -1
+              end
               attempts += 1
             end
 
