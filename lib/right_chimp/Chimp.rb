@@ -269,7 +269,7 @@ module Chimp
             s=Executable.new
             s.params['right_script']['href']="right_script_href=/api/right_scripts/"+script_number
             #Make an 1.5 call to extract name, by loading resource.
-            Log.debug "Making API 1.5 call : client.resource(#{s.params['right_script']['href'].scan(/=(.*)/).last.last})"
+            Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call : client.resource(#{s.params['right_script']['href'].scan(/=(.*)/).last.last})"
             the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
             s.params['right_script']['name'] = the_name
             @executable=s
