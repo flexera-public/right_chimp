@@ -168,8 +168,9 @@ module Chimp
         end
 
       rescue Exception => e
-        Log.debug "Catched exception on http request to the api"
-        Log.debug "#{e.message}"
+        Log.error "Catched exception on http request to the api"
+        Log.error "#{e.message}"
+
         Chimp.set_failure(true)
 
         instances = []
