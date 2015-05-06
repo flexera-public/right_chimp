@@ -769,7 +769,7 @@ module Chimp
         #    "kind"=>"cm#server_template",
         #    "version"=>5,
         #    "href"=>"/api/server_templates/351930003"} ]
-        Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource"
+        Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (ST)"
         temp=Connection.client.resource(s[1]['href'])
         temp.runnable_bindings.index.each do |x|
           # only add the operational ones
@@ -853,7 +853,7 @@ module Chimp
         s.params['datacenter']            = server['links']['datacenter']['name']
 
         # This will be useful for later on when we need to run scripts
-        Log.debug "Making API 1.5 call: client.resource"
+        Log.debug "Making API 1.5 call: client.resource (SERVER)"
         s.object = Connection.client.resource(server['href'])
 
         e = nil
