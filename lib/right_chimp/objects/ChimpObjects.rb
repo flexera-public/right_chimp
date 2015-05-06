@@ -51,7 +51,7 @@ module Chimp
 
         @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass],
                                         :account_id => creds[:account], :api_url => creds[:api_url],
-                                        :timeout => nil)
+                                        :timeout => nil, :enable_retry => true )
       rescue
         puts "##############################################################################"
         puts "Error: "
