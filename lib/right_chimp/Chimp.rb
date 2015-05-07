@@ -270,7 +270,11 @@ module Chimp
             s.params['right_script']['href']="right_script_href=/api/right_scripts/"+script_number
             #Make an 1.5 call to extract name, by loading resource.
             Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call : client.resource(#{s.params['right_script']['href'].scan(/=(.*)/).last.last})"
-            the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
+            begin
+              the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
+            rescue
+              Log.error "[#{Chimp.get_job_uuid}] Failed to make 1.5 call for rightscript href"
+            end
             s.params['right_script']['name'] = the_name
             @executable=s
           else
@@ -691,7 +695,11 @@ module Chimp
       # Loop and look inside every st
       st.each do |s|
         Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource(#{s[1]['href']})"
-        temp=Connection.client.resource(s[1]['href'])
+        begin
+          temp=Connection.client.resource(s[1]['href'])
+        rescue
+          Log.error "[#{Chimp.get_job_uuid}] Failed to load href for ST"
+        end
         temp.runnable_bindings.index.each do |x|
           # Look for first match
           if x.raw['right_script']['name'].downcase.include?(script.downcase)
@@ -859,7 +867,11 @@ module Chimp
 
         # This will be useful for later on when we need to run scripts
         Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER)"
-        s.object = Connection.client.resource(server['href'])
+        begin
+          s.object = Connection.client.resource(server['href'])
+        rescue
+          Log.error "[#{Chimp.get_job_uuid}] Failed to load server href via API1.5"
+        end
 
         e = nil
 
