@@ -166,9 +166,9 @@ module Chimp
       if Chimp.failure
         #This is the failure point when executing standalone
         Log.error "##################################################"
-        Log.error " API CALL FAILED FOR:"
-        Log.error " chimp #{@cli_args} "
-        Log.error " Run manually!"
+        Log.error "[#{Chimp.get_job_uuid}] API CALL FAILED FOR:"
+        Log.error "[#{Chimp.get_job_uuid}] chimp #{@cli_args} "
+        Log.error "[#{Chimp.get_job_uuid}] Run manually!"
         Log.error "##################################################"
         exit 1
       end
@@ -652,7 +652,7 @@ module Chimp
             s.params['right_script']['name'] = script_name
             @script_to_run = s
 
-            Log.debug "Found rightscript"
+            Log.debug "[#{Chimp.get_job_uuid}] Found rightscript"
             return @script_to_run
           end
         end
@@ -695,7 +695,7 @@ module Chimp
         temp.runnable_bindings.index.each do |x|
           # Look for first match
           if x.raw['right_script']['name'].downcase.include?(script.downcase)
-            Log.debug "Found requested righscript: #{script}"
+            Log.debug "[#{Chimp.get_job_uuid}] Found requested righscript: #{script}"
             # Provide the name + href
             s = Executable.new
             s.params['right_script']['href'] = x.raw['links'].find{|i| i['rel'] == 'right_script'}['href']
@@ -801,7 +801,7 @@ module Chimp
     def generate_jobs(queue_servers, queue_template, queue_executable)
       counter = 0
       tasks = []
-      Log.debug "Loading queue..."
+      Log.debug "[#{Chimp.get_job_uuid}] Loading queue..."
       #
       # Configure group
       #
@@ -812,7 +812,7 @@ module Chimp
       #
       # Process Server selection
       #
-      Log.debug("Processing server selection")
+      Log.debug("[#{Chimp.get_job_uuid}] Processing server selection")
 
       queue_servers.sort! { |a,b| a['name'] <=> b['name'] }
       queue_servers.each do |server|
@@ -858,7 +858,7 @@ module Chimp
         s.params['datacenter']            = server['links']['datacenter']['name']
 
         # This will be useful for later on when we need to run scripts
-        Log.debug "Making API 1.5 call: client.resource (SERVER)"
+        Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER)"
         s.object = Connection.client.resource(server['href'])
 
         e = nil

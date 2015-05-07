@@ -51,7 +51,7 @@ module Chimp
 
         @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass],
                                         :account_id => creds[:account], :api_url => creds[:api_url],
-                                        :timeout => nil )
+                                        :timeout => 60 )
       rescue
         puts "##############################################################################"
         puts "Error: "
@@ -153,7 +153,7 @@ module Chimp
               rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
                 Log.error "################################################"
                 Log.error "################################################"
-                Log.error "FAILED on HTTP REQUEST"
+                Log.error "[#{Chimp.get_job_uuid}] FAILED on HTTP REQUEST"
                 Log.error "################################################"
                 Log.error "################################################"
                 Log.error "################################################"
@@ -204,8 +204,6 @@ module Chimp
     #
     def Connection.validate_response(response, query)
 
-      #Log.debug "Validating API response"
-
       resp_code = response.code
       # handle response codes we want to work with (200 or 404) and verify json hash from github
       if resp_code == "200" || resp_code == "404"
@@ -216,10 +214,10 @@ module Chimp
           if result.is_a?(Array)
             # Operate on a 200 or 404 with valid JSON response, catch error messages from github in json hash
             if result.include? 'message'
-              raise "[CONTENT] Error: Problem with API request: '#{resp_code} #{response.body}'" #we know this checkout will fail (branch input, repo name, etc. wrong)
+              raise "[#{Chimp.get_job_uuid}] [CONTENT] Error: Problem with API request: '#{resp_code} #{response.body}'" #we know this checkout will fail (branch input, repo name, etc. wrong)
             end
             if result.include? 'Error'
-              Log.error "[CONTENT] Warning BAD CONTENT: Response content: '#{response.body}'."
+              Log.error "[#{Chimp.get_job_uuid}] [CONTENT] Warning BAD CONTENT: Response content: '#{response.body}'."
               return {} # Return an empty json
             end
             # extract the most recent commit on designated branch from hash
@@ -228,36 +226,36 @@ module Chimp
             return result
           end
         rescue JSON::ParserError
-          Log.error "Warning: Expected JSON response but was unable to parse!"
+          Log.error "[#{Chimp.get_job_uuid}] Warning: Expected JSON response but was unable to parse!"
           #Log.error "Warning: #{response.body}!"
 
           return {} # Return an empty result
         end
 
       elsif resp_code == "502"
-        Log.debug "Api returned code: 502"
-        Log.debug "Query was: #{query}"
+        Log.debug "[#{Chimp.get_job_uuid}] Api returned code: 502"
+        Log.debug "[#{Chimp.get_job_uuid}] Query was: #{query}"
 
         @retry = true
 
       elsif resp_code == "500"
-        Log.debug "Api returned code: 500"
-        Log.debug "Query was: #{query}"
+        Log.debug "[#{Chimp.get_job_uuid}] Api returned code: 500"
+        Log.debug "[#{Chimp.get_job_uuid}] Query was: #{query}"
 
         @retry = true
 
       elsif resp_code == "504"
-          Log.debug "Api returned code: 504"
-          Log.debug "Query was: #{query}"
+          Log.debug "[#{Chimp.get_job_uuid}] Api returned code: 504"
+          Log.debug "[#{Chimp.get_job_uuid}] Query was: #{query}"
 
           @retry = true
 
       else
         # We are here because response was not 200 or 404
         # Any http response code that is not 200 / 404 / 500 / 502 should error out.
-        Log.error "ERROR: Got '#{resp_code} #{response.msg}' response from api!  "
-        Log.error "Query was: #{query}"
-        raise "Couldnt contact the API"
+        Log.error "[#{Chimp.get_job_uuid}] ERROR: Got '#{resp_code} #{response.msg}' response from api!  "
+        Log.error "[#{Chimp.get_job_uuid}] Query was: #{query}"
+        raise "[#{Chimp.get_job_uuid}] Couldnt contact the API"
         return {}
       end
     end
