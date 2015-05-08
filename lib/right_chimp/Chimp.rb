@@ -1,5 +1,4 @@
-#
-# The Chimp class encapsulates the command-line program logic
+ #The Chimp class encapsulates the command-line program logic
 #
 module Chimp
   class Chimp
@@ -18,6 +17,9 @@ module Chimp
     # Set up reasonable defaults
     #
     def initialize
+
+	puts "Syncing output"
+$stdout.sync = true
       #
       # General configuration options
       #
@@ -222,6 +224,9 @@ module Chimp
             s['links']['incarnator']['href'] == href
           }
         }
+        
+	Log.debug "[#{Chimp.get_job_uuid}] Found #{@servers.count} servers for that array query"
+
       end
       # The result will be stored (not returned) into @servers
     end
@@ -536,6 +541,8 @@ module Chimp
           Log.error "[#{Chimp.get_job_uuid}] #{servers.size - matching_servers.size} instances didnt match tag selection."
           Log.error "[#{Chimp.get_job_uuid}] #{tags.join(" ")}"
           Chimp.set_failure(true)
+          Log.error "[#{Chimp.get_job_uuid}] Set failure to true because of disccrepancy"
+	
           servers = []
         else
           raise "[#{Chimp.get_job_uuid}] #{servers.size - matching_servers.size} instances didnt match tag selection"
@@ -780,6 +787,7 @@ module Chimp
         Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (ST)"
         begin
           temp=Connection.client.resource(s[1]['href'])
+          Log.debug "[#{Chimp.get_job_uuid}] API 1.5 call client.resource (ST) complete"
           temp.runnable_bindings.index.each do |x|
             # only add the operational ones
             if x.sequence == "operational"
@@ -869,6 +877,7 @@ module Chimp
         Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER)"
         begin
           s.object = Connection.client.resource(server['href'])
+          Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER) COMPLETE"
         rescue
           Log.error "[#{Chimp.get_job_uuid}] Failed to load server href via API1.5"
         end
@@ -1065,17 +1074,25 @@ module Chimp
       Chimp.set_job_uuid(self.job_uuid)
 
       Log.debug "[#{Chimp.get_job_uuid}] Processing task"
+      Log.error "["+self.job_uuid+"] Chimp.failure is set to 1: #{Chimp.failure.to_s}"
 
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get array_info"
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get array_info" unless Chimp.failure
       get_array_info unless Chimp.failure
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get server_info"
+
+      Log.error "["+self.job_uuid+"] Chimp.failure is set to 2: #{Chimp.failure.to_s}"
+
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get server_info" unless Chimp.failure
       get_server_info unless Chimp.failure
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get template_info"
+      Log.error "["+self.job_uuid+"] Chimp.failure is set to 3: #{Chimp.failure.to_s}"
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get template_info" unless Chimp.failure
       get_template_info unless Chimp.failure
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get executable_info"
+      Log.error "["+self.job_uuid+"] Chimp.failure is set to 4: #{Chimp.failure.to_s}"
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get executable_info" unless Chimp.failure
       get_executable_info unless Chimp.failure
 
       if Chimp.failure
+
+        Log.error "["+self.job_uuid+"] Chimp.failure is set to 5: #{Chimp.failure.to_s}"
         Log.error "##################################################"
         Log.error "["+self.job_uuid+"] API CALL FAILED FOR:"
         Log.error "["+self.job_uuid+"] chimp #{@cli_args} "

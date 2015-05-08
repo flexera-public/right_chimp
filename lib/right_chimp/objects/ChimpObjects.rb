@@ -76,6 +76,8 @@ module Chimp
     #
     def self.all_instances()
       begin
+        Log.debug "[#{Chimp.get_job_uuid}] Requesting all instances"
+
         filters_list = "state=operational"
         filters = CGI::escape(filters_list)
 
@@ -95,6 +97,7 @@ module Chimp
     # Returns every single operational instance in the account, matching the filters passed.
     #
     def self.instances(extra_filters)
+      Log.debug "[#{Chimp.get_job_uuid}] Requesting some instances"
       begin
         filters_list = "state=operational&"+extra_filters
         filters = CGI::escape(filters_list)
@@ -134,6 +137,8 @@ module Chimp
 
 
         while attempts < retries
+          Log.debug "[#{Chimp.get_job_uuid}] Attempt is: #{attempts.to_s}"
+          Log.debug "[#{Chimp.get_job_uuid}] Retry is: #{@retry.to_s}"
           if @retry
             if attempts > 0
               Log.debug "[#{Chimp.get_job_uuid}] Retrying..."
@@ -149,26 +154,28 @@ module Chimp
 
             time = Benchmark.measure do
               begin
+                Log.debug "[] HTTP Making http request"
                 @response = http.request(get)
-              rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
-                Log.error "################################################"
-                Log.error "################################################"
-                Log.error "[#{Chimp.get_job_uuid}] FAILED on HTTP REQUEST"
-                Log.error "################################################"
-                Log.error "################################################"
-                Log.error "################################################"
-                exit -1
+                Log.debug "[] HTTP Request complete"
+		attempts += 1
+	
+	      rescue Exception => e
+		Log.error "HTTP HEREEEE" 
               end
-              attempts += 1
+		
             end
 
             Log.debug "[#{Chimp.get_job_uuid}] API Request time: #{time.real} seconds"
             Log.debug "[#{Chimp.get_job_uuid}] API Query was: #{query}"
 
             # Validate API response
+            Log.debug "[#{Chimp.get_job_uuid}] Validating..."
             instances = validate_response(@response, query)
           else
             # We dont retry, exit the loop.
+            Log.debug "[#{Chimp.get_job_uuid}] Not retrying, exiting the loop."
+	    @retry = false
+	
             break
           end
         end
@@ -178,6 +185,8 @@ module Chimp
           Log.error "[#{Chimp.get_job_uuid}] Api call failed more than #{retries} times."
 
           Chimp.set_failure(true)
+          Log.error "[#{Chimp.get_job_uuid}] Set failure to true because of max retries"
+
           instances = []
           raise "[#{Chimp.get_job_uuid}] Api call failed more than #{retries} times."
         end
@@ -194,7 +203,11 @@ module Chimp
         retry
       end
 
-      Log.debug "[#{Chimp.get_job_uuid}] #{instances.count} instances matching"
+      Log.debug "[#{Chimp.get_job_uuid}] #{instances.count} instances matching" unless instances.nil?
+
+	if instances.nil?
+		Log.error "[#{Chimp.get_job_uuid}] instances is nil!"
+	end
 
       return instances
     end
@@ -214,7 +227,8 @@ module Chimp
           if result.is_a?(Array)
             # Operate on a 200 or 404 with valid JSON response, catch error messages from github in json hash
             if result.include? 'message'
-              raise "[#{Chimp.get_job_uuid}] [CONTENT] Error: Problem with API request: '#{resp_code} #{response.body}'" #we know this checkout will fail (branch input, repo name, etc. wrong)
+              Log.error "[#{Chimp.get_job_uuid}] [CONTENT] Errot: Problem with API request: '#{resp_code} #{response.body}'."
+              raise "[#{Chimp.get_job_uuid}] [CONTENT] Error: Problem with API request: '#{resp_code} #{response.body}'" 
             end
             if result.include? 'Error'
               Log.error "[#{Chimp.get_job_uuid}] [CONTENT] Warning BAD CONTENT: Response content: '#{response.body}'."
@@ -222,7 +236,11 @@ module Chimp
             end
             # extract the most recent commit on designated branch from hash
             # Log.debug "We received a valid JSON response, therefore returning it."
+
             @retry = false
+		
+		
+            Log.debug "[#{Chimp.get_job_uuid}] Validated and returning size of #{result.size} "
             return result
           end
         rescue JSON::ParserError
