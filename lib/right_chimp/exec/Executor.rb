@@ -102,7 +102,7 @@ module Chimp
     # This is called from the subclass with a code block to yield to
     #
     def run_with_retry(&block)
-      Log.debug "Running job '#{@job_id}' with status '#{@status}'"
+      puts "Running job '#{@job_id}' with status '#{@status}'"
 
       @status = STATUS_RUNNING
       @time_start = Time.now
@@ -136,11 +136,11 @@ module Chimp
         rescue Interrupt => ex
           name = @array['name'] if @array
           name = @server['name'] || @server['nickname'] if @server
-          Log.error self.describe_work_error
+          puts self.describe_work_error
         
           if @retry_count > 0
             @status = STATUS_RETRYING
-            Log.error "[#{@job_uuid}] Error executing on \"#{name}\". Retrying in #{@retry_sleep} seconds..."
+            puts "[#{@job_uuid}] Error executing on \"#{name}\". Retrying in #{@retry_sleep} seconds..."
             @retry_count -= 1
             sleep @retry_sleep
             retry
@@ -148,7 +148,7 @@ module Chimp
         
           @status = STATUS_ERROR
           @error = ex
-          Log.error "[#{@job_uuid}] Error executing on \"#{name}\": #{ex}"
+          puts "[#{@job_uuid}] Error executing on \"#{name}\": #{ex}"
           
         ensure 
           @time_end = Time.now
@@ -156,9 +156,9 @@ module Chimp
         end
         
       rescue RuntimeError => ex
-        Log.error "[#{@job_uuid}] Caught RuntimeError: #{ex}. Aborting job."
-        Log.error ex.inspect
-        Log.error ex.backtrace
+        puts "[#{@job_uuid}] Caught RuntimeError: #{ex}. Aborting job."
+        puts ex.inspect
+        puts ex.backtrace
         @status = STATUS_ERROR
         @error = ex
       end

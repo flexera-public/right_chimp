@@ -15,7 +15,7 @@ module Chimp
       @ssh_user ||= "root"
 
       run_with_retry do
-        Log.debug "ssh #{@ssh_user}@#{host} \"#{@exec}\""
+        puts "ssh #{@ssh_user}@#{host} \"#{@exec}\""
         success = system("ssh -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no #{@ssh_user}@#{host} \"#{@exec}\"")
         
         if not $?.success?

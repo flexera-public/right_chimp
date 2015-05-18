@@ -199,7 +199,7 @@ module Chimp
     # Queue a held job by id
     #
     def queue(id)
-      Log.debug "Queuing held job id #{id}"
+      puts "Queuing held job id #{id}"
       job = @jobs_by_id[id]
       job.owner = nil
       job.time_start = Time.now
@@ -212,7 +212,7 @@ module Chimp
     # Requeue a job by id
     #
     def requeue(id)
-      Log.debug "Requeuing job id #{id}"
+      puts "Requeuing job id #{id}"
       job = @jobs_by_id[id]
       job.status = Executor::STATUS_NONE
       job.owner = nil

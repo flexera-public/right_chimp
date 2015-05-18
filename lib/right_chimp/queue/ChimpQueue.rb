@@ -54,7 +54,7 @@ module Chimp
     end
 
     def create_group(name, type = :parallel, concurrency = 1)
-      Log.debug "Creating new execution group #{name} type=#{type} concurrency=#{concurrency}"
+      puts "Creating new execution group #{name} type=#{type} concurrency=#{concurrency}"
       new_group = ExecutionGroupFactory.from_type(type)
       new_group.group_id = name
       new_group.concurrency = concurrency
@@ -70,7 +70,7 @@ module Chimp
         @group.values.each do |group|
           if group.ready?
             r = group.shift
-            Log.debug "Shifting job '#{r.job_id}' from group '#{group.group_id}'" unless r.nil?
+            puts "Shifting job '#{r.job_id}' from group '#{group.group_id}'" unless r.nil?
             break
           end
         end

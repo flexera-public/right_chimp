@@ -31,9 +31,9 @@ module Chimp
           end
 
         rescue Exception => ex
-          Log.error "Exception in QueueWorker.run: #{ex}"
-          Log.debug ex.inspect
-          Log.debug ex.backtrace
+          puts "Exception in QueueWorker.run: #{ex}"
+          puts ex.inspect
+          puts ex.backtrace
 
           work_item.status = Executor::STATUS_ERROR
           work_item.error = ex

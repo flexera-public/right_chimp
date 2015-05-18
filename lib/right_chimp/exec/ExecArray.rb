@@ -9,7 +9,7 @@ module Chimp
         options = @inputs
 
         if @timeout < 300
-          Log.error "timeout was less than 5 minutes! resetting to 5 minutes"
+          puts "timeout was less than 5 minutes! resetting to 5 minutes"
           @timeout = 300
         end
 
