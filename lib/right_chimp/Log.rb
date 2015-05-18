@@ -1,6 +1,6 @@
 module Chimp
   class Log
-    @@logger = Logger.new(STDOUT)
+    @@logger = Logger.new(STDOUT|/tmp/chimp_output.txt)
 
     # SeverityID, [DateTime #pid] SeverityLabel -- ProgName: message
     @@logger.datetime_format = '%H:%M:%S.%N'
