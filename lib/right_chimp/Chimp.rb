@@ -18,8 +18,6 @@ module Chimp
     #
     def initialize
 
-	puts "Syncing output"
-$stdout.sync = true
       #
       # General configuration options
       #
@@ -918,7 +916,7 @@ $stdout.sync = true
           e.quiet   = @@quiet
           e.status  = Executor::STATUS_HOLDING if @hold\
 
-          Log.debug "[#{Chimp.get_job_uuid}] Pushing task"
+          Log.debug "[#{Chimp.get_job_uuid}] Pushing task (end of control)"
           tasks.push(e)
         end
       end
@@ -1053,17 +1051,6 @@ $stdout.sync = true
       end
 
       puts "chimp run complete"
-    end
-
-    #
-    # Allow the set/retrieval of job_uuid from outside
-    #
-    def self.get_job_uuid
-      @job_uuid
-    end
-
-    def self.set_job_uuid(value)
-      @job_uuid = value
     end
 
     #
@@ -1207,17 +1194,25 @@ $stdout.sync = true
       return 0
     end
 
-    def self.get_job_uuid
-      @job_uuid
+    def self.set_job_uuid(value)
+      #This is a current thread variable to avoid cross-talk between threads
+      Thread.current[:job_uuid] = value
     end
 
-    def self.failure
-      return @failure
+    def self.get_job_uuid
+      return Thread.current[:job_uuid]
     end
 
     def self.set_failure(status)
-      @failure = status
+      #This is a current thread variable to avoid cross-talk between threads
+      Thread.current[:failure] = status
     end
+
+    def self.failure
+      return Thread.current[:failure]
+    end
+
+
 
     ####################################################
     #private

@@ -154,9 +154,9 @@ module Chimp
 
             time = Benchmark.measure do
               begin
-                Log.debug "[] HTTP Making http request"
+                Log.debug "[#{Chimp.get_job_uuid}] HTTP Making http request"
                 @response = http.request(get)
-                Log.debug "[] HTTP Request complete"
+                Log.debug "[#{Chimp.get_job_uuid}] HTTP Request complete"
 		attempts += 1
 
 	      rescue Exception => e
