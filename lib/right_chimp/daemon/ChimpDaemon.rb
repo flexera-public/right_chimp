@@ -217,7 +217,7 @@ module Chimp
     def spawn_chimpd_submission_processor
       n = @concurrency/4
       n = 10 if n < 10
-      puts "Logging into API..."
+      Log.debug "Logging into API..."
 
       #
       # There is a race condition logging in with rest_connection.
@@ -234,7 +234,7 @@ module Chimp
 
       puts "chimpd #{VERSION} launched with #{@concurrency} workers"
 
-      puts "Spawning #{n} submission processing threads"
+      Log.debug "Spawning #{n} submission processing threads"
 
       (1..n).each do |n|
         @threads ||=[]
@@ -251,7 +251,7 @@ module Chimp
 
             rescue StandardError => ex
                 puts ex.backtrace
-              puts " submission processor: group=\"#{group}\" script=\"#{queued_request.script}\": #{ex}"
+              Log.error " submission processor: group=\"#{group}\" script=\"#{queued_request.script}\": #{ex}"
             end
           end
         }

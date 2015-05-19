@@ -20,7 +20,7 @@ module Chimp
 
         begin
           s=@server
-          puts "Making API 1.5 call: client.tags"
+          Log.debug "Making API 1.5 call: client.tags"
           response=Connection.client.tags.by_resource(:resource_hrefs => [@server.href]).first.tags
         rescue Exception => ex
           raise e
