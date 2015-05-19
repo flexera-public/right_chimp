@@ -51,7 +51,7 @@ module Chimp
 
         @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass],
                                         :account_id => creds[:account], :api_url => creds[:api_url],
-                                        :timeout => 60 )
+                                        :timeout => 60, :enable_retry => true)
       rescue
         puts "##############################################################################"
         puts "Error: "
@@ -203,7 +203,7 @@ module Chimp
         retry
       end
 
-      Log.debug "[#{Chimp.get_job_uuid}] #{instances.count} instances matching" unless instances.nil?
+      Log.debug "[#{Chimp.get_job_uuid}] API matched #{instances.count} instances" unless instances.nil?
 
 	if instances.nil?
 		Log.error "[#{Chimp.get_job_uuid}] instances is nil!"
