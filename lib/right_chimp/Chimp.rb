@@ -914,7 +914,7 @@ module Chimp
         if e != nil
           e.dry_run = @dry_run
           e.quiet   = @@quiet
-          e.status  = Executor::STATUS_HOLDING if @hold\
+          e.status  = Executor::STATUS_HOLDING if @hold
 
           Log.debug "[#{Chimp.get_job_uuid}] Pushing task (end of control)"
           tasks.push(e)
