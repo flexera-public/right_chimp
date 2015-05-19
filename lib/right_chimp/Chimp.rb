@@ -224,7 +224,7 @@ $stdout.sync = true
             s['links']['incarnator']['href'] == href
           }
         }
-        
+
 	Log.debug "[#{Chimp.get_job_uuid}] Found #{@servers.count} servers for that array query"
 
       end
@@ -542,7 +542,7 @@ $stdout.sync = true
           Log.error "[#{Chimp.get_job_uuid}] #{tags.join(" ")}"
           Chimp.set_failure(true)
           Log.error "[#{Chimp.get_job_uuid}] Set failure to true because of disccrepancy"
-	
+
           servers = []
         else
           raise "[#{Chimp.get_job_uuid}] #{servers.size - matching_servers.size} instances didnt match tag selection"
@@ -828,7 +828,7 @@ $stdout.sync = true
       #
       # Process Server selection
       #
-      Log.debug("[#{Chimp.get_job_uuid}] Processing server selection")
+      Log.debug("[#{Chimp.get_job_uuid}] Processing server selection for task creation")
 
       queue_servers.sort! { |a,b| a['name'] <=> b['name'] }
       queue_servers.each do |server|
@@ -874,12 +874,12 @@ $stdout.sync = true
         s.params['datacenter']            = server['links']['datacenter']['name']
 
         # This will be useful for later on when we need to run scripts
-        Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER)"
+        Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER) for task creation"
         begin
           s.object = Connection.client.resource(server['href'])
-          Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER) COMPLETE"
+          Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER) for task creation COMPLETE"
         rescue
-          Log.error "[#{Chimp.get_job_uuid}] Failed to load server href via API1.5"
+          Log.error "[#{Chimp.get_job_uuid}] Failed to load server href via API1.5 for task creation"
         end
 
         e = nil
@@ -916,8 +916,9 @@ $stdout.sync = true
         if e != nil
           e.dry_run = @dry_run
           e.quiet   = @@quiet
-          e.status  = Executor::STATUS_HOLDING if @hold
+          e.status  = Executor::STATUS_HOLDING if @hold\
 
+          Log.debug "[#{Chimp.get_job_uuid}] Pushing task"
           tasks.push(e)
         end
       end
@@ -1104,6 +1105,7 @@ $stdout.sync = true
           Log.warn "["+self.job_uuid+"] Nothing to do for \"chimp #{@cli_args}\"."
           return []
         else
+          Log.debug "[#{Chimp.get_job_uuid}] Generating job..."
           return generate_jobs(@servers, @server_template, @executable)
         end
       end

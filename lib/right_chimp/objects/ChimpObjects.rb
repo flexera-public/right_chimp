@@ -158,11 +158,11 @@ module Chimp
                 @response = http.request(get)
                 Log.debug "[] HTTP Request complete"
 		attempts += 1
-	
+
 	      rescue Exception => e
-		Log.error "HTTP HEREEEE" 
+		Log.error "HTTP HEREEEE"
               end
-		
+
             end
 
             Log.debug "[#{Chimp.get_job_uuid}] API Request time: #{time.real} seconds"
@@ -175,7 +175,7 @@ module Chimp
             # We dont retry, exit the loop.
             Log.debug "[#{Chimp.get_job_uuid}] Not retrying, exiting the loop."
 	    @retry = false
-	
+
             break
           end
         end
@@ -228,7 +228,7 @@ module Chimp
             # Operate on a 200 or 404 with valid JSON response, catch error messages from github in json hash
             if result.include? 'message'
               Log.error "[#{Chimp.get_job_uuid}] [CONTENT] Errot: Problem with API request: '#{resp_code} #{response.body}'."
-              raise "[#{Chimp.get_job_uuid}] [CONTENT] Error: Problem with API request: '#{resp_code} #{response.body}'" 
+              raise "[#{Chimp.get_job_uuid}] [CONTENT] Error: Problem with API request: '#{resp_code} #{response.body}'"
             end
             if result.include? 'Error'
               Log.error "[#{Chimp.get_job_uuid}] [CONTENT] Warning BAD CONTENT: Response content: '#{response.body}'."
@@ -238,8 +238,8 @@ module Chimp
             # Log.debug "We received a valid JSON response, therefore returning it."
 
             @retry = false
-		
-		
+
+
             Log.debug "[#{Chimp.get_job_uuid}] Validated and returning size of #{result.size} "
             return result
           end
@@ -419,6 +419,7 @@ module Chimp
         params+="&ignore_lock=true"
       end
       # self is the actual Server object
+      Log.debug "[#{Chimp.get_job_uuid}] Running executable"
       task = self.object.run_executable(script_href + params)
       return task
     end
