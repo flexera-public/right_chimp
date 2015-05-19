@@ -1062,25 +1062,21 @@ module Chimp
       Chimp.set_job_uuid(self.job_uuid)
 
       Log.debug "[#{Chimp.get_job_uuid}] Processing task"
-      Log.error "["+self.job_uuid+"] Chimp.failure is set to 1: #{Chimp.failure.to_s}"
 
       Log.debug "[#{Chimp.get_job_uuid}] Trying to get array_info" unless Chimp.failure
       get_array_info unless Chimp.failure
 
-      Log.error "["+self.job_uuid+"] Chimp.failure is set to 2: #{Chimp.failure.to_s}"
-
       Log.debug "[#{Chimp.get_job_uuid}] Trying to get server_info" unless Chimp.failure
       get_server_info unless Chimp.failure
-      Log.error "["+self.job_uuid+"] Chimp.failure is set to 3: #{Chimp.failure.to_s}"
+
       Log.debug "[#{Chimp.get_job_uuid}] Trying to get template_info" unless Chimp.failure
       get_template_info unless Chimp.failure
-      Log.error "["+self.job_uuid+"] Chimp.failure is set to 4: #{Chimp.failure.to_s}"
+
       Log.debug "[#{Chimp.get_job_uuid}] Trying to get executable_info" unless Chimp.failure
       get_executable_info unless Chimp.failure
 
       if Chimp.failure
 
-        Log.error "["+self.job_uuid+"] Chimp.failure is set to 5: #{Chimp.failure.to_s}"
         Log.error "##################################################"
         Log.error "["+self.job_uuid+"] API CALL FAILED FOR:"
         Log.error "["+self.job_uuid+"] chimp #{@cli_args} "
@@ -1089,7 +1085,7 @@ module Chimp
         return []
       else
         if @servers.first.nil? or @executable.nil?
-          Log.warn "["+self.job_uuid+"] Nothing to do for \"chimp #{@cli_args}\"."
+          Log.warn "[#{Chimp.get_job_uuid}] Nothing to do for \"chimp #{@cli_args}\"."
           return []
         else
           Log.debug "[#{Chimp.get_job_uuid}] Generating job..."
