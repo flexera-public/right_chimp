@@ -239,8 +239,11 @@ module Chimp
       (1..n).each do |n|
         @threads ||=[]
         @threads << Thread.new {
+
           while true
             begin
+
+
               queued_request = @chimp_queue.pop
               group = queued_request.group
               queued_request.interactive = false

@@ -1,5 +1,4 @@
-#
-# The Chimp class encapsulates the command-line program logic
+ #The Chimp class encapsulates the command-line program logic
 #
 module Chimp
   class Chimp
@@ -18,6 +17,7 @@ module Chimp
     # Set up reasonable defaults
     #
     def initialize
+
       #
       # General configuration options
       #
@@ -166,9 +166,9 @@ module Chimp
       if Chimp.failure
         #This is the failure point when executing standalone
         Log.error "##################################################"
-        Log.error " API CALL FAILED FOR:"
-        Log.error " chimp #{@cli_args} "
-        Log.error " Run manually!"
+        Log.error "[#{Chimp.get_job_uuid}] API CALL FAILED FOR:"
+        Log.error "[#{Chimp.get_job_uuid}] chimp #{@cli_args} "
+        Log.error "[#{Chimp.get_job_uuid}] Run manually!"
         Log.error "##################################################"
         exit 1
       end
@@ -215,13 +215,16 @@ module Chimp
       # Then we filter on all the instances by this href
       all_instances = Connection.all_instances() unless arrays_hrefs.empty?
       if all_instances.nil?
-        Log.debug "No results from API query"
+        Log.debug "[#{Chimp.get_job_uuid}] No results from API query"
       else
         arrays_hrefs.each { |href|
           @servers += all_instances.select {|s|
             s['links']['incarnator']['href'] == href
           }
         }
+
+	Log.debug "[#{Chimp.get_job_uuid}] Found #{@servers.count} servers for that array query"
+
       end
       # The result will be stored (not returned) into @servers
     end
@@ -269,8 +272,12 @@ module Chimp
             s=Executable.new
             s.params['right_script']['href']="right_script_href=/api/right_scripts/"+script_number
             #Make an 1.5 call to extract name, by loading resource.
-            Log.debug "Making API 1.5 call : client.resource(#{s.params['right_script']['href'].scan(/=(.*)/).last.last})"
-            the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
+            Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call : client.resource(#{s.params['right_script']['href'].scan(/=(.*)/).last.last})"
+            begin
+              the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
+            rescue
+              Log.error "[#{Chimp.get_job_uuid}] Failed to make 1.5 call for rightscript href"
+            end
             s.params['right_script']['name'] = the_name
             @executable=s
           else
@@ -493,15 +500,15 @@ module Chimp
 
       if servers.nil?
         if @ignore_errors
-          Log.warn "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}"
+          Log.warn "[#{Chimp.get_job_uuid}] Tag query returned no results: #{tags.join(" ")}"
         else
-          raise "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}\n"
+          raise "[#{Chimp.get_job_uuid}] Tag query returned no results: #{tags.join(" ")}\n"
         end
       elsif servers.empty?
         if @ignore_errors
-          Log.warn "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}"
+          Log.warn "[#{Chimp.get_job_uuid}] Tag query returned no results: #{tags.join(" ")}"
         else
-          raise "[#{Chimp.get_job_uuid}]Tag query returned no results: #{tags.join(" ")}\n"
+          raise "[#{Chimp.get_job_uuid}] Tag query returned no results: #{tags.join(" ")}\n"
         end
       end
 
@@ -532,6 +539,8 @@ module Chimp
           Log.error "[#{Chimp.get_job_uuid}] #{servers.size - matching_servers.size} instances didnt match tag selection."
           Log.error "[#{Chimp.get_job_uuid}] #{tags.join(" ")}"
           Chimp.set_failure(true)
+          Log.error "[#{Chimp.get_job_uuid}] Set failure to true because of discrepancy"
+
           servers = []
         else
           raise "[#{Chimp.get_job_uuid}] #{servers.size - matching_servers.size} instances didnt match tag selection"
@@ -564,7 +573,7 @@ module Chimp
         names.each do |array_name|
           # Find if arrays exist, if not raise warning.
           # One API call per array
-          Log.debug "Making API 1.5 call: client.server_arrays.index(:filter => [#{array_name}])"
+          Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index(:filter => [#{array_name}])"
           result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
           # Result is an array with all the server arrays
           if result.size != 0
@@ -591,7 +600,7 @@ module Chimp
     #
     def detect_server_template(servers)
 
-      Log.debug "Looking for server template"
+      Log.debug "[#{Chimp.get_job_uuid}] Looking for server template"
       st = []
       if servers[0].nil?
         return (st)
@@ -605,7 +614,7 @@ module Chimp
       # We return an array of server_template resources
       # of the type [ st_href, st object ]
       #
-      Log.debug "Found server templates"
+      Log.debug "[#{Chimp.get_job_uuid}] Found server templates"
 
       return(st)
     end
@@ -615,7 +624,7 @@ module Chimp
     # the desired script against all server templates or the script URL
     #
     def detect_right_script(st, script)
-      Log.debug  "Looking for rightscript"
+      Log.debug  "[#{Chimp.get_job_uuid}] Looking for rightscript"
       executable = nil
       # In the event that chimpd find @op_scripts as nil, set it as an array.
       if @op_scripts.nil?
@@ -652,7 +661,7 @@ module Chimp
             s.params['right_script']['name'] = script_name
             @script_to_run = s
 
-            Log.debug "Found rightscript"
+            Log.debug "[#{Chimp.get_job_uuid}] Found rightscript"
             return @script_to_run
           end
         end
@@ -690,12 +699,16 @@ module Chimp
     def search_for_script_in_sts(script, st)
       # Loop and look inside every st
       st.each do |s|
-        Log.debug "Making API 1.5 call: client.resource(#{s[1]['href']})"
-        temp=Connection.client.resource(s[1]['href'])
+        Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource(#{s[1]['href']})"
+        begin
+          temp=Connection.client.resource(s[1]['href'])
+        rescue
+          Log.error "[#{Chimp.get_job_uuid}] Failed to load href for ST"
+        end
         temp.runnable_bindings.index.each do |x|
           # Look for first match
           if x.raw['right_script']['name'].downcase.include?(script.downcase)
-            Log.debug "Found requested righscript: #{script}"
+            Log.debug "[#{Chimp.get_job_uuid}] Found requested righscript: #{script}"
             # Provide the name + href
             s = Executable.new
             s.params['right_script']['href'] = x.raw['links'].find{|i| i['rel'] == 'right_script'}['href']
@@ -769,14 +782,20 @@ module Chimp
         #    "kind"=>"cm#server_template",
         #    "version"=>5,
         #    "href"=>"/api/server_templates/351930003"} ]
-        Log.debug "Making API 1.5 call: client.resource"
-        temp=Connection.client.resource(s[1]['href'])
-        temp.runnable_bindings.index.each do |x|
-          # only add the operational ones
-          if x.sequence == "operational"
-            name = x.raw['right_script']['name']
-            op_scripts.push([name, x])
+        Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (ST)"
+        begin
+          temp=Connection.client.resource(s[1]['href'])
+          Log.debug "[#{Chimp.get_job_uuid}] API 1.5 call client.resource (ST) complete"
+          temp.runnable_bindings.index.each do |x|
+            # only add the operational ones
+            if x.sequence == "operational"
+              name = x.raw['right_script']['name']
+              op_scripts.push([name, x])
+            end
           end
+        rescue  Exception => e
+          Log.error "[#{Chimp.get_job_uuid}] API 1.5 call client.resource (ST) failed"
+          Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
         end
       end
 
@@ -796,7 +815,7 @@ module Chimp
     def generate_jobs(queue_servers, queue_template, queue_executable)
       counter = 0
       tasks = []
-      Log.debug "Loading queue..."
+      Log.debug "[#{Chimp.get_job_uuid}] Loading queue..."
       #
       # Configure group
       #
@@ -807,7 +826,7 @@ module Chimp
       #
       # Process Server selection
       #
-      Log.debug("Processing server selection")
+      Log.debug("[#{Chimp.get_job_uuid}] Processing server selection for task creation")
 
       queue_servers.sort! { |a,b| a['name'] <=> b['name'] }
       queue_servers.each do |server|
@@ -853,8 +872,13 @@ module Chimp
         s.params['datacenter']            = server['links']['datacenter']['name']
 
         # This will be useful for later on when we need to run scripts
-        Log.debug "Making API 1.5 call: client.resource"
-        s.object = Connection.client.resource(server['href'])
+        Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER) for task creation"
+        begin
+          s.object = Connection.client.resource(server['href'])
+          Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER) for task creation COMPLETE"
+        rescue
+          Log.error "[#{Chimp.get_job_uuid}] Failed to load server href via API1.5 for task creation"
+        end
 
         e = nil
 
@@ -892,6 +916,7 @@ module Chimp
           e.quiet   = @@quiet
           e.status  = Executor::STATUS_HOLDING if @hold
 
+          Log.debug "[#{Chimp.get_job_uuid}] Pushing task (end of control)"
           tasks.push(e)
         end
       end
@@ -1029,17 +1054,6 @@ module Chimp
     end
 
     #
-    # Allow the set/retrieval of job_uuid from outside
-    #
-    def self.get_job_uuid
-      @job_uuid
-    end
-
-    def self.set_job_uuid(value)
-      @job_uuid = value
-    end
-
-    #
     # Completely process a non-interactive chimp object command
     # This is used by chimpd, when processing a task.
     #
@@ -1049,12 +1063,20 @@ module Chimp
 
       Log.debug "[#{Chimp.get_job_uuid}] Processing task"
 
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get array_info" unless Chimp.failure
       get_array_info unless Chimp.failure
+
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get server_info" unless Chimp.failure
       get_server_info unless Chimp.failure
+
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get template_info" unless Chimp.failure
       get_template_info unless Chimp.failure
+
+      Log.debug "[#{Chimp.get_job_uuid}] Trying to get executable_info" unless Chimp.failure
       get_executable_info unless Chimp.failure
 
       if Chimp.failure
+
         Log.error "##################################################"
         Log.error "["+self.job_uuid+"] API CALL FAILED FOR:"
         Log.error "["+self.job_uuid+"] chimp #{@cli_args} "
@@ -1063,9 +1085,10 @@ module Chimp
         return []
       else
         if @servers.first.nil? or @executable.nil?
-          Log.warn "["+self.job_uuid+"] Nothing to do for \"chimp #{@cli_args}\"."
+          Log.warn "[#{Chimp.get_job_uuid}] Nothing to do for \"chimp #{@cli_args}\"."
           return []
         else
+          Log.debug "[#{Chimp.get_job_uuid}] Generating job..."
           return generate_jobs(@servers, @server_template, @executable)
         end
       end
@@ -1167,17 +1190,25 @@ module Chimp
       return 0
     end
 
-    def self.get_job_uuid
-      @job_uuid
+    def self.set_job_uuid(value)
+      #This is a current thread variable to avoid cross-talk between threads
+      Thread.current[:job_uuid] = value
     end
 
-    def self.failure
-      return @failure
+    def self.get_job_uuid
+      return Thread.current[:job_uuid]
     end
 
     def self.set_failure(status)
-      @failure = status
+      #This is a current thread variable to avoid cross-talk between threads
+      Thread.current[:failure] = status
     end
+
+    def self.failure
+      return Thread.current[:failure]
+    end
+
+
 
     ####################################################
     #private
