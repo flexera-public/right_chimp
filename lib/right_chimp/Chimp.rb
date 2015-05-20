@@ -539,7 +539,7 @@ module Chimp
           Log.error "[#{Chimp.get_job_uuid}] #{servers.size - matching_servers.size} instances didnt match tag selection."
           Log.error "[#{Chimp.get_job_uuid}] #{tags.join(" ")}"
           Chimp.set_failure(true)
-          Log.error "[#{Chimp.get_job_uuid}] Set failure to true because of disccrepancy"
+          Log.error "[#{Chimp.get_job_uuid}] Set failure to true because of discrepancy"
 
           servers = []
         else
