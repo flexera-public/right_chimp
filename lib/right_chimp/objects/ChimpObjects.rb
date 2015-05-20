@@ -83,14 +83,14 @@ module Chimp
 
         query="/api/instances?view=full&filter="+filters
 
-        @all_instances = Connection.api16_call(query)
+        all_instances = Connection.api16_call(query)
 
       rescue Exception => e
         Log.error "[#{Chimp.get_job_uuid}] self.all_instaces"
         Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
       end
 
-      return @all_instances
+      return all_instances
     end
 
     #
@@ -119,7 +119,7 @@ module Chimp
     #
     def Connection.api16_call(query)
 
-      @retry = true
+      Thread.current[:retry] = true
       retries = 5
       attempts = 0
       sleep_for = 20
@@ -135,11 +135,10 @@ module Chimp
 
         Log.debug "[#{Chimp.get_job_uuid}] Querying API for: #{query}"
 
-
         while attempts < retries
           Log.debug "[#{Chimp.get_job_uuid}] Attempt is: #{attempts.to_s}"
-          Log.debug "[#{Chimp.get_job_uuid}] Retry is: #{@retry.to_s}"
-          if @retry
+          Log.debug "[#{Chimp.get_job_uuid}] Retry is: #{Thread.current[:retry].to_s}"
+          if Thread.current[:retry]
             if attempts > 0
               Log.debug "[#{Chimp.get_job_uuid}] Retrying..."
               sleep_time = sleep_for * attempts
@@ -155,12 +154,11 @@ module Chimp
             time = Benchmark.measure do
               begin
                 Log.debug "[#{Chimp.get_job_uuid}] HTTP Making http request"
-                @response = http.request(get)
+                Thread.current[:response] = http.request(get)
                 Log.debug "[#{Chimp.get_job_uuid}] HTTP Request complete"
-		attempts += 1
-
-	      rescue Exception => e
-		Log.error "HTTP HEREEEE"
+                attempts += 1
+              rescue Exception => e
+                Log.error "[#{Chimp.get_job_uuid}] Exception when making the HTTP request"
               end
 
             end
@@ -170,12 +168,11 @@ module Chimp
 
             # Validate API response
             Log.debug "[#{Chimp.get_job_uuid}] Validating..."
-            instances = validate_response(@response, query)
+             instances = validate_response(Thread.current[:response], query)
           else
             # We dont retry, exit the loop.
             Log.debug "[#{Chimp.get_job_uuid}] Not retrying, exiting the loop."
-	    @retry = false
-
+            Thread.current[:retry] = false
             break
           end
         end
@@ -234,11 +231,10 @@ module Chimp
               Log.error "[#{Chimp.get_job_uuid}] [CONTENT] Warning BAD CONTENT: Response content: '#{response.body}'."
               return {} # Return an empty json
             end
-            # extract the most recent commit on designated branch from hash
+
             # Log.debug "We received a valid JSON response, therefore returning it."
 
-            @retry = false
-
+            Thread.current[:retry] = false
 
             Log.debug "[#{Chimp.get_job_uuid}] Validated and returning size of #{result.size} "
             return result
@@ -254,19 +250,19 @@ module Chimp
         Log.debug "[#{Chimp.get_job_uuid}] Api returned code: 502"
         Log.debug "[#{Chimp.get_job_uuid}] Query was: #{query}"
 
-        @retry = true
+        Thread.current[:retry] = true
 
       elsif resp_code == "500"
         Log.debug "[#{Chimp.get_job_uuid}] Api returned code: 500"
         Log.debug "[#{Chimp.get_job_uuid}] Query was: #{query}"
 
-        @retry = true
+        Thread.current[:retry] = true
 
       elsif resp_code == "504"
           Log.debug "[#{Chimp.get_job_uuid}] Api returned code: 504"
           Log.debug "[#{Chimp.get_job_uuid}] Query was: #{query}"
 
-          @retry = true
+          Thread.current[:retry] = true
 
       else
         # We are here because response was not 200 or 404
