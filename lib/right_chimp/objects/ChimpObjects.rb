@@ -156,9 +156,9 @@ module Chimp
                 Log.debug "[#{Chimp.get_job_uuid}] HTTP Making http request"
                 Thread.current[:response] = http.request(get)
                 Log.debug "[#{Chimp.get_job_uuid}] HTTP Request complete"
-		            attempts += 1
-	            rescue Exception => e
-		            Log.error "[#{Chimp.get_job_uuid}] Exception when making the HTTP request"
+                attempts += 1
+              rescue Exception => e
+                Log.error "[#{Chimp.get_job_uuid}] Exception when making the HTTP request"
               end
 
             end
