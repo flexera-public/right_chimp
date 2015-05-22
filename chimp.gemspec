@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency "nokogiri", "~> 1.5.9"
   s.add_dependency "progressbar", "~> 0.11.0"
   s.add_dependency "right_api_client", "> 1.5"
+  s.add_dependency "highline", "~> 1.7.2"
 
   s.add_development_dependency "rspec", "~> 2.6.0"
 end
