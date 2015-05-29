@@ -1062,6 +1062,7 @@ module Chimp
       Chimp.set_job_uuid(self.job_uuid)
 
       Log.debug "[#{Chimp.get_job_uuid}] Processing task"
+      # Add to our "processing" counter
 
       Log.debug "[#{Chimp.get_job_uuid}] Trying to get array_info" unless Chimp.failure
       get_array_info unless Chimp.failure
@@ -1074,6 +1075,11 @@ module Chimp
 
       Log.debug "[#{Chimp.get_job_uuid}] Trying to get executable_info" unless Chimp.failure
       get_executable_info unless Chimp.failure
+
+      # All elements of task have been processed
+      ChimpDaemon.instance.semaphore.synchronize do
+        ChimpDaemon.instance.proc_counter -= 1
+      end
 
       if Chimp.failure
 

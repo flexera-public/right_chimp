@@ -7,7 +7,8 @@
 module Chimp
   class ChimpDaemon
 
-    attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count, :dry_run, :logfile, :chimp_queue
+    attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count,
+                  :dry_run, :logfile, :chimp_queue, :proc_counter, :semaphore
     attr_reader :queue, :running
 
     include Singleton
@@ -23,6 +24,9 @@ module Chimp
       @running     = false
       @queue       = ChimpQueue.instance
       @chimp_queue = Queue.new
+      @semaphore   = Mutex.new
+
+      @proc_counter= 0
 
       #Connect to the API
       Connection.instance
@@ -402,6 +406,10 @@ module Chimp
         #  end
         if verb == 'process' or verb == 'add'
           ChimpDaemon.instance.chimp_queue.push payload
+          ChimpDaemon.instance.semaphore.synchronize do
+            ChimpDaemon.instance.proc_counter +=1 
+          end
+          Log.debug "Tasks in the processing queue: #{ChimpDaemon.instance.proc_counter.to_s}"
           id = 0
         elsif verb == 'update'
           puts "UPDATE"
@@ -522,6 +530,23 @@ module Chimp
         end
 
         #
+        # Check if we are asked for stats
+        #
+        if req.request_uri.path =~ /stats/
+          queue = ChimpQueue.instance
+          stats = ""
+          stats << "running: #{queue.get_jobs_by_status(:running).size} / "
+          stats << "failed: #{queue.get_jobs_by_status(:error).size} / "
+          stats << "done: #{queue.get_jobs_by_status(:done).size} / "
+          stats << "processing: #{ChimpDaemon.instance.proc_counter.to_s} / "
+          stats << "\n"
+
+          resp.body = stats
+
+          raise WEBrick::HTTPStatus::OK
+        end
+
+        #
         # Check for static CSS files and serve them
         #
         if req.request_uri.path =~ /\.(css|js)$/
@@ -554,6 +579,7 @@ module Chimp
           count_jobs_holding  = queue.get_jobs_by_status(:holding).size
           count_jobs_failed  = queue.get_jobs_by_status(:error).size
           count_jobs_done    = queue.get_jobs_by_status(:done).size
+          count_jobs_processing = queue.get_jobs_by_status(:processing).size
 
           resp.body = @template.result(binding)
           raise WEBrick::HTTPStatus::OK
