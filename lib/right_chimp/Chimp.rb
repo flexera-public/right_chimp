@@ -1056,7 +1056,9 @@ module Chimp
       get_executable_info unless Chimp.failure
 
       # All elements of task have been processed
-      ChimpDaemon.instance.proc_counter -= 1
+      ChimpDaemon.instance.semaphore.synchronize do
+        ChimpDaemon.instance.proc_counter -= 1
+      end
 
       if Chimp.failure
         Log.error "##################################################"
