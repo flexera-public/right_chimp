@@ -120,6 +120,7 @@ module Chimp
     def Connection.api16_call(query)
 
       Thread.current[:retry] = true
+      Thread.current[:response] = nil
       retries = 5
       attempts = 0
       sleep_for = 20
@@ -151,24 +152,21 @@ module Chimp
 
             Log.debug "[#{Chimp.get_job_uuid}] Attempt # #{attempts+1} at querying the API" unless attempts == 0
 
-            time = Benchmark.measure do
-              begin
-                Log.debug "[#{Chimp.get_job_uuid}] HTTP Making http request"
-                Thread.current[:response] = http.request(get)
-                Log.debug "[#{Chimp.get_job_uuid}] HTTP Request complete"
-                attempts += 1
-              rescue Exception => e
-                Log.error "[#{Chimp.get_job_uuid}] Exception when making the HTTP request"
-              end
+            Log.debug "[#{Chimp.get_job_uuid}] HTTP Making http request"
+            start_time = Time.now
+            Thread.current[:response] = http.request(get)
+            end_time = Time.now
+            total_time = end_time - start_time
 
-            end
+            Log.debug "[#{Chimp.get_job_uuid}] HTTP Request complete"
+            attempts += 1
 
-            Log.debug "[#{Chimp.get_job_uuid}] API Request time: #{time.real} seconds"
+            Log.debug "[#{Chimp.get_job_uuid}] API Request time: #{total_time} seconds"
             Log.debug "[#{Chimp.get_job_uuid}] API Query was: #{query}"
 
             # Validate API response
             Log.debug "[#{Chimp.get_job_uuid}] Validating..."
-             instances = validate_response(Thread.current[:response], query)
+            instances = validate_response(Thread.current[:response], query)
           else
             # We dont retry, exit the loop.
             Log.debug "[#{Chimp.get_job_uuid}] Not retrying, exiting the loop."
@@ -188,23 +186,20 @@ module Chimp
           raise "[#{Chimp.get_job_uuid}] Api call failed more than #{retries} times."
         end
 
+        if instances.nil?
+          Log.error "[#{Chimp.get_job_uuid}] instances is nil!"
+        else
+          Log.debug "[#{Chimp.get_job_uuid}] API matched #{instances.count} instances"
+        end
+
       rescue Exception => e
         Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
         Log.error "[#{Chimp.get_job_uuid}] Catched exception on http request to the api, retrying"
-
-        # Failure to be set only on maximum retries
-        # Chimp.set_failure(true)
 
         instances = []
         attempts += 1
         retry
       end
-
-      Log.debug "[#{Chimp.get_job_uuid}] API matched #{instances.count} instances" unless instances.nil?
-
-	if instances.nil?
-		Log.error "[#{Chimp.get_job_uuid}] instances is nil!"
-	end
 
       return instances
     end
