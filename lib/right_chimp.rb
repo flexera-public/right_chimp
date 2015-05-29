@@ -18,9 +18,6 @@ require 'right_api_client'
 require 'rest-client'
 require 'logger'
 
-require "benchmark"
-
-
 module Chimp
   require 'right_chimp/version'
   require 'right_chimp/Chimp'
