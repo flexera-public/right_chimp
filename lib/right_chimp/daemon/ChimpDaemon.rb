@@ -407,7 +407,7 @@ module Chimp
         if verb == 'process' or verb == 'add'
           ChimpDaemon.instance.chimp_queue.push payload
           ChimpDaemon.instance.semaphore.synchronize do
-            ChimpDaemon.instance.proc_counter +=1 
+            ChimpDaemon.instance.proc_counter +=1
           end
           Log.debug "Tasks in the processing queue: #{ChimpDaemon.instance.proc_counter.to_s}"
           id = 0
@@ -536,6 +536,7 @@ module Chimp
           queue = ChimpQueue.instance
           stats = ""
           stats << "running: #{queue.get_jobs_by_status(:running).size} / "
+          stats << "waiting: #{queue.get_jobs_by_status(:none).size} / "
           stats << "failed: #{queue.get_jobs_by_status(:error).size} / "
           stats << "done: #{queue.get_jobs_by_status(:done).size} / "
           stats << "processing: #{ChimpDaemon.instance.proc_counter.to_s} / "
