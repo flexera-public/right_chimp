@@ -1130,6 +1130,7 @@ module Chimp
           # load up remote chimpd jobs into the local queue
           # this makes all the standard queue control methods available to us
           #
+          sleeping_counter = 0
           while true
             local_queue.reset!
 
@@ -1145,8 +1146,12 @@ module Chimp
 
             break if ChimpQueue[@group].done?
 
+            if sleeping_counter % 120 == 0
+              $stdout.print "\nWaiting for group #{@group}" unless sleeping_counter == 0
+            end
             $stdout.print "."
             $stdout.flush
+            sleeping_counter += 5
             sleep 5
           end
 
