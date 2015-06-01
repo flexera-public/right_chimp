@@ -1146,7 +1146,7 @@ module Chimp
 
             break if ChimpQueue[@group].done?
 
-            if sleeping_counter % 120 == 0
+            if sleeping_counter % 240 == 0
               $stdout.print "\nWaiting for group #{@group}" unless sleeping_counter == 0
             end
             $stdout.print "."
