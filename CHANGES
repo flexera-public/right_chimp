@@ -142,3 +142,7 @@ Version 2.0
 Version 2.1
 -----------
 * 'Feature': Updated to run with Ruby 2.2.2, with minor version increment accoridngly.
+
+Version 2.1.3
+-------------
+* Feature: chimpd-wait-until now dsiplays the group name it is waiting on every 120secs
