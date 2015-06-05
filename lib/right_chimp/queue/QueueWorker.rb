@@ -4,12 +4,13 @@
 #
 module Chimp
   class QueueWorker
-    attr_accessor :delay, :retry_count, :never_exit
+    attr_accessor :delay, :retry_count, :never_exit, :dry_run
 
     def initialize
       @delay = 0
       @retry_count = 0
       @never_exit = true
+      @dry_run = false
     end
 
     #
@@ -25,7 +26,11 @@ module Chimp
             work_item.retry_count = @retry_count
             work_item.owner = Thread.current.object_id
             work_item.run
-            sleep @delay
+            if @dry_run == true
+              puts "DRY-RUN: I would sleep for #{@delay} seconds here"
+            else
+              sleep @delay 
+            end
           else
             sleep 1
           end
