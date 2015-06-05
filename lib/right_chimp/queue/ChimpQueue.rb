@@ -6,7 +6,7 @@ module Chimp
   class ChimpQueue
     include Singleton
 
-    attr_accessor :delay, :retry_count, :max_threads, :group
+    attr_accessor :delay, :retry_count, :max_threads, :group, :dry_run
 
     def initialize
       @delay = 0
@@ -15,6 +15,7 @@ module Chimp
       @workers_never_exit = true
       @threads = []
       @semaphore = Mutex.new
+      @dry_run = false
       self.reset!
     end
 
@@ -39,6 +40,7 @@ module Chimp
           worker = QueueWorker.new
           worker.delay = @delay
           worker.retry_count = @retry_count
+          worker.dry_run = @dry_run
           worker.run
         end
       end
