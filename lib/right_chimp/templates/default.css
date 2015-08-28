@@ -33,15 +33,14 @@ div#stats {
   color: black;
   float: left;
   border-right: solid 2px black;
-  position: fixed;
   height: 100%;
   padding: 5px;
   padding-right: 15px;
+  overflow-x: auto;
 }
 
 div#jobs {
-  position: absolute;
-  left: 375px;
+  float: left;
   top: 10px;
   width: 500px;
   padding-left: 20px;
@@ -53,6 +52,7 @@ div#groups {
   background-color: white;
   border: solid 1px;
   overflow-y: auto;
+  overflow-x: auto;
   height: 150px;
 }
 
