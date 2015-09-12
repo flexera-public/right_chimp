@@ -1138,7 +1138,7 @@ module Chimp
               all = ChimpDaemonClient.retrieve_group_info(@chimpd_host, @chimpd_port, @group, :all)
             rescue RestClient::ResourceNotFound
               sleep 5
-              $stdout.print "\nWARN:, it appears that chimp group #{@group} does not exist!"
+              $stdout.print "\nINFO: Waiting on group #{@group}"
               retry
             end
 
