@@ -534,15 +534,8 @@ module Chimp
         #
         if req.request_uri.path =~ /stats/
           queue = ChimpQueue.instance
-          stats = ""
-          stats << "running: #{queue.get_jobs_by_status(:running).size} / "
-          stats << "waiting: #{queue.get_jobs_by_status(:none).size} / "
-          stats << "failed: #{queue.get_jobs_by_status(:error).size} / "
-          stats << "done: #{queue.get_jobs_by_status(:done).size} / "
-          stats << "processing: #{ChimpDaemon.instance.proc_counter.to_s} / "
-          stats << "\n"
-
-          resp.body = stats
+	  stats_hash = {"running:" => queue.get_jobs_by_status(:running).size, "waiting:" => queue.get_jobs_by_status(:waiting).size, "failed:" => queue.get_jobs_by_status(:failed).size, "done:" => queue.get_jobs_by_status(:done).size, "processing:" => ChimpDaemon.instance.proc_counter.to_s  }
+          resp.body = JSON.generate(stats_hash)
 
           raise WEBrick::HTTPStatus::OK
         end
