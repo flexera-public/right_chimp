@@ -541,8 +541,10 @@ module Chimp
           stats << "done: #{queue.get_jobs_by_status(:done).size} / "
           stats << "processing: #{ChimpDaemon.instance.proc_counter.to_s} / "
           stats << "\n"
+	  my_hash = {"running:" => queue.get_jobs_by_status(:running).size, "waiting:" => queue.get_jobs_by_status(:waiting).size, "failed:" => queue.get_jobs_by_status(:failed).size, "done:" => queue.get_jobs_by_status(:done).size, "processing:" => ChimpDaemon.instance.proc_counter.to_s  }
 
-          resp.body = stats
+          resp.body = JSON.generate(my_hash)
+#          resp.body = stats
 
           raise WEBrick::HTTPStatus::OK
         end
