@@ -532,7 +532,7 @@ module Chimp
         #
         # Check if we are asked for stats
         #
-        if req.request_uri.path =~ /stats/
+        if req.request_uri.path =~ /stats$/
           queue = ChimpQueue.instance
           stats = ""
           stats << "running: #{queue.get_jobs_by_status(:running).size} / "
