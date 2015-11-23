@@ -532,7 +532,7 @@ module Chimp
         #
         # Check if we are asked for stats
         #
-        if req.request_uri.path =~ /stats/
+        if req.request_uri.path =~ /stats$/
           queue = ChimpQueue.instance
           stats = ""
           stats << "running: #{queue.get_jobs_by_status(:running).size} / "
@@ -546,6 +546,47 @@ module Chimp
 
           raise WEBrick::HTTPStatus::OK
         end
+
+        if req.request_uri.path =~ /stats\.json$/
+          # instance the queue
+          queue = ChimpQueue.instance
+
+          stats_hash = {"running" => queue.get_jobs_by_status(:running).size,
+                        "waiting" => queue.get_jobs_by_status(:waiting).size,
+                        "failed" => queue.get_jobs_by_status(:error).size,
+                        "done" => queue.get_jobs_by_status(:done).size,
+                        "processing" => ChimpDaemon.instance.proc_counter.to_s,
+                        "holding" => queue.get_jobs_by_status(:holding).size
+                      }
+
+          resp.body = JSON.generate(stats_hash)
+
+          raise WEBrick::HTTPStatus::OK
+        end
+
+        if req.request_uri.path =~ /jobs\.json$/
+          #instance the queue
+          queue = ChimpQueue.instance
+
+          job_types = [ :running, :error, :done ]
+
+          jobs = {}
+
+          job_types.each do |type|
+            jobs[type] = queue.get_jobs_by_status(type).map do |job|
+              { :id => job.job_id,
+                :server => job.server.params["name"],
+                :name => job.exec.params["right_script"]["name"],
+                :error_message => job.error.nil? ? "" : job.error.message
+              }
+            end
+          end
+
+          resp.body = jobs.to_json
+
+          raise WEBrick::HTTPStatus::OK
+        end
+
 
         #
         # Check for static CSS files and serve them
