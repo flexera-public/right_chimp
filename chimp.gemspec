@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "rake", "~> 10.4.2"
-  s.add_dependency "nokogiri", "~> 1.5.9"
+  s.add_dependency "nokogiri", "~> 1.6.7.1"
   s.add_dependency "progressbar", "~> 0.11.0"
   s.add_dependency "right_api_client", "> 1.5"
   s.add_dependency "highline", "~> 1.7.2"
