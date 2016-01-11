@@ -539,7 +539,7 @@ module Chimp
           stats << "waiting: #{queue.get_jobs_by_status(:none).size} / "
           stats << "failed: #{queue.get_jobs_by_status(:error).size} / "
           stats << "done: #{queue.get_jobs_by_status(:done).size} / "
-          stats << "processing: #{ChimpDaemon.instance.proc_counter.to_s} / "
+          stats << "processing: #{ChimpDaemon.instance.proc_counter.to_i} / "
           stats << "\n"
 
           resp.body = stats
@@ -555,7 +555,7 @@ module Chimp
                         "waiting" => queue.get_jobs_by_status(:waiting).size,
                         "failed" => queue.get_jobs_by_status(:error).size,
                         "done" => queue.get_jobs_by_status(:done).size,
-                        "processing" => ChimpDaemon.instance.proc_counter.to_s,
+                        "processing" => ChimpDaemon.instance.proc_counter.to_i,
                         "holding" => queue.get_jobs_by_status(:holding).size
                       }
 
