@@ -19,7 +19,7 @@ module Chimp
         task.tasker = @server.run_executable(@exec, options)
         task.wait_for_state("completed", @timeout)
         @results = task.tasker.show.summary
-        @audit_entry_data = task.tasker.show(:view=>"extended").detail
+        @audit_entry_data = task.details
       end
     end
 
