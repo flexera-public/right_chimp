@@ -1,7 +1,6 @@
 <html><head>
 <title>chimpd</title>
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-<meta http-equiv="refresh" content="5">
 <link rel="stylesheet" href="default.css" title="default" />
 <link rel="alternate stylesheet" href="greenscreen.css" title="greenscreen" />
 <link rel="alternate stylesheet" href="hotdogstand.css" title="hotdogstand" />
@@ -19,16 +18,30 @@
     xmlhttp.send();
   }
 
+  var myRefreshTimeout;
+
+  /** Function to refresh the page at specified interval. **/
+  function startRefresh(refreshPeriod) {
+      myRefreshTimeout = setTimeout("window.location.reload();",refreshPeriod);
+  }
+
+  /** Function to stop refreshing the page. **/
+  function stopRefresh() {
+      clearTimeout(myRefreshTimeout);
+      window.location.hash = 'stop'
+  }
+
 </script>
 
-</head><body>
+</head>
+<body onload="startRefresh(5000);">
+
 
 <div id="stats">
 
 <h1>chimpd <%=VERSION%> console</h1>
 <p style="font-size: 90%; padding-left: 10px">FEATURING CUTTING EDGE META REFRESH<br/> TECHNOLOGY
 SINCE 2012</p>
-
 <h3>Queue Status</h3>
 
 <table>
@@ -91,6 +104,15 @@ SINCE 2012</p>
   <li> <a href="#" onclick="setActiveStyleSheet('greenscreen')">green screen</a></li>
   <li> <a href="#" onclick="setActiveStyleSheet('hotdogstand')">hot dog stand</a></li>
   <li> <a href="#" onclick="setActiveStyleSheet('invertedhotdogstand')">inverted hot dog stand</a></li>
+</ol>
+
+<h3>Auto Refresh</h3>
+<ol>
+  <div class="btn-group">
+      <a class="btn btn-success" onclick="startRefresh()" id="start">Enable</a>
+      <a class="btn btn-danger" onclick="stopRefresh()" id="stop">Disable</a>
+      <p id="console"></p>
+  </div>
 </ol>
 
 </div>
