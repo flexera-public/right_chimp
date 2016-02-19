@@ -305,6 +305,10 @@ module Chimp
     def href
       self.tasker.href
     end
+
+    def details
+      self.tasker.show(:view => "extended").detail
+    end
   end
 
   #

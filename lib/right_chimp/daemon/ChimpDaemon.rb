@@ -199,6 +199,7 @@ module Chimp
     def install_signal_handlers
       ['INT', 'TERM'].each do |signal|
         trap(signal) do
+          puts "Terminating..."
           self.quit
         end
       end
@@ -583,6 +584,35 @@ module Chimp
           end
 
           resp.body = jobs.to_json
+
+          raise WEBrick::HTTPStatus::OK
+        end
+
+        #
+        # Attempt to return just 1 job data
+        #
+        if req.request_uri.path =~ /jobs\.json\/id\/*\w{6}$/
+
+          job_uid = File.basename(req.request_uri.path)
+          #instance the queue
+          queue = ChimpQueue.instance
+
+          my_hash =  {}
+
+          #! Multiple servers WILL match for the same job_uuid
+          queue.group.each { |group|
+            #per each group, locate all jobs
+            group[1].get_jobs.each {|job|
+              my_hash[job.job_uuid] = { job.job_id => { "state" => job.results,
+                                                        "server" => job.server.params["name"],
+                                                        # TODO Remove after debugging
+                                                        #"audit_entry" => job.audit_entry_data,
+                                        }
+                                      }
+            }
+          }
+
+          resp.body = my_hash.to_json
 
           raise WEBrick::HTTPStatus::OK
         end
