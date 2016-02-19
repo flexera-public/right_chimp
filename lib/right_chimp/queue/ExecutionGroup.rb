@@ -35,6 +35,10 @@ module Chimp
       @concurrency = 1
     end
 
+    # TODO - Create a to_json method
+    def to_h()
+      return {"foo" => "bar"}
+    end
     #
     # Add something to the work queue
     #
