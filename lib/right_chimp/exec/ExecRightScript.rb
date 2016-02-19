@@ -18,7 +18,7 @@ module Chimp
         task=Task.new
         task.tasker = @server.run_executable(@exec, options)
         task.wait_for_state("completed", @timeout)
-        @results = task.tasker.show.summary
+        @results = task.state
         @audit_entry_data = task.details
       end
     end

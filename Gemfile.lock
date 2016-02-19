@@ -5,7 +5,6 @@ PATH
       highline (~> 1.7.2)
       nokogiri (~> 1.6.7.1)
       progressbar (~> 0.11.0)
-      pry
       rake (~> 10.4.2)
       right_api_client (> 1.5)
 
@@ -57,6 +56,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  pry
   right_chimp!
   rspec (~> 2.6.0)
 

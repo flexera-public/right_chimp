@@ -170,14 +170,13 @@ jobs.each do |j|
     <li>Server: <b><%= server_name %></b></li>
     <li>Group: <b><%= j.group.group_id %></b></li>
     <li>Action: <%= action %></li>
-    <li>Sample: </li>
     <li>Status: <%= status %></li>
     <li>Time: <%= time %></li>
     <% if status != Executor::STATUS_RUNNING %>
       <li>Results: <span style="color:#777"><%= j.results %></span></li>
-      <!-- HACK HERE THE LOOP CODE TO INJECT CSS TOI HIDE/EXPAND-->
+      <!-- HACK HERE THE LOOP CODE TO INJECT CSS TO HIDE/EXPAND-->
       <li><label for="<%= id%>">Details (click to expand):</label> <input type="checkbox" id="<%= id%>"><span style="color:#777"><div id="d<%= id%>" class="job_details"><%= j.audit_entry_data %></div></span></li>
-      <!-- HACK HERE THE LOOP CODE TO INJECT CSS TOI HIDE/EXPAND-->
+      <!-- HACK HERE THE LOOP CODE TO INJECT CSS TO HIDE/EXPAND-->
     <% end %>
 
     <li> <span class="action">
