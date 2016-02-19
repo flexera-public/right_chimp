@@ -7,9 +7,9 @@ module Chimp
     attr_accessor :server, :array, :exec, :inputs, :template, :owner, :group,
                   :job_id, :job_uuid, :status, :dry_run, :verbose, :quiet, :timeout,
                   :retry_count, :retry_sleep, :time_start, :time_end, :error
-    
+
     attr_reader   :results
-    
+
     STATUS_NONE =     :none
     STATUS_HOLDING =  :holding
     STATUS_RUNNING =  :running
@@ -29,17 +29,17 @@ module Chimp
       @inputs = h[:inputs]            || nil
 
       @verbose = h[:verbose]          || false
-      
+
       @retry_count = h[:retry_count].to_i || 0
       @retry_sleep = h[:retry_sleep].to_i || 30
       @timeout = h[:timeout].to_i         || 3600
-      
+
       @error = nil
       @status = STATUS_NONE
       @owner = nil
       @dry_run = false
       @quiet = false
-      
+
       @time_start = nil
       @time_end = nil
       @results = nil
@@ -57,21 +57,21 @@ module Chimp
         return @time_end.to_i- @time_start.to_i
       end
     end
-    
+
     #
     # Convenience method to queue a held job
     #
     def queue
       @group.queue(self.job_id)
     end
-    
+
     #
     # Convenience method to requeue
     #
     def requeue
       @group.requeue(self.job_id)
     end
-    
+
     #
     # Convenience method to cancel
     #
@@ -82,21 +82,21 @@ module Chimp
     def run
       raise "run method must be overridden"
     end
-      
+
     #
     # return info on what this executor does -- eg name of script or command
     #
     def info
       raise "unimplemented"
     end
-    
+
     def target
       return "UNKNOWN"
     end
 
-        
+
     protected
-    
+
     #
     # Run a unit of work with retries
     # This is called from the subclass with a code block to yield to
@@ -108,36 +108,36 @@ module Chimp
       @time_start = Time.now
 
       Log.info self.describe_work_start unless @quiet
-      
+
       #
       # The inner level of exception handling here tries to catch anything
       # that can be easily retired or failed-- normal exceptions.
       #
       # The outer level of exception handling handles weird stuff; for example,
-      # sometimes rest_connection raises RuntimeError exceptions... 
+      # sometimes rest_connection raises RuntimeError exceptions...
       #
       # This fixes acu75562.
       #
       begin
         begin
           yield if not @dry_run
-        
+
           if @owner != nil
             @status = STATUS_DONE
             @group.job_completed
           else
             Log.warn "[#{@job_uuid}] Ownership of job_id #{job_id} lost. User cancelled operation?"
           end
-        
+
         rescue SystemExit, Interrupt => ex
           $stderr.puts "Exiting!"
           raise ex
-        
+
         rescue Interrupt => ex
           name = @array['name'] if @array
           name = @server['name'] || @server['nickname'] if @server
           Log.error self.describe_work_error
-        
+
           if @retry_count > 0
             @status = STATUS_RETRYING
             Log.error "[#{@job_uuid}] Error executing on \"#{name}\". Retrying in #{@retry_sleep} seconds..."
@@ -145,16 +145,16 @@ module Chimp
             sleep @retry_sleep
             retry
           end
-        
+
           @status = STATUS_ERROR
           @error = ex
           Log.error "[#{@job_uuid}] Error executing on \"#{name}\": #{ex}"
-          
-        ensure 
+
+        ensure
           @time_end = Time.now
           Log.info self.describe_work_done unless @quiet
         end
-        
+
       rescue RuntimeError => ex
         Log.error "[#{@job_uuid}] Caught RuntimeError: #{ex}. Aborting job."
         Log.error ex.inspect
@@ -163,7 +163,7 @@ module Chimp
         @error = ex
       end
     end
-    
+
     #
     # This method should be overridden on Executor subclasses
     # to provide a human readable description of the work
@@ -172,7 +172,7 @@ module Chimp
     def describe_work
       return "#{self.class.name} job_id=#{@job_id}"
     end
-    
+
     def describe_work_start
       return("#{self.describe_work} status=START")
     end
@@ -180,13 +180,13 @@ module Chimp
     def describe_work_done
       return("#{self.describe_work} status=END time=#{@time_end.to_i-@time_start.to_i}s")
     end
-    
+
     def describe_work_done_long
       return("#{self.describe_work} status=END time_start=#{@time_start.to_i} time_end=#{@time_end.to_i} time_total=#{@time_end.to_i-@time_start.to_i}")
     end
-    
+
     def describe_work_error
       return("#{self.describe_work} status=ERROR")
-    end    
+    end
   end
 end
