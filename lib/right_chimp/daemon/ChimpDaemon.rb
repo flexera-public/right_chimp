@@ -199,6 +199,7 @@ module Chimp
     def install_signal_handlers
       ['INT', 'TERM'].each do |signal|
         trap(signal) do
+          puts "Terminating..."
           self.quit
         end
       end

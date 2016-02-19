@@ -416,6 +416,8 @@ module Chimp
       # self is the actual Server object
       Log.debug "[#{Chimp.get_job_uuid}] Running executable"
       task = self.object.run_executable(script_href + params)
+      require 'pry'
+      binding.pry
       return task
     end
   end
