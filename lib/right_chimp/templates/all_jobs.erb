@@ -176,7 +176,7 @@ jobs.each do |j|
     <% if status != Executor::STATUS_RUNNING %>
       <li>Results: <span style="color:#777"><%= j.results %></span></li>
       <!-- HACK HERE THE LOOP CODE TO INJECT CSS TOI HIDE/EXPAND-->
-      <li><label for="<%= id%>">Details (click to expand):</label> <input type="checkbox" id="<%= id%>"><span style="color:#777"><div id="d<%= id%>" class="job_details"><%= j.details %></div></span></li>
+      <li><label for="<%= id%>">Details (click to expand):</label> <input type="checkbox" id="<%= id%>"><span style="color:#777"><div id="d<%= id%>" class="job_details"><%= j.audit_entry_data %></div></span></li>
       <!-- HACK HERE THE LOOP CODE TO INJECT CSS TOI HIDE/EXPAND-->
     <% end %>
 

@@ -42,7 +42,6 @@ module Chimp
 
       @time_start = nil
       @time_end = nil
-      @results = nil
     end
 
     #

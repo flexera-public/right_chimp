@@ -3,7 +3,8 @@
 #
 module Chimp
   class ExecRightScript < Executor
-    attr_accessor :details
+
+    attr_accessor :audit_entry_data
 
     def run
       options = {:ignore_lock => true}.merge(@inputs)
@@ -18,7 +19,7 @@ module Chimp
         task.tasker = @server.run_executable(@exec, options)
         task.wait_for_state("completed", @timeout)
         @results = task.tasker.show.summary
-        @details = task.tasker.show(:view=>"extended").detail
+        @audit_entry_data = task.tasker.show(:view=>"extended").detail
       end
     end
 
