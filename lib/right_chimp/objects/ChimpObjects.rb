@@ -45,6 +45,8 @@ module Chimp
         # Figure out url to hit:
         creds[:api_url] = "https://"+URI.parse(creds[:api_url]).host
 
+        @audit_url = creds[:api_url] + "/acct/" + creds[:account]
+
         @endpoint = URI.parse(creds[:api_url]).host
 
         Log.debug "Logging into Api 1.5 right_api_client"
@@ -69,6 +71,10 @@ module Chimp
 
     def self.endpoint
       @endpoint
+    end
+
+    def self.audit_url
+      @audit_url
     end
 
     #
@@ -283,10 +289,9 @@ module Chimp
       while(timeout > 0)
         state=self.tasker.show.summary
       return true if self.state.match(desired_state)
-        friendly_url = "https://"+Connection.endpoint+"/audit_entries/"
+        friendly_url = Connection.audit_url+"/audit_entries/"
         friendly_url += self.href.split(/\//).last
         friendly_url = friendly_url.gsub("ae-","")
-        # raise "FATAL error, #{self.tasker.show.summary}\n See Audit: API:#{self.href}, WWW:<a href='#{friendly_url}'>#{friendly_url}</a>\n " if self.state.match("failed")
         raise "FATAL error, #{self.tasker.show.summary}\n See Audit: #{friendly_url}'\n " if self.state.match("failed")
         sleep 30
         timeout -= 30

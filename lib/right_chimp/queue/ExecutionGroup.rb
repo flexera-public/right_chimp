@@ -77,7 +77,6 @@ module Chimp
           :host   => task.server.name,
           :status => task.status,
           :error  => task.error,
-          :details=> task.details,
           :total  => self.get_total_execution_time(task.status, task.time_start, task.time_end),
           :start  => task.time_start,
           :end    => task.time_end,
