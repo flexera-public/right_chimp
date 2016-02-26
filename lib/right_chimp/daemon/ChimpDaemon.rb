@@ -605,14 +605,13 @@ module Chimp
             group[1].get_jobs.each {|job|
               my_hash[job.job_uuid] = { job.job_id => { "state" => job.results,
                                                         "server" => job.server.params["name"],
-                                                        # TODO Remove after debugging
-                                                        #"audit_entry" => job.audit_entry_data,
+                                                        "audit_entry" => job.audit_entry_data,
                                         }
                                       }
             }
           }
 
-          resp.body = my_hash.to_json
+          resp.body = my_hash[job_uid].to_json
 
           raise WEBrick::HTTPStatus::OK
         end
