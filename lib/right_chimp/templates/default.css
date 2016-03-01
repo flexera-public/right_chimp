@@ -79,3 +79,28 @@ a {
 a:hover, ol a:hover {
   text-decoration: underline;
 }
+
+
+/* Checkbox Hack */
+li {
+  list-style-type: none;
+}
+input[type=checkbox] {
+   position: absolute;
+   top: -9999px;
+   left: -9999px;
+}
+label {
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* Default State */
+span div.job_details {
+  display: none;
+}
+
+/* Toggled State */
+input[type=checkbox]:checked ~ span div.job_details {
+ display: block;
+}
