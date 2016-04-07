@@ -223,7 +223,7 @@ module Chimp
           }
         }
 
-	Log.debug "[#{Chimp.get_job_uuid}] Found #{@servers.count} servers for that array query"
+        Log.debug "[#{Chimp.get_job_uuid}] Found #{@servers.count} servers for that array query"
 
       end
       # The result will be stored (not returned) into @servers
@@ -332,7 +332,8 @@ module Chimp
           [ '--group-concurrency', '-3', GetoptLong::REQUIRED_ARGUMENT ],
           [ '--timing-log', '-4', GetoptLong::REQUIRED_ARGUMENT ],
           [ '--timeout', '-5',  GetoptLong::REQUIRED_ARGUMENT ],
-          [ '--noverify', '-6', GetoptLong::NO_ARGUMENT ]
+          [ '--noverify', '-6', GetoptLong::NO_ARGUMENT ],
+          [ '--exact-matching', '-8', GetoptLong::NO_ARGUMENT ]
         )
 
         opts.each do |opt, arg|
@@ -433,6 +434,8 @@ module Chimp
               @timeout = arg
             when '--noverify'
               @verify = false
+            when '--exact-matching'
+              @exact = true
           end
         end
 
@@ -556,7 +559,11 @@ module Chimp
       servers = []
       all_instances = Connection.all_instances
 
-      result = all_instances.select {|i| names.any? {|n| i['links']['deployment']['name'] =~ /#{n}/ }}
+      if @exact
+        result = all_instances.select {|i| names.any? {|n| i['links']['deployment']['name'].eql? n }}
+      else
+        result = all_instances.select {|i| names.any? {|n| i['links']['deployment']['name'] =~ /#{n}/ }}
+      end
       servers = result
 
       return(servers)
@@ -577,7 +584,16 @@ module Chimp
           result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
           # Result is an array with all the server arrays
           if result.size != 0
-            arrays_hrefs += result.collect(&:href)
+            if @exact
+              #remove results that do not exactly match
+              result.each{ |r|
+                if array_names.include?(r.raw['name'])
+                  arrays_hrefs += [ r.href ]
+                end
+              }
+            else
+              arrays_hrefs += result.collect(&:href)
+            end
           else
             if @ignore_errors
               Log.debug "[#{Chimp.get_job_uuid}] Could not find array \"#{array_name}\""
