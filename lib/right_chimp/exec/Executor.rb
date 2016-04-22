@@ -5,7 +5,7 @@
 module Chimp
   class Executor
     attr_accessor :server, :array, :exec, :inputs, :template, :owner, :group,
-                  :job_id, :job_uuid, :status, :dry_run, :verbose, :quiet, :timeout,
+                  :job_id, :job_uuid, :job_notes, :status, :dry_run, :verbose, :quiet, :timeout,
                   :retry_count, :retry_sleep, :time_start, :time_end, :error
 
     attr_reader   :results
@@ -24,6 +24,8 @@ module Chimp
 
       @job_id = h[:job_id]            || nil
       @job_uuid = h[:job_uuid]        || nil
+      @job_notes = h[:job_notes]      || nil
+
       @group = h[:group]              || nil
       @exec = h[:exec]                || nil
       @inputs = h[:inputs]            || nil
@@ -155,9 +157,18 @@ module Chimp
         end
 
       rescue RuntimeError => ex
-        Log.error "[#{@job_uuid}] Caught RuntimeError: #{ex}. Aborting job."
-        Log.error ex.inspect
-        Log.error ex.backtrace
+        if @server.params["ip_address"]
+          err = ex.message + "IP: #{@server.params["ip_address"]}\n"
+        end
+        if @group.group_id
+          err += " Group: #{@group.group_id}\n"
+        end
+        if @job_notes
+          err += " Notes: #{@job_notes}\n"
+        end
+        Log.error "[#{@job_uuid}] Caught RuntimeError: #{err} Aborting job.\n"
+        #Log.error ex.inspect
+        #Log.error ex.backtrace
         @status = STATUS_ERROR
         @error = ex
       end

@@ -167,17 +167,26 @@ jobs.each do |j|
   color = "red"         if status == Executor::STATUS_ERROR
 %>
   <ul style="color: <%= color %>">
+    Uuid: [<%= j.job_uuid %>]
+
     <li>Server: <b><%= server_name %></b></li>
     <li>Group: <b><%= j.group.group_id %></b></li>
+    <% if j.job_notes %>
+      <li>Notes: <b><%= j.job_notes %></b></li>
+    <% end %>
     <li>Action: <%= action %></li>
     <li>Status: <%= status %></li>
     <li>Time: <%= time %></li>
     <% if status != Executor::STATUS_RUNNING %>
       <li>Results: <span style="color:#777"><%= j.results %></span></li>
+    <% end %>
+
+    <% if status == Executor::STATUS_DONE %>
       <!-- HACK HERE THE LOOP CODE TO INJECT CSS TO HIDE/EXPAND-->
       <li><label for="<%= id%>">Details (click to expand):</label> <input type="checkbox" id="<%= id%>"><span style="color:#777"><div id="d<%= id%>" class="job_details"><%= j.audit_entry_data %></div></span></li>
       <!-- HACK HERE THE LOOP CODE TO INJECT CSS TO HIDE/EXPAND-->
     <% end %>
+
 
     <li> <span class="action">
     <% case status
