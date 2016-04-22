@@ -147,6 +147,12 @@ Version 2.1.3
 -------------
 * Feature: chimpd-wait-until now dsiplays the group name it is waiting on every 120secs
 
-Vearsion 2.1.4
+Version 2.1.4
 -------------
 * Bugfix: Fixed UI issues casued by long job names
+
+Version 2.1.13
+--------------
+* Feature: Changed error reporting format
+* Feature: Web UI now shows job_uuid
+* Feature: One can now associate a "note" to a job by using --job-notes="foo"
