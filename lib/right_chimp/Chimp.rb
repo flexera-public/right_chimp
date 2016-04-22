@@ -2,11 +2,10 @@
 #
 module Chimp
   class Chimp
-
     attr_accessor :concurrency, :delay, :retry_count, :hold, :progress, :prompt,
                   :quiet, :use_chimpd, :chimpd_host, :chimpd_port, :tags, :array_names,
                   :deployment_names, :script, :all_scripts, :servers, :ssh, :report, :interactive, :action,
-                  :limit_start, :limit_end, :dry_run, :group, :job_id, :job_uuid, :verify, :cli_args
+                  :limit_start, :limit_end, :dry_run, :group, :job_id, :job_uuid, :job_note, :verify, :cli_args
     #
     # These class variables control verbosity
     #
@@ -259,7 +258,7 @@ module Chimp
           # If script is an uri/url no need to "detect it"
           # https://my.rightscale.com/acct/9202/right_scripts/205347
           if @script =~ /\A#{URI::regexp}\z/
-            if not @use_chimpd
+            if not @use_chimpd || !@prompt
               puts "=================================================="
               puts "WARNING! You will be running this script on all "
               puts "server matches! (Press enter to continue)"
@@ -333,7 +332,8 @@ module Chimp
           [ '--timing-log', '-4', GetoptLong::REQUIRED_ARGUMENT ],
           [ '--timeout', '-5',  GetoptLong::REQUIRED_ARGUMENT ],
           [ '--noverify', '-6', GetoptLong::NO_ARGUMENT ],
-          [ '--exact-matching', '-8', GetoptLong::NO_ARGUMENT ]
+          [ '--exact-matching', '-8', GetoptLong::NO_ARGUMENT ],
+          [ '--job-notes', '-k', GetoptLong::OPTIONAL_ARGUMENT ]
         )
 
         opts.each do |opt, arg|
@@ -428,6 +428,8 @@ module Chimp
               @group_type = arg.to_sym
             when '--group-concurrency'
               @group_concurrency = arg.to_i
+            when '--job-notes'
+              @job_notes = arg
             when '--timing-log'
               @timing_log = arg
             when '--timeout'
@@ -904,6 +906,7 @@ module Chimp
             :server => s,
             :exec => queue_executable,
             :job_uuid => @job_uuid,
+            :job_notes => @job_notes,
             :inputs => @inputs,
             :timeout => @timeout,
             :verbose => @@verbose,
@@ -1027,7 +1030,7 @@ module Chimp
           message = result[:error].to_s || "unknown"
           message.sub!("\n", "")
           failed_workers << result[:worker]
-          results_display << "#{name.ljust(40)} #{message}"
+          results_display << "#{name[0..40]}  >> #{message}"
         end
       end
 
@@ -1253,7 +1256,7 @@ module Chimp
       i = 0
       items.sort.each do |item|
         i += 1
-        puts "  %03d. #{item}" % i
+        puts "%03d.#{item}" % i
       end
 
       puts "=================================================="
