@@ -414,7 +414,14 @@ module Chimp
               exit 0
             when '--chimpd'
               @use_chimpd = true
-              @chimpd_port = arg.to_i unless arg.empty?
+              unless arg.empty?
+                if arg =~ /[\d]+\.[\d]+\.[\d]+\.[\d]+:[\d]+/ 
+                  @chimpd_host, @chimpd_port = arg.split(':')
+                  @chimpd_port = @chimpd_port.to_i
+                else
+                  @chimpd_port = arg.to_i
+                end
+              end
             when '--chimpd-wait-until-done'
               @use_chimpd = true
               @chimpd_wait_until_done = true
