@@ -8,7 +8,8 @@ module Chimp
   class ChimpDaemon
 
     attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count,
-                  :dry_run, :logfile, :chimp_queue, :proc_counter, :semaphore
+                  :dry_run, :logfile, :chimp_queue, :proc_counter, :semaphore,
+                  :bind_address
     attr_reader :queue, :running
 
     include Singleton
@@ -17,6 +18,7 @@ module Chimp
       @verbose     = false
       @debug       = false
       @port        = 9055
+      @bind_address = "localhost"
       @concurrency = 50
       @delay       = 0
       @retry_count = 0
@@ -60,6 +62,7 @@ module Chimp
           [ '--delay', '-d',        GetoptLong::REQUIRED_ARGUMENT ],
           [ '--retry', '-y',        GetoptLong::REQUIRED_ARGUMENT ],
           [ '--port', '-p',         GetoptLong::REQUIRED_ARGUMENT ],
+          [ '--bind-address', '-b', GetoptLong::REQUIRED_ARGUMENT ],
           [ '--help', '-h',         GetoptLong::NO_ARGUMENT ],
           [ '--exit', '-x', 				GetoptLong::NO_ARGUMENT ]
         )
@@ -81,6 +84,8 @@ module Chimp
               @quiet = true
             when '--port', '-p'
               @port = arg
+            when '--bind-address', '-b'
+              @bind_address = arg.to_s
             when '--help', '-h'
               help
             when '--exit', '-x'
@@ -90,7 +95,7 @@ module Chimp
           end
         end
       rescue GetoptLong::InvalidOption => ex
-        puts "Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--verbose]"
+        puts "Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--bind-address=<addr> ] [--verbose]"
         exit 1
       end
 
@@ -119,7 +124,7 @@ module Chimp
       puts
       puts  "chimpd -- a RightScale Platform command-line tool"
       puts
-      puts  "Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--verbose]"
+      puts  "Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--bind-address=<addr> ] [--verbose]"
       puts
       puts  "Options:"
       puts
@@ -132,6 +137,7 @@ module Chimp
       puts  " --quiet                     Supress non-essential output"
       puts
       puts  " --port=<port>               Specify the port number for chimpd to listen on (default: 9055)"
+      puts  " --bind-address=<addr>       Specify an interface address for chimpd to bind to.  0.0.0.0 allows all, default is 'localhost'"
       puts
       puts  " --help                      Displays this menu"
       puts
@@ -154,7 +160,7 @@ module Chimp
     #
     def spawn_webserver
       opts = {
-        :BindAddress  => "localhost",
+        :BindAddress  => @bind_address,
         :Port         => @port,
         :MaxClients   => 500,
         :RequestTimeout => 120,
