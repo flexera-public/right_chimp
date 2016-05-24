@@ -392,6 +392,7 @@ module Chimp
 
       def do_POST(req, resp)
         id      = -1
+        # we don't know the job_id because we cant guess how many tasks one call creates.
         job_id  = self.get_id(req)
         job_uuid= self.get_job_uuid(req)
         verb    = self.get_verb(req)
@@ -405,12 +406,6 @@ module Chimp
         #
         # Ask chimpd to process a Chimp object directly
         #
-        #if verb == 'process' or verb == 'add'
-        #  payload.interactive = false
-        #  tasks = payload.process
-        #  tasks.each do |task|
-        #    q.push(group, task)
-        #  end
         if verb == 'process' or verb == 'add'
           ChimpDaemon.instance.chimp_queue.push payload
           ChimpDaemon.instance.semaphore.synchronize do
@@ -423,10 +418,9 @@ module Chimp
           q.get_job(job_id).status = payload.status
         end
 
-
         resp.body = {
           'job_uuid' => job_uuid ,
-          'id' => id
+          'id' => job_id
         }.to_yaml
 
         raise WEBrick::HTTPStatus::OK
@@ -582,9 +576,10 @@ module Chimp
           job_types.each do |type|
             jobs[type] = queue.get_jobs_by_status(type).map do |job|
               { :id => job.job_id,
-                :server => job.server.params["name"],
-                :name => job.exec.params["right_script"]["name"],
-                :error_message => job.error.nil? ? "" : job.error.message
+                :uuid => job.job_uuid,
+                :server => job.server.name,
+                :script => job.info,
+                :audit_entry_url => job.audit_entry_url
               }
             end
           end
@@ -594,34 +589,57 @@ module Chimp
           raise WEBrick::HTTPStatus::OK
         end
 
-        #
-        # Attempt to return just 1 job data
-        #
-        if req.request_uri.path =~ /jobs\.json\/id\/*\w{6}$/
+        if req.request_uri.path =~ /jobs\.json\/id\/\d+$/
 
-          job_uid = File.basename(req.request_uri.path)
-          #instance the queue
+          job_id = File.basename(req.request_uri.path)
           queue = ChimpQueue.instance
 
-          my_hash =  {}
+          res = queue.get_job(job_id)
 
-          #! Multiple servers WILL match for the same job_uuid
-          queue.group.each { |group|
-            #per each group, locate all jobs
-            group[1].get_jobs.each {|job|
-              my_hash[job.job_uuid] = { job.job_id => { "state" => job.results,
-                                                        "server" => job.server.params["name"],
-                                                        "audit_entry" => job.audit_entry_data,
-                                        }
-                                      }
-            }
-          }
+          case res
+          when ExecRightScript
 
-          resp.body = my_hash[job_uid].to_json
+            result = {}
+            result[:id] = job_id
+            result[:uuid] = res.job_uuid
+            result[:status] = res.status
+            result[:server] = res.server.name
+            result[:script] = res.info
+            result[:audit_entry_url] = res.audit_entry_url
+
+            resp.body = result.to_json
+          end
+
+          raise WEBrick::HTTPStatus::OK
+
+        end
+        #
+        # Attempt to return just 1 job_UUID data
+        #
+        if req.request_uri.path =~ /jobs\.json\/uuid\/*\w{6}$/
+
+          uuid = File.basename(req.request_uri.path)
+          # instance the queue
+          queue = ChimpQueue.instance
+
+          res = queue.get_jobs_by_uuid(uuid)
+
+          jobs = {}
+
+          res.each_with_index do |r, i|
+            jobs[i] = { id: r.job_id,
+                        uuid: r.job_uuid,
+                        status: r.status,
+                        server: r.server.name,
+                        script: r.info,
+                        audit_entry_url: r.audit_entry_url
+                      }
+          end
+
+          resp.body = jobs.to_json
 
           raise WEBrick::HTTPStatus::OK
         end
-
 
         #
         # Check for static CSS files and serve them
@@ -663,6 +681,5 @@ module Chimp
         end
       end
     end # DisplayServlet
-
   end # ChimpDaemon
 end

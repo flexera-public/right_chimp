@@ -162,7 +162,7 @@ module Chimp
       jobs = self.get_jobs
 
       jobs.each do |j|
-        return j if j.job_id == id
+        return j if j.job_id == id.to_i
       end
     end
 
@@ -172,9 +172,19 @@ module Chimp
         group.get_jobs.each { |job| r << job }
       end
 
-      return r
+      r
     end
 
+    def get_jobs_by_uuid(uuid)
+      r     = []
+      jobs = self.get_jobs
+
+      jobs.each do |j|
+        r << j if j.job_uuid == uuid
+      end
+
+      r
+    end
     #############################################################
     protected
 
