@@ -156,3 +156,7 @@ Version 2.1.13
 * Feature: Changed error reporting format
 * Feature: Web UI now shows job_uuid
 * Feature: One can now associate a "note" to a job by using --job-notes="foo"
+
+Version 2.1.15
+---------------
+* Feature: We now are able to query a subset of job_uuids and total stats format. 
