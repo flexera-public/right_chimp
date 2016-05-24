@@ -160,7 +160,8 @@ module Chimp
         err = ex.message + "IP: #{@server.params["ip_address"]}\n" if @server.params['ip_address']
         err += " Group: #{@group.group_id}\n" if @group.group_id
         err += " Notes: #{@job_notes}\n" if @job_notes
-        Log.error "[#{@job_uuid}][#{@job_id}] Caught RuntimeError: #{err} Aborting job.\n"
+        err += " Notes: #{@job_notes}\n" if @job_notes
+        Log.error "[#{@job_uuid}][#{@job_id}] Caught RuntimeError: #{err} Job failed.\n"
         @status = STATUS_ERROR
         @error = ex
       end

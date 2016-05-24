@@ -14,10 +14,10 @@ module Chimp
       while(timeout > 0)
         state=self.tasker.show.summary
       return true if self.state.match(desired_state)
-        friendly_url = Connection.audit_url+"/audit_entries/"
+        friendly_url = Connection.audit_url + '/audit_entries/'
         friendly_url += self.href.split(/\//).last
-        friendly_url = friendly_url.gsub("ae-","")
-        raise "FATAL error, #{self.tasker.show.summary}\n\n Audit: #{friendly_url}'\n " if self.state.match("failed")
+        friendly_url = friendly_url.gsub('ae-', '')
+        raise "FATAL error, #{tasker.show.summary}\n\n Audit: #{friendly_url}'\n " if self.state.match("failed")
         sleep 30
         timeout -= 30
       end
@@ -25,7 +25,7 @@ module Chimp
     end
 
     def wait_for_completed(timeout=900)
-      wait_for_state("completed", timeout)
+      wait_for_state('completed', timeout)
     end
 
     def state
@@ -34,6 +34,13 @@ module Chimp
 
     def href
       self.tasker.href
+    end
+
+    def friendly_url
+      friendly_url = Connection.audit_url+"/audit_entries/"
+      friendly_url += self.href.split(/\//).last
+      friendly_url = friendly_url.gsub("ae-","")
+      friendly_url
     end
 
     def details

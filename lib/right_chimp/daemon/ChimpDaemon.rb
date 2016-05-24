@@ -598,12 +598,14 @@ module Chimp
 
           case res
           when ExecRightScript
+
             result = {}
             result[:id] = job_id
             result[:uuid] = res.job_uuid
             result[:status] = res.status
             result[:server] = res.server.name
-            result[:script] = res.exec.params['right_script']['name']
+            result[:script] = res.info
+            result[:audit_entry_url] = res.audit_entry_url
 
             resp.body = result.to_json
           end
@@ -617,10 +619,10 @@ module Chimp
         if req.request_uri.path =~ /jobs\.json\/id\/*\w{6}$/
           # THIS NEEDS FIXED, NEED TO RETURN ALL JOBS WITH UUID MATCHING
           job_uid = File.basename(req.request_uri.path)
-          #instance the queue
+          # instance the queue
           queue = ChimpQueue.instance
 
-          my_hash =  {}
+          my_hash = {}
 
           #! Multiple servers WILL match for the same job_uuid
           queue.group.each { |group|
@@ -680,6 +682,5 @@ module Chimp
         end
       end
     end # DisplayServlet
-
   end # ChimpDaemon
 end
