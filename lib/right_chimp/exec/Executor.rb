@@ -127,7 +127,7 @@ module Chimp
             @status = STATUS_DONE
             @group.job_completed
           else
-            Log.warn "[#{@job_uuid}] Ownership of job_id #{job_id} lost. User cancelled operation?"
+            Log.warn "[#{@job_uuid}][#{@job_id}] Ownership of job_id #{job_id} lost. User cancelled operation?"
           end
 
         rescue SystemExit, Interrupt => ex
@@ -141,7 +141,7 @@ module Chimp
 
           if @retry_count > 0
             @status = STATUS_RETRYING
-            Log.error "[#{@job_uuid}] Error executing on \"#{name}\". Retrying in #{@retry_sleep} seconds..."
+            Log.error "[#{@job_uuid}][#{@job_id}] Error executing on \"#{name}\". Retrying in #{@retry_sleep} seconds..."
             @retry_count -= 1
             sleep @retry_sleep
             retry
@@ -149,7 +149,7 @@ module Chimp
 
           @status = STATUS_ERROR
           @error = ex
-          Log.error "[#{@job_uuid}] Error executing on \"#{name}\": #{ex}"
+          Log.error "[#{@job_uuid}][#{@job_id}] Error executing on \"#{name}\": #{ex}"
 
         ensure
           @time_end = Time.now
@@ -157,18 +157,10 @@ module Chimp
         end
 
       rescue RuntimeError => ex
-        if @server.params["ip_address"]
-          err = ex.message + "IP: #{@server.params["ip_address"]}\n"
-        end
-        if @group.group_id
-          err += " Group: #{@group.group_id}\n"
-        end
-        if @job_notes
-          err += " Notes: #{@job_notes}\n"
-        end
-        Log.error "[#{@job_uuid}] Caught RuntimeError: #{err} Aborting job.\n"
-        #Log.error ex.inspect
-        #Log.error ex.backtrace
+        err = ex.message + "IP: #{@server.params["ip_address"]}\n" if @server.params['ip_address']
+        err += " Group: #{@group.group_id}\n" if @group.group_id
+        err += " Notes: #{@job_notes}\n" if @job_notes
+        Log.error "[#{@job_uuid}][#{@job_id}] Caught RuntimeError: #{err} Aborting job.\n"
         @status = STATUS_ERROR
         @error = ex
       end

@@ -162,7 +162,7 @@ module Chimp
       jobs = self.get_jobs
 
       jobs.each do |j|
-        return j if j.job_id == id
+        return j if j.job_id == id.to_i
       end
     end
 

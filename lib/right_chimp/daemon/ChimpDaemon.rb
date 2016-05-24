@@ -392,6 +392,7 @@ module Chimp
 
       def do_POST(req, resp)
         id      = -1
+        # we don't know the job_id because we cant guess how many tasks one call creates.
         job_id  = self.get_id(req)
         job_uuid= self.get_job_uuid(req)
         verb    = self.get_verb(req)
@@ -405,12 +406,6 @@ module Chimp
         #
         # Ask chimpd to process a Chimp object directly
         #
-        #if verb == 'process' or verb == 'add'
-        #  payload.interactive = false
-        #  tasks = payload.process
-        #  tasks.each do |task|
-        #    q.push(group, task)
-        #  end
         if verb == 'process' or verb == 'add'
           ChimpDaemon.instance.chimp_queue.push payload
           ChimpDaemon.instance.semaphore.synchronize do
@@ -423,10 +418,9 @@ module Chimp
           q.get_job(job_id).status = payload.status
         end
 
-
         resp.body = {
           'job_uuid' => job_uuid ,
-          'id' => id
+          'id' => job_id
         }.to_yaml
 
         raise WEBrick::HTTPStatus::OK
@@ -582,6 +576,7 @@ module Chimp
           job_types.each do |type|
             jobs[type] = queue.get_jobs_by_status(type).map do |job|
               { :id => job.job_id,
+                :uuid => job.job_uuid,
                 :server => job.server.params["name"],
                 :name => job.exec.params["right_script"]["name"],
                 :error_message => job.error.nil? ? "" : job.error.message
@@ -594,11 +589,33 @@ module Chimp
           raise WEBrick::HTTPStatus::OK
         end
 
+        if req.request_uri.path =~ /jobs\.json\/id\/\d+$/
+
+          job_id = File.basename(req.request_uri.path)
+          queue = ChimpQueue.instance
+
+          res = queue.get_job(job_id)
+
+          case res
+          when ExecRightScript
+            result = {}
+            result[:id] = job_id
+            result[:uuid] = res.job_uuid
+            result[:status] = res.status
+            result[:server] = res.server.name
+            result[:script] = res.exec.params['right_script']['name']
+
+            resp.body = result.to_json
+          end
+
+          raise WEBrick::HTTPStatus::OK
+
+        end
         #
-        # Attempt to return just 1 job data
+        # Attempt to return just 1 job_UUID data
         #
         if req.request_uri.path =~ /jobs\.json\/id\/*\w{6}$/
-
+          # THIS NEEDS FIXED, NEED TO RETURN ALL JOBS WITH UUID MATCHING
           job_uid = File.basename(req.request_uri.path)
           #instance the queue
           queue = ChimpQueue.instance
