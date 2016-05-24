@@ -577,9 +577,9 @@ module Chimp
             jobs[type] = queue.get_jobs_by_status(type).map do |job|
               { :id => job.job_id,
                 :uuid => job.job_uuid,
-                :server => job.server.params["name"],
-                :name => job.exec.params["right_script"]["name"],
-                :error_message => job.error.nil? ? "" : job.error.message
+                :server => job.server.name,
+                :script => job.info,
+                :audit_entry_url => job.audit_entry_url
               }
             end
           end
@@ -616,31 +616,30 @@ module Chimp
         #
         # Attempt to return just 1 job_UUID data
         #
-        if req.request_uri.path =~ /jobs\.json\/id\/*\w{6}$/
-          # THIS NEEDS FIXED, NEED TO RETURN ALL JOBS WITH UUID MATCHING
-          job_uid = File.basename(req.request_uri.path)
+        if req.request_uri.path =~ /jobs\.json\/uuid\/*\w{6}$/
+
+          uuid = File.basename(req.request_uri.path)
           # instance the queue
           queue = ChimpQueue.instance
 
-          my_hash = {}
+          res = queue.get_jobs_by_uuid(uuid)
 
-          #! Multiple servers WILL match for the same job_uuid
-          queue.group.each { |group|
-            #per each group, locate all jobs
-            group[1].get_jobs.each {|job|
-              my_hash[job.job_uuid] = { job.job_id => { "state" => job.results,
-                                                        "server" => job.server.params["name"],
-                                                        "audit_entry" => job.audit_entry_data,
-                                        }
-                                      }
-            }
-          }
+          jobs = {}
 
-          resp.body = my_hash[job_uid].to_json
+          res.each_with_index do |r, i|
+            jobs[i] = { id: r.job_id,
+                        uuid: r.job_uuid,
+                        status: r.status,
+                        server: r.server.name,
+                        script: r.info,
+                        audit_entry_url: r.audit_entry_url
+                      }
+          end
+
+          resp.body = jobs.to_json
 
           raise WEBrick::HTTPStatus::OK
         end
-
 
         #
         # Check for static CSS files and serve them
