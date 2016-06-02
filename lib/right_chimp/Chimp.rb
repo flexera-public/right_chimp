@@ -415,7 +415,7 @@ module Chimp
             when '--chimpd'
               @use_chimpd = true
               unless arg.empty?
-                if arg =~ /[\d]+\.[\d]+\.[\d]+\.[\d]+:[\d]+/ 
+                if arg =~ /[\d]+\.[\d]+\.[\d]+\.[\d]+:[\d]+/
                   @chimpd_host, @chimpd_port = arg.split(':')
                   @chimpd_port = @chimpd_port.to_i
                 else
@@ -993,6 +993,8 @@ module Chimp
       #
       return true if failed_workers.empty?
 
+      # if we hit here, it means some failed, do not request interaction if --no-prompt was used.
+      return false unless @prompt
       #
       # Some workers failed; offer the user a chance to retry them
       #
