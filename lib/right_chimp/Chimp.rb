@@ -34,6 +34,7 @@ module Chimp
       @retry_count  = 0
       @hold         = false
       @timeout      = 900
+      @paused       = false
 
       @limit_start  = 0
       @limit_end    = 0
@@ -415,7 +416,7 @@ module Chimp
             when '--chimpd'
               @use_chimpd = true
               unless arg.empty?
-                if arg =~ /[\d]+\.[\d]+\.[\d]+\.[\d]+:[\d]+/ 
+                if arg =~ /[\d]+\.[\d]+\.[\d]+\.[\d]+:[\d]+/
                   @chimpd_host, @chimpd_port = arg.split(':')
                   @chimpd_port = @chimpd_port.to_i
                 else
@@ -991,12 +992,19 @@ module Chimp
       #
       # If no workers failed, then we're done.
       #
-      return true if failed_workers.empty?
-
+      if failed_workers.empty?
+        @paused = false
+        return "continue"
+      end
       #
       # Some workers failed; offer the user a chance to retry them
       #
-      verify("The following objects failed:", results_display, false)
+      verify("The following objects failed:", results_display, false) unless @paused
+
+      unless @prompt
+        @paused = true
+        return "pause"
+      end
 
       while true
         puts "(R)etry failed jobs"
@@ -1013,7 +1021,7 @@ module Chimp
         elsif command =~ /^r/i
           puts "Retrying..."
           ChimpQueue.instance.group[group].requeue_failed_jobs!
-          return false
+          return "retry"
         end
       end
     end
@@ -1183,12 +1191,16 @@ module Chimp
           end
 
           #
-          # If verify_results returns true, then ask chimpd to requeue all failed jobs.
+          # If verify_results returns false, then ask chimpd to requeue all failed jobs.
           #
-          if verify_results(@group)
+          case verify_results(@group)
+          when "continue"
             break
-          else
+          when "retry"
             ChimpDaemonClient.retry_group(@chimpd_host, @chimpd_port, @group)
+          when "pause"
+            @paused = true
+            #stuck in this loop until action is taken
           end
         end
       ensure

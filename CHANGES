@@ -159,4 +159,8 @@ Version 2.1.13
 
 Version 2.1.15
 ---------------
-* Feature: We now are able to query a subset of job_uuids and total stats format. 
+* Feature: We now are able to query a subset of job_uuids and total stats format.
+
+Version 2.1.16
+--------------
+* Bugfix: chimp --wait-until-done now honors the noprompt flag. 
