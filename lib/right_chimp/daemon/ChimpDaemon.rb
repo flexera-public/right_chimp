@@ -10,7 +10,7 @@ module Chimp
     attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count,
                   :dry_run, :logfile, :chimp_queue, :proc_counter, :semaphore,
                   :bind_address
-    attr_reader :queue, :running
+    attr_reader   :queue, :running
 
     include Singleton
 
