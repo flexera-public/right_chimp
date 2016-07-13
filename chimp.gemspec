@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-LOAD_PATH.push File.expand_path('../lib', __FILE__)
+$LOAD_PATH.push File.expand_path('../lib', __FILE__)
 require 'right_chimp/version'
 
 Gem::Specification.new do |s|
@@ -10,14 +10,14 @@ Gem::Specification.new do |s|
   s.authors     = ['RightScale Operations']
   s.email       = ['ops@rightscale.com']
   s.homepage    = 'https://github.com/rightscale/right_chimp'
-  s.summary     = %q{RightScale platform command-line tool}
-  s.description = %q{The Chimp is a tool for managing servers using the RightScale platform.}
+  s.summary     = 'RightScale platform command-line tool'
+  s.description = 'The Chimp is a tool for managing servers using the RightScale platform.'
 
   # s.rubyforge_project = "chimp"
 
   s.files         = `git ls-files`.split('\n')
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split('\n')
-  s.executables   = `git ls-files -- bin/*`.split('\n').map{ |f| File.basename(f) }
+  s.executables   = `git ls-files -- bin/*`.split('\n').map { |f| File.basename(f) }
   s.require_paths = ['lib']
 
   s.add_dependency 'rake', '~> 10.4.2'
@@ -29,5 +29,4 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec', '~> 2.6.0'
   s.add_development_dependency 'pry'
   s.add_development_dependency 'pry-stack_explorer'
-
 end

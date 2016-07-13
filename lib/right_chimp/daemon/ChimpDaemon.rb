@@ -291,7 +291,7 @@ module Chimp
         return id
       end
 
-      def get_job_uuid(req)
+      def read_job_uuid(req)
         string = req.body.scan(/job_uuid: .{6}/).last
         job_uuid = string.scan(/ (.{6})/).last.last
         return job_uuid
@@ -394,7 +394,7 @@ module Chimp
         id      = -1
         # we don't know the job_id because we cant guess how many tasks one call creates.
         job_id  = self.get_id(req)
-        job_uuid= self.get_job_uuid(req)
+        job_uuid= self.read_job_uuid(req)
         verb    = self.get_verb(req)
 
         payload = self.get_payload(req)

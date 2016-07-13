@@ -82,7 +82,7 @@ module Chimp
     #
     def self.all_instances()
       begin
-        Log.debug "[#{Chimp.get_job_uuid}] Requesting all instances"
+        # Log.debug "[#{Chimp.read_job_uuid}] Requesting all instances"
 
         filters_list = "state=operational"
         filters = CGI::escape(filters_list)
@@ -92,8 +92,10 @@ module Chimp
         all_instances = Connection.api16_call(query)
 
       rescue Exception => e
-        Log.error "[#{Chimp.get_job_uuid}] self.all_instaces"
-        Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
+        # Log.error "[#{Chimp.read_job_uuid}] self.all_instaces"
+        # Log.error "[#{Chimp.read_job_uuid}] #{e.message}"
+        require 'pry'
+        binding.pry
       end
 
       return all_instances
@@ -103,7 +105,7 @@ module Chimp
     # Returns every single operational instance in the account, matching the filters passed.
     #
     def self.instances(extra_filters)
-      Log.debug "[#{Chimp.get_job_uuid}] Requesting some instances"
+      Log.debug "[#{Chimp.read_job_uuid}] Requesting some instances"
       begin
         filters_list = "state=operational&"+extra_filters
         filters = CGI::escape(filters_list)
@@ -113,8 +115,8 @@ module Chimp
         instances = Connection.api16_call(query)
 
       rescue Exception => e
-        Log.error "[#{Chimp.get_job_uuid}] self.instances"
-        Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
+        Log.error "[#{Chimp.read_job_uuid}] self.instances"
+        Log.error "[#{Chimp.read_job_uuid}] #{e.message}"
       end
 
       return instances
@@ -140,42 +142,42 @@ module Chimp
         http = Net::HTTP.new(@endpoint, 443)
         http.use_ssl = true
 
-        Log.debug "[#{Chimp.get_job_uuid}] Querying API for: #{query}"
+        Log.debug "[#{Chimp.read_job_uuid}] Querying API for: #{query}"
 
         while attempts < retries
-          Log.debug "[#{Chimp.get_job_uuid}] Attempt is: #{attempts.to_s}"
-          Log.debug "[#{Chimp.get_job_uuid}] Retry is: #{Thread.current[:retry].to_s}"
+          Log.debug "[#{Chimp.read_job_uuid}] Attempt is: #{attempts.to_s}"
+          Log.debug "[#{Chimp.read_job_uuid}] Retry is: #{Thread.current[:retry].to_s}"
           if Thread.current[:retry]
             if attempts > 0
-              Log.debug "[#{Chimp.get_job_uuid}] Retrying..."
+              Log.debug "[#{Chimp.read_job_uuid}] Retrying..."
               sleep_time = sleep_for * attempts
               # Add a random amount to avoid staggering calls
               sleep_time += rand(15)
 
-              Log.debug "[#{Chimp.get_job_uuid}] Sleeping between retries for #{sleep_time}"
+              Log.debug "[#{Chimp.read_job_uuid}] Sleeping between retries for #{sleep_time}"
               sleep(sleep_time)
             end
 
-            Log.debug "[#{Chimp.get_job_uuid}] Attempt # #{attempts+1} at querying the API" unless attempts == 0
+            Log.debug "[#{Chimp.read_job_uuid}] Attempt # #{attempts+1} at querying the API" unless attempts == 0
 
-            Log.debug "[#{Chimp.get_job_uuid}] HTTP Making http request"
+            Log.debug "[#{Chimp.read_job_uuid}] HTTP Making http request"
             start_time = Time.now
             Thread.current[:response] = http.request(get)
             end_time = Time.now
             total_time = end_time - start_time
 
-            Log.debug "[#{Chimp.get_job_uuid}] HTTP Request complete"
+            Log.debug "[#{Chimp.read_job_uuid}] HTTP Request complete"
             attempts += 1
 
-            Log.debug "[#{Chimp.get_job_uuid}] API Request time: #{total_time} seconds"
-            Log.debug "[#{Chimp.get_job_uuid}] API Query was: #{query}"
+            Log.debug "[#{Chimp.read_job_uuid}] API Request time: #{total_time} seconds"
+            Log.debug "[#{Chimp.read_job_uuid}] API Query was: #{query}"
 
             # Validate API response
-            Log.debug "[#{Chimp.get_job_uuid}] Validating..."
+            Log.debug "[#{Chimp.read_job_uuid}] Validating..."
             instances = validate_response(Thread.current[:response], query)
           else
             # We dont retry, exit the loop.
-            Log.debug "[#{Chimp.get_job_uuid}] Not retrying, exiting the loop."
+            Log.debug "[#{Chimp.read_job_uuid}] Not retrying, exiting the loop."
             Thread.current[:retry] = false
             break
           end
@@ -183,24 +185,24 @@ module Chimp
 
         if attempts == retries
 
-          Log.error "[#{Chimp.get_job_uuid}] Api call failed more than #{retries} times."
+          Log.error "[#{Chimp.read_job_uuid}] Api call failed more than #{retries} times."
 
           Chimp.set_failure(true)
-          Log.error "[#{Chimp.get_job_uuid}] Set failure to true because of max retries"
+          Log.error "[#{Chimp.read_job_uuid}] Set failure to true because of max retries"
 
           instances = []
-          raise "[#{Chimp.get_job_uuid}] Api call failed more than #{retries} times."
+          raise "[#{Chimp.read_job_uuid}] Api call failed more than #{retries} times."
         end
 
         if instances.nil?
-          Log.error "[#{Chimp.get_job_uuid}] instances is nil!"
+          Log.error "[#{Chimp.read_job_uuid}] instances is nil!"
         else
-          Log.debug "[#{Chimp.get_job_uuid}] API matched #{instances.count} instances"
+          Log.debug "[#{Chimp.read_job_uuid}] API matched #{instances.count} instances"
         end
 
       rescue Exception => e
-        Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
-        Log.error "[#{Chimp.get_job_uuid}] Catched exception on http request to the api, retrying"
+        Log.error "[#{Chimp.read_job_uuid}] #{e.message}"
+        Log.error "[#{Chimp.read_job_uuid}] Catched exception on http request to the api, retrying"
 
         instances = []
         attempts += 1
@@ -225,11 +227,11 @@ module Chimp
           if result.is_a?(Array)
             # Operate on a 200 or 404 with valid JSON response, catch error messages from github in json hash
             if result.include? 'message'
-              Log.error "[#{Chimp.get_job_uuid}] [CONTENT] Errot: Problem with API request: '#{resp_code} #{response.body}'."
-              raise "[#{Chimp.get_job_uuid}] [CONTENT] Error: Problem with API request: '#{resp_code} #{response.body}'"
+              Log.error "[#{Chimp.read_job_uuid}] [CONTENT] Errot: Problem with API request: '#{resp_code} #{response.body}'."
+              raise "[#{Chimp.read_job_uuid}] [CONTENT] Error: Problem with API request: '#{resp_code} #{response.body}'"
             end
             if result.include? 'Error'
-              Log.error "[#{Chimp.get_job_uuid}] [CONTENT] Warning BAD CONTENT: Response content: '#{response.body}'."
+              Log.error "[#{Chimp.read_job_uuid}] [CONTENT] Warning BAD CONTENT: Response content: '#{response.body}'."
               return {} # Return an empty json
             end
 
@@ -237,40 +239,40 @@ module Chimp
 
             Thread.current[:retry] = false
 
-            Log.debug "[#{Chimp.get_job_uuid}] Validated and returning size of #{result.size} "
+            Log.debug "[#{Chimp.read_job_uuid}] Validated and returning size of #{result.size} "
             return result
           end
         rescue JSON::ParserError
-          Log.error "[#{Chimp.get_job_uuid}] Warning: Expected JSON response but was unable to parse!"
+          Log.error "[#{Chimp.read_job_uuid}] Warning: Expected JSON response but was unable to parse!"
           #Log.error "Warning: #{response.body}!"
 
           return {} # Return an empty result
         end
 
       elsif resp_code == "502"
-        Log.debug "[#{Chimp.get_job_uuid}] Api returned code: 502"
-        Log.debug "[#{Chimp.get_job_uuid}] Query was: #{query}"
+        Log.debug "[#{Chimp.read_job_uuid}] Api returned code: 502"
+        Log.debug "[#{Chimp.read_job_uuid}] Query was: #{query}"
 
         Thread.current[:retry] = true
 
       elsif resp_code == "500"
-        Log.debug "[#{Chimp.get_job_uuid}] Api returned code: 500"
-        Log.debug "[#{Chimp.get_job_uuid}] Query was: #{query}"
+        Log.debug "[#{Chimp.read_job_uuid}] Api returned code: 500"
+        Log.debug "[#{Chimp.read_job_uuid}] Query was: #{query}"
 
         Thread.current[:retry] = true
 
       elsif resp_code == "504"
-          Log.debug "[#{Chimp.get_job_uuid}] Api returned code: 504"
-          Log.debug "[#{Chimp.get_job_uuid}] Query was: #{query}"
+          Log.debug "[#{Chimp.read_job_uuid}] Api returned code: 504"
+          Log.debug "[#{Chimp.read_job_uuid}] Query was: #{query}"
 
           Thread.current[:retry] = true
 
       else
         # We are here because response was not 200 or 404
         # Any http response code that is not 200 / 404 / 500 / 502 should error out.
-        Log.error "[#{Chimp.get_job_uuid}] ERROR: Got '#{resp_code} #{response.msg}' response from api!  "
-        Log.error "[#{Chimp.get_job_uuid}] Query was: #{query}"
-        raise "[#{Chimp.get_job_uuid}] Couldnt contact the API"
+        Log.error "[#{Chimp.read_job_uuid}] ERROR: Got '#{resp_code} #{response.msg}' response from api!  "
+        Log.error "[#{Chimp.read_job_uuid}] Query was: #{query}"
+        raise "[#{Chimp.read_job_uuid}] Couldnt contact the API"
         return {}
       end
     end

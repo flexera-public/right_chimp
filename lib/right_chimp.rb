@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'bundler'
+require 'optparse'
 
 require 'getoptlong'
 require 'thread'
@@ -20,7 +21,7 @@ require 'logger'
 
 module Chimp
   require 'right_chimp/version'
-  require 'right_chimp/Chimp'
+  require 'right_chimp/chimp'
   require 'right_chimp/Log'
   require 'right_chimp/IDManager'
 
@@ -42,4 +43,6 @@ module Chimp
   require 'right_chimp/resources/Executable'
   require 'right_chimp/resources/Server'
   require 'right_chimp/resources/Task'
+
+  require 'right_chimp/exceptions/exceptions'
 end

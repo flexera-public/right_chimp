@@ -71,7 +71,7 @@ module Chimp
         params+="&ignore_lock=true"
       end
       # self is the actual Server object
-      Log.debug "[#{Chimp.get_job_uuid}] Running executable"
+      Log.debug "[#{Chimp.read_job_uuid}] Running executable"
       task = self.object.run_executable(script_href + params)
       return task
     end
