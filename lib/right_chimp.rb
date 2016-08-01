@@ -11,6 +11,7 @@ require 'rake'
 require 'progressbar'
 require 'json'
 require 'yaml'
+require 'safe_yaml'
 
 require 'highline/import'
 
