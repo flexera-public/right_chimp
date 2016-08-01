@@ -163,4 +163,8 @@ Version 2.1.15
 
 Version 2.1.16
 --------------
-* Bugfix: chimp --wait-until-done now honors the noprompt flag. 
+* Bugfix: chimp --wait-until-done now honors the noprompt flag.
+
+Version 2.1.27
+--------------
+* Bugfix: we now use 'safe_yaml' to prevent erroring out on a 422 response from the api.
