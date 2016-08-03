@@ -165,6 +165,6 @@ Version 2.1.16
 --------------
 * Bugfix: chimp --wait-until-done now honors the noprompt flag.
 
-Version 2.1.19
+Version 2.1.19.1
 --------------
 Reverted bad release
