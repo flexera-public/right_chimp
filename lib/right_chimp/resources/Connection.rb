@@ -36,6 +36,7 @@ module Chimp
     def self.start_right_api_client
       require 'yaml'
       require 'right_api_client'
+
       begin
         creds = YAML.load_file("#{ENV['HOME']}/.rest_connection/rest_api_config.yaml")
 
