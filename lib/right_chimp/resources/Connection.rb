@@ -34,8 +34,10 @@ module Chimp
     end
 
     def self.start_right_api_client
-      require 'yaml'
-      require 'right_api_client'
+      # Make sure to configure safe_yaml properly
+      SafeYAML::OPTIONS[:default_mode] = :safe
+      SafeYAML::OPTIONS[:deserialize_symbols] = true
+
       begin
         creds = YAML.load_file("#{ENV['HOME']}/.rest_connection/rest_api_config.yaml")
 
