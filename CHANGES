@@ -168,3 +168,7 @@ Version 2.1.16
 Version 2.1.17
 --------------
 * Bugfix: we now use 'safe_yaml' to prevent erroring out on a 422 response from the api.
+
+Version 2.1.18
+--------------
+* Just so rubygems picks up proper version
