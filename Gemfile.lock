@@ -7,7 +7,6 @@ PATH
       progressbar (~> 0.11.0)
       rake (~> 10.4.2)
       right_api_client (> 1.5)
-      safe_yaml
 
 GEM
   remote: https://rubygems.org/
@@ -54,7 +53,6 @@ GEM
     rspec-expectations (2.6.0)
       diff-lcs (~> 1.1.2)
     rspec-mocks (2.6.0)
-    safe_yaml (1.0.4)
     slop (3.6.0)
     unf (0.1.4)
       unf_ext
