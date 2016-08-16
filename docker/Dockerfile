@@ -11,7 +11,7 @@
 # Built via: docker build -t mastamark/right_chimp:latest .
 ###
 
-FROM rightscale/ops_ruby22x_build
+FROM rightscale/ops_ruby23x_build
 MAINTAINER mastamark+github@gmail.com
 WORKDIR /srv
 ADD right_chimp.sh /srv/
