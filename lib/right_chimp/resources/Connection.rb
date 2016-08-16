@@ -51,10 +51,17 @@ module Chimp
         @endpoint = URI.parse(creds[:api_url]).host
 
         Log.debug "Logging into Api 1.5 right_api_client"
-
-        @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass],
+        if creds[:refresh_token] then
+          #no account id extraction, must be specified in config file
+          #refresh_token must be specified in config
+          @client = RightApi::Client.new(:refresh_token => creds[:refresh_token],
                                         :account_id => creds[:account], :api_url => creds[:api_url],
                                         :timeout => 60, :enable_retry => true)
+        else
+          @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass],
+                                          :account_id => creds[:account], :api_url => creds[:api_url],
+                                          :timeout => 60, :enable_retry => true)
+        end
       rescue
         puts "##############################################################################"
         puts "Error: "
@@ -134,7 +141,12 @@ module Chimp
 
       begin
         get  = Net::HTTP::Get.new(query)
-        get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
+        if @client.access_token then
+          #auth using oauth access token
+          get['Authorization'] = "Bearer "+ @client.access_token
+        else
+          get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
+        end
         get['X-Api_Version'] = '1.6'
         get['X-Account']     = @client.account_id
 
