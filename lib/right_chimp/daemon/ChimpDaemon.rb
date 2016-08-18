@@ -553,7 +553,7 @@ module Chimp
           queue = ChimpQueue.instance
 
           stats_hash = {"running" => queue.get_jobs_by_status(:running).size,
-                        "waiting" => queue.get_jobs_by_status(:waiting).size,
+                        "waiting" => queue.get_jobs_by_status(:none).size,
                         "failed" => queue.get_jobs_by_status(:error).size,
                         "done" => queue.get_jobs_by_status(:done).size,
                         "processing" => ChimpDaemon.instance.proc_counter.to_i,
