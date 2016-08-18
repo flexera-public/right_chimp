@@ -1,3 +1,3 @@
 module Chimp
-  VERSION = "2.1.19.1"
+  VERSION = "2.1.20"
 end
