@@ -525,7 +525,7 @@ module Chimp
         # First determine the path to the files to serve
         #
         if ENV['CHIMP_TEST'] != 'TRUE'
-          template_path = File.join(Gem.dir, 'gems', 'right_chimp-' + VERSION, 'lib/right_chimp/templates')
+          template_path = File.expand_path('../templates', __dir__)
         else
           template_path = 'lib/right_chimp/templates'
         end

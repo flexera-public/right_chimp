@@ -172,3 +172,7 @@ Reverted bad release
 Version 2.1.20
 --------------
 * Bugfix: We now correctly report the correct number of tasks waiting, in the json interface
+
+Version 2.1.21
+--------------
+* Bugfix: Pull the correct path whenever loading up the erb template in webui.
