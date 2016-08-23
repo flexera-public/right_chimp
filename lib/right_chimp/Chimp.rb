@@ -1011,6 +1011,15 @@ module Chimp
         puts "(A)bort chimp run"
         puts "(I)gnore errors and continue"
         command = gets()
+        if command.nil?
+          #
+          # if command is nil, stdin is closed or its source ended
+          #  probably because we are in an automated environment,
+          #  then we pause like in '--no-prompt' scenario
+          #
+          puts 'Warning! stdin empty, using pause behaviour, use --no-prompt to avoid this message'
+          return 'pause'
+        end
 
         if command =~ /^a/i
           puts "Aborting!"

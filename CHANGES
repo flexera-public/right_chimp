@@ -176,3 +176,7 @@ Version 2.1.20
 Version 2.1.21
 --------------
 * Bugfix: Pull the correct path whenever loading up the erb template in webui.
+
+Version 2.1.22
+--------------
+* Bugfix: use 'pause' behaviour if there are no contents in stdin
