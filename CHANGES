@@ -180,3 +180,7 @@ Version 2.1.21
 Version 2.1.22
 --------------
 * Bugfix: use 'pause' behaviour if there are no contents in stdin
+
+Version 2.1.22.1
+--------------
+* Bugfix: don't show retry/abort/ignore prompt in 'pause' mode
