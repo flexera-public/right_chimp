@@ -1003,6 +1003,7 @@ module Chimp
 
       if !@prompt || @paused
         @paused = true
+        sleep 15
         return "pause"
       end
 
