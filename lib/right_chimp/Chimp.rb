@@ -1181,15 +1181,17 @@ module Chimp
               all = ChimpDaemonClient.retrieve_group_info(@chimpd_host, @chimpd_port, @group, :all)
             rescue RestClient::ResourceNotFound
               sleep 5
-              $stdout.print "\nINFO: Waiting on group #{@group}"
+              $stdout.print "\nINFO: Waiting on group #{@group} to populate"
               retry
             end
 
             ChimpQueue.instance.create_group(@group)
             ChimpQueue[@group].set_jobs(all)
 
-            break if ChimpQueue[@group].done?
-
+            if ChimpQueue[@group].done?
+              $stdout.print "INFO: Group #{@group} has completed."
+              break
+            end
             if sleeping_counter % 240 == 0
               $stdout.print "\nWaiting for group #{@group}" unless sleeping_counter == 0
             end
@@ -1203,11 +1205,11 @@ module Chimp
           # If verify_results returns false, then ask chimpd to requeue all failed jobs.
           #
           case verify_results(@group)
-          when "continue"
+          when 'continue'
             break
-          when "retry"
+          when 'retry'
             ChimpDaemonClient.retry_group(@chimpd_host, @chimpd_port, @group)
-          when "pause"
+          when 'pause'
             @paused = true
             #stuck in this loop until action is taken
           end
