@@ -181,6 +181,15 @@ Version 2.1.22
 --------------
 * Bugfix: use 'pause' behaviour if there are no contents in stdin
 
+Version 2.1.22.1
+--------------
+* Bugfix: don't show retry/abort/ignore prompt in 'pause' mode
+
+Version 2.1.22.2
+--------------
+* Bugfix: don't consume CPU in 'pause' mode
+
 Version 2.1.23
 --------------
 * Feature: better chimp wait until done messaging. 
+

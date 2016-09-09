@@ -1001,8 +1001,9 @@ module Chimp
       #
       verify("The following objects failed:", results_display, false) unless @paused
 
-      unless @prompt
+      if !@prompt || @paused
         @paused = true
+        sleep 15
         return "pause"
       end
 
@@ -1018,6 +1019,7 @@ module Chimp
           #  then we pause like in '--no-prompt' scenario
           #
           puts 'Warning! stdin empty, using pause behaviour, use --no-prompt to avoid this message'
+          @paused = true
           return 'pause'
         end
 
