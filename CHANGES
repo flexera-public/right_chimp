@@ -180,3 +180,7 @@ Version 2.1.21
 Version 2.1.22
 --------------
 * Bugfix: use 'pause' behaviour if there are no contents in stdin
+
+Version 2.1.23
+--------------
+* Feature: better chimp wait until done messaging. 
