@@ -188,3 +188,8 @@ Version 2.1.22.1
 Version 2.1.22.2
 --------------
 * Bugfix: don't consume CPU in 'pause' mode
+
+Version 2.1.23
+--------------
+* Feature: better chimp wait until done messaging. 
+
