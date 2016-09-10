@@ -1123,6 +1123,8 @@ module Chimp
 
       # All elements of task have been processed
       ChimpDaemon.instance.semaphore.synchronize do
+        # remove from the processing variable queue
+        # FIXME
         ChimpDaemon.instance.proc_counter -= 1
       end
 

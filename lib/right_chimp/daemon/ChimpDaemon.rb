@@ -344,13 +344,33 @@ module Chimp
       #
       def do_GET(req, resp)
         jobs = {}
+        Log.debug 'get group info'
 
         group_name = req.request_uri.path.split('/')[-2]
         filter     = req.request_uri.path.split('/')[-1]
+        # Quickly check processing jobs just in case
+        # Instance the entire queue
+        q = ChimpQueue.instance
+        g2 = q.processing[group_name.to_sym]
+
+        if g2
+          Log.debug 'Found processing job(s): ' + g2.inspect
+        else
+          Log.debug 'not found any processing jobs for that group: ' + g2.inspect
+        end
+
         g = ChimpQueue[group_name.to_sym]
         raise WEBrick::HTTPStatus::NotFound, "Group not found" unless g
         jobs = g.get_jobs_by_status(filter)
+        # add potential processing jobs as dummy ones
+        g2.size
+        # FIXME
+
         resp.body = jobs.to_yaml
+
+        require 'pry'
+        binding.pry
+
         raise WEBrick::HTTPStatus::OK
       end
 
@@ -409,9 +429,17 @@ module Chimp
         if verb == 'process' or verb == 'add'
           ChimpDaemon.instance.chimp_queue.push payload
           ChimpDaemon.instance.semaphore.synchronize do
+            # create a new variable where we store groups with jobs that will be processed
+            q.processing[payload.group] = [] if q.processing[payload.group].nil?
+            q.processing[payload.group].push(payload.job_uuid)
+
             ChimpDaemon.instance.proc_counter +=1
+            # FIXME - hack to delay the processing counter
+            sleep 60
           end
           Log.debug "Tasks in the processing queue: #{ChimpDaemon.instance.proc_counter.to_s}"
+          Log.debug 'processing:'
+          Log.debug q.processing.inspect
           id = 0
         elsif verb == 'update'
           puts "UPDATE"
