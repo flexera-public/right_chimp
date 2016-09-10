@@ -360,7 +360,7 @@ module Chimp
         end
 
         g = ChimpQueue[group_name.to_sym]
-        raise WEBrick::HTTPStatus::NotFound, "Group not found" unless g
+        raise WEBrick::HTTPStatus::NotFound, 'Group not found' unless g
         jobs = g.get_jobs_by_status(filter)
         # add potential processing jobs as dummy ones
         g2.size
