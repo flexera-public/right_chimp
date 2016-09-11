@@ -431,7 +431,7 @@ module Chimp
         # Ask chimpd to process a Chimp object directly
         #
         if verb == 'process' or verb == 'add'
-          # comment this to GET STUCK IN PROCESSING forever
+          # comment the next line to GET STUCK IN PROCESSING forever
           ChimpDaemon.instance.chimp_queue.push payload
           ChimpDaemon.instance.semaphore.synchronize do
             # While we are at it, we will store these processing jobs to prevent issues in the event

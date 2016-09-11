@@ -1195,10 +1195,14 @@ module Chimp
             ChimpQueue[@group].set_jobs(all)
 
             if ChimpQueue[@group].done?
+              Log.debug 'Group ' + @group + ' is completed'
               jobs = ChimpQueue[@group].size
               $stdout.print "\nINFO: Group #{@group} has completed (#{jobs} jobs)"
               break
+            else
+              Log.debug 'Group ' + @group + ' is not done.'
             end
+
             if sleeping_counter % 240 == 0
               $stdout.print "\n(Still) Waiting for group #{@group}" unless sleeping_counter == 0
             end
