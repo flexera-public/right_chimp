@@ -159,11 +159,6 @@ module Chimp
       return r
     end
 
-    def get_processing_jobs(group)
-      require 'pry'
-      binding.pry
-    end
-
     def get_job(id)
       jobs = self.get_jobs
 

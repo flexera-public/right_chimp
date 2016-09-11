@@ -1104,37 +1104,39 @@ module Chimp
     #
     def process
       Chimp.set_failure(false)
-      Chimp.set_job_uuid(self.job_uuid)
+      Chimp.set_job_uuid(job_uuid)
 
-      Log.debug "[#{Chimp.get_job_uuid}] Processing task"
+      Log.debug "[#{job_uuid}] Processing task"
       # Add to our "processing" counter
 
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get array_info" unless Chimp.failure
+      Log.debug "[#{job_uuid}] Trying to get array_info" unless Chimp.failure
       get_array_info unless Chimp.failure
 
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get server_info" unless Chimp.failure
+      Log.debug "[#{job_uuid}] Trying to get server_info" unless Chimp.failure
       get_server_info unless Chimp.failure
 
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get template_info" unless Chimp.failure
+      Log.debug "[#{job_uuid}] Trying to get template_info" unless Chimp.failure
       get_template_info unless Chimp.failure
 
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get executable_info" unless Chimp.failure
+      Log.debug "[#{job_uuid}] Trying to get executable_info" unless Chimp.failure
       get_executable_info unless Chimp.failure
 
       # All elements of task have been processed
       ChimpDaemon.instance.semaphore.synchronize do
-        # remove from the processing variable queue
-        # FIXME
+        # remove from the processing queue
+        require 'pry'
+        binding.pry
+        ChimpDaemon.instance.queue.processing[group]
         ChimpDaemon.instance.proc_counter -= 1
       end
 
       if Chimp.failure
 
-        Log.error "##################################################"
-        Log.error "["+self.job_uuid+"] API CALL FAILED FOR:"
-        Log.error "["+self.job_uuid+"] chimp #{@cli_args} "
-        Log.error "["+self.job_uuid+"] Run manually!"
-        Log.error "##################################################"
+        Log.error '##################################################'
+        Log.error '[' + job_uuid + '] API CALL FAILED FOR:'
+        Log.error '[' + job_uuid + "] chimp #{@cli_args} "
+        Log.error '[' + job_uuid + '] Run manually!'
+        Log.error '##################################################'
         return []
       else
         if @servers.first.nil? or @executable.nil?

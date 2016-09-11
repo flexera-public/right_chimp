@@ -343,7 +343,7 @@ module Chimp
       # /group/<name>/<status>
       #
       def do_GET(req, resp)
-        jobs = {}
+        jobs = []
         Log.debug 'get group info'
 
         group_name = req.request_uri.path.split('/')[-2]
@@ -360,16 +360,20 @@ module Chimp
         end
 
         g = ChimpQueue[group_name.to_sym]
-        raise WEBrick::HTTPStatus::NotFound, 'Group not found' unless g
-        jobs = g.get_jobs_by_status(filter)
-        # add potential processing jobs as dummy ones
-        g2.size
-        # FIXME
+        raise WEBrick::HTTPStatus::NotFound, 'Group not found' unless g || g2
+        jobs = g.get_jobs_by_status(filter) if g
+
+        # If there are processing jobs, add them as dummy executions.
+        if g2
+          Log.debug 'Group: ' + group_name + ' is processing:'
+          g2.each do |job|
+            Log.debug 'Job: ' + job
+            j = ExecRightScript.new(group: group_name, job_uuid: job)
+            jobs.push j
+          end
+        end
 
         resp.body = jobs.to_yaml
-
-        require 'pry'
-        binding.pry
 
         raise WEBrick::HTTPStatus::OK
       end
@@ -427,27 +431,27 @@ module Chimp
         # Ask chimpd to process a Chimp object directly
         #
         if verb == 'process' or verb == 'add'
+          # comment this to GET STUCK IN PROCESSING forever
           ChimpDaemon.instance.chimp_queue.push payload
           ChimpDaemon.instance.semaphore.synchronize do
-            # create a new variable where we store groups with jobs that will be processed
+            # While we are at it, we will store these processing jobs to prevent issues in the event
+            # of a very slow API response.
             q.processing[payload.group] = [] if q.processing[payload.group].nil?
             q.processing[payload.group].push(payload.job_uuid)
 
-            ChimpDaemon.instance.proc_counter +=1
-            # FIXME - hack to delay the processing counter
-            sleep 60
+            ChimpDaemon.instance.proc_counter += 1
           end
-          Log.debug "Tasks in the processing queue: #{ChimpDaemon.instance.proc_counter.to_s}"
-          Log.debug 'processing:'
+
+          Log.debug 'Tasks in the processing queue:' + ChimpDaemon.instance.proc_counter.to_s
+          Log.debug 'Pocessing:'
           Log.debug q.processing.inspect
-          id = 0
         elsif verb == 'update'
-          puts "UPDATE"
+          puts 'UPDATE'
           q.get_job(job_id).status = payload.status
         end
 
         resp.body = {
-          'job_uuid' => job_uuid ,
+          'job_uuid' => job_uuid,
           'id' => job_id
         }.to_yaml
 
@@ -457,7 +461,7 @@ module Chimp
       def do_GET(req, resp)
         id          = self.get_id(req)
         verb        = self.get_verb(req)
-        job_results = "OK"
+        job_results = 'OK'
         queue       = ChimpQueue.instance
 
         #
