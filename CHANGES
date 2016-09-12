@@ -1,3 +1,8 @@
+Version 2.1.24
+--------------
+* Feature: We now ensure jobs are added and tracked into the processing status before sending a 200 back to
+the client. As a result chimp wait until will never skip a group because of slow API performance.
+
 Version 2.1.23
 --------------
 * Feature: better chimp wait until done messaging.
