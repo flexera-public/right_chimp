@@ -1103,6 +1103,7 @@ module Chimp
     # This is used by chimpd, when processing a task.
     #
     def process
+
       Chimp.set_failure(false)
       Chimp.set_job_uuid(job_uuid)
 
@@ -1124,9 +1125,8 @@ module Chimp
       # All elements of task have been processed
       ChimpDaemon.instance.semaphore.synchronize do
         # remove from the processing queue
-        require 'pry'
-        binding.pry
-        ChimpDaemon.instance.queue.processing[group]
+        Log.debug 'Removing job: ' + job_uuid + ' from the processing queue for group: ' + group.to_s
+        ChimpDaemon.instance.queue.processing[group].delete(job_uuid)
         ChimpDaemon.instance.proc_counter -= 1
       end
 

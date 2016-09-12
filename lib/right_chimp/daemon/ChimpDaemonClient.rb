@@ -23,10 +23,10 @@ module Chimp
           id = YAML::load(response.body)['id']
           #ID changes upon execution, not upon submission.
           job_uuid = YAML::load(response.body)['job_uuid']
-          puts "["+job_uuid+"]"
+          puts '[' + job_uuid + ']'
           return true
         else
-          $stderr.puts "["+job_uuid+"] WARNING: error submitting to chimpd! response code: #{response.code}"
+          $stderr.puts '[' + job_uuid + "] WARNING: error submitting to chimpd! response code: #{response.code}"
           return false
         end
 

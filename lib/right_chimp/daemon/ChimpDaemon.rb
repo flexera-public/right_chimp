@@ -250,10 +250,8 @@ module Chimp
       (1..n).each do |n|
         @threads ||=[]
         @threads << Thread.new {
-
           while true
             begin
-
 
               queued_request = @chimp_queue.pop
               group = queued_request.group
@@ -436,6 +434,7 @@ module Chimp
           ChimpDaemon.instance.semaphore.synchronize do
             # While we are at it, we will store these processing jobs to prevent issues in the event
             # of a very slow API response.
+            Log.debug 'Adding job: ' + job_uuid + ' to the processing queue for group: ' + group.to_s
             q.processing[payload.group] = [] if q.processing[payload.group].nil?
             q.processing[payload.group].push(payload.job_uuid)
 
