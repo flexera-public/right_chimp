@@ -1103,36 +1103,40 @@ module Chimp
     # This is used by chimpd, when processing a task.
     #
     def process
-      Chimp.set_failure(false)
-      Chimp.set_job_uuid(self.job_uuid)
 
-      Log.debug "[#{Chimp.get_job_uuid}] Processing task"
+      Chimp.set_failure(false)
+      Chimp.set_job_uuid(job_uuid)
+
+      Log.debug "[#{job_uuid}] Processing task"
       # Add to our "processing" counter
 
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get array_info" unless Chimp.failure
+      Log.debug "[#{job_uuid}] Trying to get array_info" unless Chimp.failure
       get_array_info unless Chimp.failure
 
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get server_info" unless Chimp.failure
+      Log.debug "[#{job_uuid}] Trying to get server_info" unless Chimp.failure
       get_server_info unless Chimp.failure
 
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get template_info" unless Chimp.failure
+      Log.debug "[#{job_uuid}] Trying to get template_info" unless Chimp.failure
       get_template_info unless Chimp.failure
 
-      Log.debug "[#{Chimp.get_job_uuid}] Trying to get executable_info" unless Chimp.failure
+      Log.debug "[#{job_uuid}] Trying to get executable_info" unless Chimp.failure
       get_executable_info unless Chimp.failure
 
       # All elements of task have been processed
       ChimpDaemon.instance.semaphore.synchronize do
+        # remove from the processing queue
+        Log.debug 'Removing job: ' + job_uuid + ' from the processing queue for group: ' + group.to_s
+        ChimpDaemon.instance.queue.processing[group].delete(job_uuid)
         ChimpDaemon.instance.proc_counter -= 1
       end
 
       if Chimp.failure
 
-        Log.error "##################################################"
-        Log.error "["+self.job_uuid+"] API CALL FAILED FOR:"
-        Log.error "["+self.job_uuid+"] chimp #{@cli_args} "
-        Log.error "["+self.job_uuid+"] Run manually!"
-        Log.error "##################################################"
+        Log.error '##################################################'
+        Log.error '[' + job_uuid + '] API CALL FAILED FOR:'
+        Log.error '[' + job_uuid + "] chimp #{@cli_args} "
+        Log.error '[' + job_uuid + '] Run manually!'
+        Log.error '##################################################'
         return []
       else
         if @servers.first.nil? or @executable.nil?
@@ -1191,10 +1195,14 @@ module Chimp
             ChimpQueue[@group].set_jobs(all)
 
             if ChimpQueue[@group].done?
+              Log.debug 'Group ' + @group.to_s + ' is completed'
               jobs = ChimpQueue[@group].size
               $stdout.print "\nINFO: Group #{@group} has completed (#{jobs} jobs)"
               break
+            else
+              Log.debug 'Group ' + @group.to_s + ' is not done.'
             end
+
             if sleeping_counter % 240 == 0
               $stdout.print "\n(Still) Waiting for group #{@group}" unless sleeping_counter == 0
             end

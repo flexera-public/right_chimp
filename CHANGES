@@ -1,195 +1,199 @@
-Version 0.2.0
+Version 2.1.24
 --------------
-* Initial non-alpha release
+* Feature: We now ensure jobs are added and tracked into the processing status before sending a 200 back to
+the client. As a result chimp wait until will never skip a group because of slow API performance.
 
-Version 0.2.2
+Version 2.1.23
+--------------
+* Feature: better chimp wait until done messaging.
+
+Version 2.1.22.2
+--------------
+* Bugfix: don't consume CPU in 'pause' mode
+
+Version 2.1.22.1
+--------------
+* Bugfix: don't show retry/abort/ignore prompt in 'pause' mode
+
+Version 2.1.22
+--------------
+* Bugfix: use 'pause' behaviour if there are no contents in stdin
+
+Version 2.1.21
+--------------
+* Bugfix: Pull the correct path whenever loading up the erb template in webui.
+
+Version 2.1.20
+--------------
+* Bugfix: We now correctly report the correct number of tasks waiting, in the json interface
+
+Version 2.1.19.1
+--------------
+Reverted bad release
+
+Version 2.1.16
+--------------
+* Bugfix: chimp --wait-until-done now honors the noprompt flag.
+
+Version 2.1.15
+---------------
+* Feature: We now are able to query a subset of job_uuids and total stats format.
+
+Version 2.1.13
+--------------
+* Feature: Web UI now shows job_uuid
+* Feature: Changed error reporting format
+* Feature: One can now associate a "note" to a job by using --job-notes="foo"
+
+Version 2.1.4
 -------------
-* Feature: you can now specify a --script via its URI
-* Feature: initial release of chimpd
+* Bugfix: Fixed UI issues casued by long job names
 
-Version 0.2.3
+Version 2.1.3
 -------------
-* Bugfix: chimpd job id management was broken in some places
+* Feature: chimpd-wait-until now dsiplays the group name it is waiting on every 120secs
 
-Version 0.3.0
--------------
-* Feature: New --dry-run option
-* Feature: Array instance execution now includes error checking (requires API 0.1)
-* Change:  The work queue is now sorted by server name initially
-* Change:  Refactored chimp and chimpd scripts into Real Ruby Objects
-
-Version 0.4.0
--------------
-* Feature: "chimpd --exit" can be used to stop a chimpd server
-* Feature: chimp will now display a list of scripts to choose from
-
-Version 0.4.1
--------------
-* Feature: specify --script via numerical script id instead of full href
-* Bugfix:  fixed --script href bug
-* Bugfix:  fix chimpd submission from chimp exit code
-
-Version 0.4.2
--------------
-* Bugfix:  fixed chimpd submission
-* Feature: Improved ability to ignore runaway tasks in chimpd
-
-Version 0.4.3
--------------
-* Feature: If ServerArrays cannot be found, print a warning instead of failing
-
-Version 0.4.5
--------------
-* Feature: add support for setting inputs when executing RightScripts (--input)
-* Feature: add ignore-errors command line flag
-* Feature: now using the USER environment variable for ssh jobs
-
-Version 0.4.6
--------------
-* Bugfix: add --ssh-user flag to replace buggy USER env. variable feature
-
-Version 0.4.8
--------------
-* Bugfix: chimpd --verbose
-
-Version 0.4.9
--------------
-* Feature: log actions to file
-* Feature: retry/cancel all button added to chimpd
-
-Version 0.5.0
--------------
-* Feature: rewrite of queue system to support task grouping
-* Feature: detailed execution time reporting
-* Feature: new chimpd web interface skin
-* Feature: retry failed and cancel running
-* Feature: improved logging in chimpd
-
-Version 0.5.1
--------------
-* Feature: move run_script_on_instances from API 0.1 to API 1.0 (rest_connection 06df205d7f)
-
-Version 0.5.2
--------------
-* Feature: --noverify flag disables interactive verification of errors
-
-Version 0.5.3
--------------
-* Bugfix: non-operational array instances are no longer operated upon
-
-Version 0.5.4
--------------
-* Bugfix:  reduce log output during reporting
-* Feature: The --report flag now sets quiet mode and concurrency=5 by default
-
-Version 0.5.5
--------------
-* Bugfix: --limit flag wasn't sorting servers before executing
-
-Version 1.0
+Version 2.1
 -----------
-* Initial open source release
+* 'Feature': Updated to run with Ruby 2.2.2, with minor version increment accoridngly.
 
-Version 1.0.1
--------------
-* Add missing ERB template for chimpd
+Version 2.0
+-----------
+* Feature: Deprecated all Rightscale API1.0 calls in favor of Rightscale API1.5 and API1.6 calls.
 
-Version 1.0.2
+Version 1.1.3
 -------------
-* Feature: Add support for specifying inputs on the command line when working with arrays
+* Bugfix: Fix issue where queued/held jobs move into a waiting state and do nothing
 
-Version 1.0.3
+Version 1.1.2
 -------------
-* Bugfix: fix race condition in chimpd serial groups
+* Bugfix: Fix issue where ssh commands were non-functional
+* Bugfix: Fix queueing of 'held' jobs to pull no more than one job from the queue
 
-Version 1.0.4
+Version 1.1.1
 -------------
-* Feature: chimp --chimpd-wait-until-done now blocks until a group has completed > 1 job
-* Feature: chimp --chimpd-wait-until-done now returns immediately during a dry run
-* Feature: chimpd client now log errors better, retries on failure
-* Feature: chimp output when using chimpd is better behaved
+* Bugfix: Enable timeouts on server arrays
 
-Version 1.0.5
+Version 1.1.0
 -------------
-* Feature: improved error handling and logging when submitting to chimpd
+* Feature: Add a job state called 'holding' where jobs can be held until the user queues them
 
 Version 1.0.9
 -------------
 * Feature: Improved support for running chimp commands on any chimp daemon port
 * Feature: Added inverted hot dog stand theme
 
-Version 1.1.0
+Version 1.0.5
 -------------
-* Feature: Add a job state called 'holding' where jobs can be held until the user queues them
+* Feature: improved error handling and logging when submitting to chimpd
 
-Version 1.1.1
+Version 1.0.4
 -------------
-* Bugfix: Enable timeouts on server arrays
+* Feature: chimp output when using chimpd is better behaved
+* Feature: chimpd client now log errors better, retries on failure
+* Feature: chimp --chimpd-wait-until-done now returns immediately during a dry run
+* Feature: chimp --chimpd-wait-until-done now blocks until a group has completed > 1 job
 
-Version 1.1.2
+Version 1.0.3
 -------------
-* Bugfix: Fix queueing of 'held' jobs to pull no more than one job from the queue
-* Bugfix: Fix issue where ssh commands were non-functional
+* Bugfix: fix race condition in chimpd serial groups
 
-Version 1.1.3
+Version 1.0.2
 -------------
-* Bugfix: Fix issue where queued/held jobs move into a waiting state and do nothing
+* Feature: Add support for specifying inputs on the command line when working with arrays
 
-Version 2.0
+Version 1.0.1
+-------------
+* Add missing ERB template for chimpd
+
+Version 1.0
 -----------
-* Feature: Deprecated all Rightscale API1.0 calls in favor of Rightscale API1.5 and API1.6 calls.
+* Initial open source release
 
-Version 2.1
------------
-* 'Feature': Updated to run with Ruby 2.2.2, with minor version increment accoridngly.
-
-Version 2.1.3
+Version 0.5.5
 -------------
-* Feature: chimpd-wait-until now dsiplays the group name it is waiting on every 120secs
+* Bugfix: --limit flag wasn't sorting servers before executing
 
-Version 2.1.4
+Version 0.5.4
 -------------
-* Bugfix: Fixed UI issues casued by long job names
+* Feature: The --report flag now sets quiet mode and concurrency=5 by default
+* Bugfix:  reduce log output during reporting
 
-Version 2.1.13
---------------
-* Feature: Changed error reporting format
-* Feature: Web UI now shows job_uuid
-* Feature: One can now associate a "note" to a job by using --job-notes="foo"
+Version 0.5.3
+-------------
+* Bugfix: non-operational array instances are no longer operated upon
 
-Version 2.1.15
----------------
-* Feature: We now are able to query a subset of job_uuids and total stats format.
+Version 0.5.2
+-------------
+* Feature: --noverify flag disables interactive verification of errors
 
-Version 2.1.16
---------------
-* Bugfix: chimp --wait-until-done now honors the noprompt flag.
+Version 0.5.1
+-------------
+* Feature: move run_script_on_instances from API 0.1 to API 1.0 (rest_connection 06df205d7f)
 
-Version 2.1.19.1
---------------
-Reverted bad release
+Version 0.5.0
+-------------
+* Feature: improved logging in chimpd
+* Feature: retry failed and cancel running
+* Feature: new chimpd web interface skin
+* Feature: detailed execution time reporting
+* Feature: rewrite of queue system to support task grouping
 
-Version 2.1.20
---------------
-* Bugfix: We now correctly report the correct number of tasks waiting, in the json interface
+Version 0.4.9
+-------------
+* Feature: retry/cancel all button added to chimpd
+* Feature: log actions to file
 
-Version 2.1.21
---------------
-* Bugfix: Pull the correct path whenever loading up the erb template in webui.
+Version 0.4.8
+-------------
+* Bugfix: chimpd --verbose
 
-Version 2.1.22
---------------
-* Bugfix: use 'pause' behaviour if there are no contents in stdin
+Version 0.4.6
+-------------
+* Bugfix: add --ssh-user flag to replace buggy USER env. variable feature
 
-Version 2.1.22.1
---------------
-* Bugfix: don't show retry/abort/ignore prompt in 'pause' mode
+Version 0.4.5
+-------------
+* Feature: now using the USER environment variable for ssh jobs
+* Feature: add ignore-errors command line flag
+* Feature: add support for setting inputs when executing RightScripts (--input)
 
-Version 2.1.22.2
---------------
-* Bugfix: don't consume CPU in 'pause' mode
+Version 0.4.3
+-------------
+* Feature: If ServerArrays cannot be found, print a warning instead of failing
 
-Version 2.1.23
---------------
-* Feature: better chimp wait until done messaging. 
+Version 0.4.2
+-------------
+* Feature: Improved ability to ignore runaway tasks in chimpd
+* Bugfix:  fixed chimpd submission
 
+Version 0.4.1
+-------------
+* Bugfix:  fix chimpd submission from chimp exit code
+* Bugfix:  fixed --script href bug
+* Feature: specify --script via numerical script id instead of full href
+
+Version 0.4.0
+-------------
+* Feature: chimp will now display a list of scripts to choose from
+* Feature: "chimpd --exit" can be used to stop a chimpd server
+
+Version 0.3.0
+-------------
+* Change:  Refactored chimp and chimpd scripts into Real Ruby Objects
+* Change:  The work queue is now sorted by server name initially
+* Feature: Array instance execution now includes error checking (requires API 0.1)
+* Feature: New --dry-run option
+
+Version 0.2.3
+-------------
+* Bugfix: chimpd job id management was broken in some places
+
+Version 0.2.2
+-------------
+* Feature: initial release of chimpd
+* Feature: you can now specify a --script via its URI
+
+Version 0.2.0
+-------------
+* Initial non-alpha release

@@ -172,8 +172,8 @@ module Chimp
       return (
         get_jobs_by_status(Executor::STATUS_NONE).size == 0 &&
         get_jobs_by_status(Executor::STATUS_RUNNING).size == 0 &&
-         get_jobs_by_status(Executor::STATUS_DONE).size > 0
-        )
+        get_jobs_by_status(Executor::STATUS_DONE).size > 0
+      )
     end
 
     #
@@ -181,9 +181,9 @@ module Chimp
     #
     def running?
       total_jobs_running = get_jobs_by_status(Executor::STATUS_NONE).size +
-          get_jobs_by_status(Executor::STATUS_RUNNING).size +
-          get_jobs_by_status(Executor::STATUS_RETRYING).size
-      return(total_jobs_running > 0)
+                           get_jobs_by_status(Executor::STATUS_RUNNING).size +
+                           get_jobs_by_status(Executor::STATUS_RETRYING).size
+      (total_jobs_running > 0)
     end
 
     #
