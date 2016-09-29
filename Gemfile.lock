@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    right_chimp (2.1.24)
+    right_chimp (2.1.25)
       highline (~> 1.7.2)
       nokogiri (~> 1.6.7.1)
       progressbar (~> 0.11.0)
@@ -68,4 +68,4 @@ DEPENDENCIES
   rspec (~> 2.6.0)
 
 BUNDLED WITH
-   1.12.5
+   1.13.1
