@@ -89,9 +89,9 @@ module Chimp
             when '--help', '-h'
               help
             when '--exit', '-x'
-            	uri = "http://localhost:#{@port}/admin"
-							response = RestClient.post uri, { 'shutdown' => true }.to_yaml
-							exit 0
+              uri = "http://localhost:#{@port}/admin"
+              response = RestClient.post uri, { 'shutdown' => true }.to_yaml
+              exit 0
           end
         end
       rescue GetoptLong::InvalidOption => ex
@@ -341,6 +341,7 @@ module Chimp
       # /group/<name>/<status>
       #
       def do_GET(req, resp)
+
         jobs = []
         Log.debug 'get group info'
 
@@ -348,6 +349,7 @@ module Chimp
         filter     = req.request_uri.path.split('/')[-1]
         # Quickly check processing jobs just in case
         # Instance the entire queue
+
         q = ChimpQueue.instance
         g2 = q.processing[group_name.to_sym]
 
@@ -362,10 +364,11 @@ module Chimp
         jobs = g.get_jobs_by_status(filter) if g
 
         # If there are processing jobs, add them as dummy executions.
-        if g2
+        if g2 && !g2.empty?
+
           Log.debug 'Group: ' + group_name + ' is processing:'
           g2.each do |job|
-            Log.debug 'Job: ' + job
+            Log.debug 'Job: ' + job.to_s
             j = ExecRightScript.new(group: group_name, job_uuid: job)
             jobs.push j
           end
@@ -429,20 +432,26 @@ module Chimp
         # Ask chimpd to process a Chimp object directly
         #
         if verb == 'process' or verb == 'add'
-          # comment the next line to GET STUCK IN PROCESSING forever
-          ChimpDaemon.instance.chimp_queue.push payload
           ChimpDaemon.instance.semaphore.synchronize do
             # While we are at it, we will store these processing jobs to prevent issues in the event
             # of a very slow API response.
             Log.debug 'Adding job: ' + job_uuid + ' to the processing queue for group: ' + group.to_s
-            q.processing[payload.group] = [] if q.processing[payload.group].nil?
-            q.processing[payload.group].push(payload.job_uuid)
+
+            q.processing[payload.group] = {} if q.processing[payload.group].nil?
+            q.processing[payload.group][payload.job_uuid.to_sym] = 0
 
             ChimpDaemon.instance.proc_counter += 1
           end
+          # comment the next line to GET STUCK IN PROCESSING forever
+          ChimpDaemon.instance.chimp_queue.push payload
 
-          Log.debug 'Tasks in the processing queue:' + ChimpDaemon.instance.proc_counter.to_s
-          Log.debug 'Pocessing:'
+          # Proper count of processing Tasks
+          counter = 0
+          q.processing.each{|k,v|
+            counter += v.size
+          }
+          Log.debug 'Processing:'
+          Log.debug 'Tasks in the processing queue:' + counter.to_s
           Log.debug q.processing.inspect
         elsif verb == 'update'
           puts 'UPDATE'
@@ -571,7 +580,7 @@ module Chimp
           stats << "waiting: #{queue.get_jobs_by_status(:none).size} / "
           stats << "failed: #{queue.get_jobs_by_status(:error).size} / "
           stats << "done: #{queue.get_jobs_by_status(:done).size} / "
-          stats << "processing: #{ChimpDaemon.instance.proc_counter.to_i} / "
+          stats << "processing: #{ChimpDaemon.instance.proc_counter} / "
           stats << "\n"
 
           resp.body = stats
@@ -587,7 +596,7 @@ module Chimp
                         "waiting" => queue.get_jobs_by_status(:none).size,
                         "failed" => queue.get_jobs_by_status(:error).size,
                         "done" => queue.get_jobs_by_status(:done).size,
-                        "processing" => ChimpDaemon.instance.proc_counter.to_i,
+                        "processing" => ChimpDaemon.instance.proc_counter,
                         "holding" => queue.get_jobs_by_status(:holding).size
                       }
 
