@@ -349,7 +349,6 @@ module Chimp
         filter     = req.request_uri.path.split('/')[-1]
         # Quickly check processing jobs just in case
         # Instance the entire queue
-
         q = ChimpQueue.instance
         g2 = q.processing[group_name.to_sym]
 

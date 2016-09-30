@@ -29,11 +29,15 @@ module Chimp
             work_item.owner = Thread.current.object_id
             ChimpDaemon.instance.semaphore.synchronize do
               # remove from the processing queue
-              Log.debug 'Decreasing processing counter (' + ChimpDaemon.instance.proc_counter.to_s + ') for [' + job_uuid + '] group: ' + group.to_s
+              Log.debug 'Decreasing processing counter (' + (ChimpDaemon.instance.proc_counter-1).to_s + ') for [' + job_uuid + '] group: ' + group.to_s
               ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] -= 1
+              Log.debug ChimpDaemon.instance.queue.processing[group].inspect
               if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] == 0
                 Log.debug 'Completed processing task ' + job_uuid
                 ChimpDaemon.instance.queue.processing[group].delete(job_uuid.to_sym)
+                Log.debug ChimpDaemon.instance.queue.processing.inspect
+              else
+                Log.debug 'Still counting down for ' + job_uuid
               end
 
               ChimpDaemon.instance.proc_counter -= 1

@@ -1135,6 +1135,7 @@ module Chimp
         if @servers.first.nil? || @executable.nil?
           Log.warn "[#{Chimp.get_job_uuid}] Nothing to do for \"chimp #{@cli_args}\"."
           # decrease our counter
+          ChimpDaemon.instance.queue.processing[@group].delete(job_uuid.to_sym)
           ChimpDaemon.instance.proc_counter -= 1
           return []
         else
@@ -1174,7 +1175,6 @@ module Chimp
       begin
         while !@dry_run
           local_queue = ChimpQueue.instance
-
           #
           # load up remote chimpd jobs into the local queue
           # this makes all the standard queue control methods available to us
