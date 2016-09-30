@@ -1103,7 +1103,6 @@ module Chimp
     # This is used by chimpd, when processing a task.
     #
     def process
-
       Chimp.set_failure(false)
       Chimp.set_job_uuid(job_uuid)
 
@@ -1123,12 +1122,6 @@ module Chimp
       get_executable_info unless Chimp.failure
 
       # All elements of task have been processed
-      ChimpDaemon.instance.semaphore.synchronize do
-        # remove from the processing queue
-        Log.debug 'Removing job: ' + job_uuid + ' from the processing queue for group: ' + group.to_s
-        ChimpDaemon.instance.queue.processing[group].delete(job_uuid)
-        ChimpDaemon.instance.proc_counter -= 1
-      end
 
       if Chimp.failure
 
@@ -1139,11 +1132,19 @@ module Chimp
         Log.error '##################################################'
         return []
       else
-        if @servers.first.nil? or @executable.nil?
+        if @servers.first.nil? || @executable.nil?
           Log.warn "[#{Chimp.get_job_uuid}] Nothing to do for \"chimp #{@cli_args}\"."
+          # decrease our counter
+          ChimpDaemon.instance.queue.processing[@group].delete(job_uuid.to_sym)
+          ChimpDaemon.instance.proc_counter -= 1
           return []
         else
-          Log.debug "[#{Chimp.get_job_uuid}] Generating job..."
+          Log.debug "[#{Chimp.get_job_uuid}] Generating job(s)..."
+          Log.debug 'Increasing processing counter (' + ChimpDaemon.instance.proc_counter.to_s + ") + " +  @servers.size.to_s + ' for group ' + @group.to_s
+
+          ChimpDaemon.instance.queue.processing[@group][job_uuid.to_sym] += @servers.size
+          ChimpDaemon.instance.proc_counter += @servers.size - 1
+
           return generate_jobs(@servers, @server_template, @executable)
         end
       end
@@ -1174,7 +1175,6 @@ module Chimp
       begin
         while !@dry_run
           local_queue = ChimpQueue.instance
-
           #
           # load up remote chimpd jobs into the local queue
           # this makes all the standard queue control methods available to us
