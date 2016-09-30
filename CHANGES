@@ -1,6 +1,11 @@
+Version 2.1.25.1
+--------------
+* Bugfix: Fixed standalone execution (without chimpd)
+
 Version 2.1.25
 --------------
-* Bugfix: Fixed some corner case race conditions that affected the proper tracking of processing tasks. 
+* Bugfix: Fixed some corner case race conditions that affected the proper tracking of processing tasks.
+
 Version 2.1.24
 --------------
 * Feature: We now ensure jobs are added and tracked into the processing status before sending a 200 back to
