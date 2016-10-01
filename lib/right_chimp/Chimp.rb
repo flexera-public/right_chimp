@@ -269,7 +269,9 @@ module Chimp
 
             script_number = File.basename(@script)
 
-            s=Executable.new
+            s = Executable.new
+            s.delay = @delay
+
             s.params['right_script']['href']="right_script_href=/api/right_scripts/"+script_number
             #Make an 1.5 call to extract name, by loading resource.
             Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call : client.resource(#{s.params['right_script']['href'].scan(/=(.*)/).last.last})"
@@ -715,7 +717,7 @@ module Chimp
             if self.job_uuid.nil?
               self.job_uuid = ""
             end
-            Log.warn "["+self.job_uuid+"]\"#{@script_to_run.params['right_script']['name']}\" is not a common operational script!"
+            Log.warn "["+self.job_uuid+"] \"#{@script_to_run.params['right_script']['name']}\" is not a common operational script!"
             return @script_to_run
           end
         end
@@ -917,6 +919,7 @@ module Chimp
             :job_notes => @job_notes,
             :inputs => @inputs,
             :timeout => @timeout,
+            :delay => @delay,
             :verbose => @@verbose,
             :quiet => @@quiet
           )

@@ -22,7 +22,7 @@ module Chimp
   # should be used directly.
   #
   class ExecutionGroup
-    attr_accessor :group_id, :description, :concurrency
+    attr_accessor :group_id, :description, :concurrency, :started
     attr_reader   :time_start, :time_end
 
     def initialize(new_group_id=nil)
@@ -33,6 +33,7 @@ module Chimp
       @time_start = nil
       @time_end = nil
       @concurrency = 1
+      @started = false
     end
 
     #
@@ -271,11 +272,16 @@ module Chimp
   #
   class SerialExecutionGroup < ExecutionGroup
     def ready?
-      return get_jobs_by_status(Executor::STATUS_RUNNING).size == 0 && get_jobs_by_status(Executor::STATUS_NONE).size > 0
+      # Make sure only one thread makes the ready question at the same time,
+      # otherwise we can run into race conditions. This is critical for SerialExecutionGroup
+      ChimpDaemon.instance.semaphore.synchronize do
+        ready = get_jobs_by_status(Executor::STATUS_RUNNING).size == 0 && get_jobs_by_status(Executor::STATUS_NONE).size > 0
+        return ready
+      end
     end
 
     def short_name
-      "S"
+      'S'
     end
   end
 

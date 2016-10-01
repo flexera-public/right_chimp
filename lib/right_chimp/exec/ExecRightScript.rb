@@ -19,6 +19,7 @@ module Chimp
         task.tasker = @server.run_executable(@exec, options)
         @audit_entry_url = task.friendly_url
         task.wait_for_state('completed', @timeout)
+
         @results = task.state
         @audit_entry_data = task.details
       end
@@ -33,7 +34,7 @@ module Chimp
     end
 
     def target
-       @server.nickname
+      @server.nickname
     end
 
   end

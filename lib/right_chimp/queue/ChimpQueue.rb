@@ -51,6 +51,7 @@ module Chimp
     def push(g, w)
       raise "no group specified" unless g
       create_group(g) if not ChimpQueue[g]
+
       ChimpQueue[g].push(w) unless ChimpQueue[g].get_job(w.job_id)
     end
 

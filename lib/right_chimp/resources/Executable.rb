@@ -6,9 +6,7 @@ module Chimp
   # This task contains parameters that describe a script/task to be executed
   #
   class Executable
-
-    attr_writer :params
-    attr_reader :params
+    attr_accessor :params
 
     def initialize
       @params = {

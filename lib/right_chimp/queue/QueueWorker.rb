@@ -22,6 +22,7 @@ module Chimp
 
         begin
           if work_item != nil
+
             job_uuid = work_item.job_uuid
             group = work_item.group.group_id
 
@@ -49,7 +50,6 @@ module Chimp
             end
 
             work_item.run
-            sleep @delay
           else
             sleep 1
           end

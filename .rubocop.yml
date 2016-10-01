@@ -1,0 +1,8 @@
+Metrics/LineLength:
+  Max: 110
+Metrics/MethodLength:
+  Max: 70
+Style/GlobalVars:
+  Enabled: false
+Style/BlockDelimiters:
+  Enabled: false
