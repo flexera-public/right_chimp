@@ -1134,22 +1134,31 @@ module Chimp
         Log.error '[' + job_uuid + '] Run manually!'
         Log.error '##################################################'
         return []
+      elsif @servers.first.nil? || @executable.nil?
+        Log.warn "[#{Chimp.get_job_uuid}] Nothing to do for \"chimp #{@cli_args}\"."
+        # decrease our counter
+        ChimpDaemon.instance.queue.processing[@group].delete(job_uuid.to_sym)
+        ChimpDaemon.instance.proc_counter -= 1
+        return []
       else
-        if @servers.first.nil? || @executable.nil?
-          Log.warn "[#{Chimp.get_job_uuid}] Nothing to do for \"chimp #{@cli_args}\"."
-          # decrease our counter
-          ChimpDaemon.instance.queue.processing[@group].delete(job_uuid.to_sym)
-          ChimpDaemon.instance.proc_counter -= 1
-          return []
-        else
-          Log.debug "[#{Chimp.get_job_uuid}] Generating job(s)..."
-          Log.debug 'Increasing processing counter (' + ChimpDaemon.instance.proc_counter.to_s + ") + " +  @servers.size.to_s + ' for group ' + @group.to_s
+        Log.debug "[#{Chimp.get_job_uuid}] Generating job(s)..."
+        # @servers might be > 1, but we might be using limit_start
+        number_of_servers = if @limit_start.to_i > 0 || @limit_end.to_i > 0
+                              @limit_end.to_i - @limit_start.to_i
+                            else
+                              # reminder, we already are accounting for at least 1
+                              @servers.size - 1
+                            end
+        Log.debug 'Increasing processing counter (' + ChimpDaemon.instance.proc_counter.to_s + ') + ' +
+                  number_of_servers.to_s + ' for group ' + @group.to_s
 
-          ChimpDaemon.instance.queue.processing[@group][job_uuid.to_sym] += @servers.size
-          ChimpDaemon.instance.proc_counter += @servers.size - 1
+        ChimpDaemon.instance.queue.processing[@group][job_uuid.to_sym] += number_of_servers
+        ChimpDaemon.instance.proc_counter += number_of_servers
 
-          return generate_jobs(@servers, @server_template, @executable)
-        end
+        Log.debug 'Processing counter now (' + ChimpDaemon.instance.proc_counter.to_s + ') for group ' +
+                  @group.to_s
+
+        return generate_jobs(@servers, @server_template, @executable)
       end
     end
 
@@ -1162,7 +1171,7 @@ module Chimp
       d = default ? 'y' : 'n'
       until %w[y n].include? a
         a = ask("#{prompt} #{s} ") { |q| q.limit = 1; q.case = :downcase }
-        a = d if a.length == 0
+        a = d if a.length.zero?
       end
       a == 'y'
     end

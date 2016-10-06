@@ -106,14 +106,13 @@ module Chimp
     #
     def run_with_retry(&block)
       Log.debug "Running job '#{@job_id}' with status '#{@status}'"
-
       # If we are not the first job in this group, wait @delay
       ChimpDaemon.instance.semaphore.synchronize do
-        if @group.started && @delay != 0
+        if @group.started >= ChimpQueue.instance.max_threads && @delay.nonzero?
           Log.info "[#{@job_uuid}] Sleeping #{@delay} seconds between tasks"
           sleep @delay
         end
-        @group.started = true
+        @group.started += 1
       end
 
       @status = STATUS_RUNNING
@@ -142,7 +141,7 @@ module Chimp
           end
 
         rescue SystemExit, Interrupt => ex
-          $stderr.puts "Exiting!"
+          $stderr.puts 'Exiting!'
           raise ex
 
         rescue Interrupt => ex

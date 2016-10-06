@@ -6,7 +6,7 @@ module Chimp
   # This task contains parameters that describe a script/task to be executed
   #
   class Executable
-    attr_accessor :params
+    attr_accessor :params, :delay
 
     def initialize
       @params = {
@@ -21,9 +21,10 @@ module Chimp
           "name"=>"dummy_name",
           "description"=>"dummy_description"
           },
-          "recipe"=>nil,
-          "apply"=>"operational"
+        "recipe"=>nil,
+        "apply"=>"operational"
         }
+        @delay = 0
     end
 
     def href

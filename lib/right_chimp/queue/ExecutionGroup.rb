@@ -33,7 +33,7 @@ module Chimp
       @time_start = nil
       @time_end = nil
       @concurrency = 1
-      @started = false
+      @started = 0
     end
 
     #
