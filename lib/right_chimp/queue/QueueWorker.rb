@@ -41,9 +41,13 @@ module Chimp
                   ChimpDaemon.instance.queue.processing[group].delete(job_uuid.to_sym)
                   Log.debug ChimpDaemon.instance.queue.processing.inspect
                 else
-                  Log.debug 'Decreasing processing counter (' + (ChimpDaemon.instance.proc_counter).to_s + ') for [' + job_uuid.to_s + '] group: ' + group.to_s
+                  Log.debug 'Decreasing processing counter (' + ChimpDaemon.instance.proc_counter.to_s +
+                            ') for [' + job_uuid.to_s + '] group: ' + group.to_s
+
                   ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] -= 1
-                  Log.debug 'Processing counter now (' + (ChimpDaemon.instance.proc_counter).to_s + ') for [' + job_uuid.to_s + '] group: ' + group.to_s
+
+                  Log.debug 'Processing counter now (' + ChimpDaemon.instance.proc_counter.to_s +
+                            ') for [' + job_uuid.to_s + '] group: ' + group.to_s
                   Log.debug ChimpDaemon.instance.queue.processing[group].inspect
                   Log.debug 'Still counting down for ' + job_uuid.to_s
                 end
