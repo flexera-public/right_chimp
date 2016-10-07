@@ -4,7 +4,7 @@
 
 module Chimp
   class Executor
-    attr_accessor :server, :array, :exec, :inputs, :template, :owner, :group,
+    attr_accessor :server, :array, :exec, :inputs, :template, :owner, :group, :delay,
                   :job_id, :job_uuid, :job_notes, :status, :dry_run, :verbose, :quiet, :timeout,
                   :retry_count, :retry_sleep, :time_start, :time_end, :error
 
@@ -35,6 +35,8 @@ module Chimp
       @retry_count = h[:retry_count].to_i || 0
       @retry_sleep = h[:retry_sleep].to_i || 30
       @timeout = h[:timeout].to_i         || 3600
+
+      @delay = h[:delay].to_i || 0
 
       @error = nil
       @status = STATUS_NONE
@@ -104,6 +106,14 @@ module Chimp
     #
     def run_with_retry(&block)
       Log.debug "Running job '#{@job_id}' with status '#{@status}'"
+      # If we are not the first job in this group, wait @delay
+      ChimpDaemon.instance.semaphore.synchronize do
+        if @group.started >= ChimpQueue.instance.max_threads && @delay.nonzero?
+          Log.info "[#{@job_uuid}] Sleeping #{@delay} seconds between tasks"
+          sleep @delay
+        end
+        @group.started += 1
+      end
 
       @status = STATUS_RUNNING
       @time_start = Time.now
@@ -131,7 +141,7 @@ module Chimp
           end
 
         rescue SystemExit, Interrupt => ex
-          $stderr.puts "Exiting!"
+          $stderr.puts 'Exiting!'
           raise ex
 
         rescue Interrupt => ex
