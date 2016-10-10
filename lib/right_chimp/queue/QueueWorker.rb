@@ -35,7 +35,7 @@ module Chimp
                 # no op
               else
                 # remove from the processing queue
-                if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym].zero?
+                if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] == 0
                   Log.debug 'Completed processing task ' + job_uuid.to_s
                   Log.debug 'Deleting ' + job_uuid.to_s
                   ChimpDaemon.instance.queue.processing[group].delete(job_uuid.to_sym)
