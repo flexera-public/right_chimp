@@ -43,7 +43,7 @@ module Chimp
                   ChimpDaemon.instance.proc_counter -= 1
                 else
                   if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym].nil?
-                    Log.debug 'Handling a retry, job group was already deleted, no counter to decrease.'
+                    Log.debug 'Job group was already deleted, no counter to decrease.'
                   else
                     Log.debug 'Decreasing processing counter (' + ChimpDaemon.instance.proc_counter.to_s +
                               ') for [' + job_uuid.to_s + '] group: ' + group.to_s
