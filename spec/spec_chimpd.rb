@@ -8,7 +8,7 @@ require 'pp'
 
 include Chimp
 
-uri = 
+uri =
 
 describe Chimp::ChimpDaemon do
   before :all do
@@ -16,11 +16,11 @@ describe Chimp::ChimpDaemon do
     @c.spawn_queue_runner
     @c.spawn_webserver
   end
-  
+
   #
   # .spawn_queue_runner
   #
-  it "should have 50 threads" do
+  it 'should have 50 threads' do
     ChimpQueue.instance.max_threads.should == 50
   end
 

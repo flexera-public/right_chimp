@@ -13,21 +13,20 @@ describe Chimp::Chimp do
     @c.progress = false
     @c.interactive = false
   end
-  
+
   it "performs a tag query" do
-    @c.tags = ['service:dataservice=true']
-    @c.run
+    @c.tags = ['info:static_asset=true']
     @c.servers.size.should > 0
   end
-  
+
   it "performs a deployment query" do
-    @c.deployment_names = ['moo:globalring']
+    @c.deployment_names = ['moo:']
     @c.run
     @c.servers.size.should > 0
   end
-  
+
   it "performs an array query" do
-    @c.array_names = ['Chimp Test Array']
+    @c.array_names = ['Services']
     @c.run
   end
 end

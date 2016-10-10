@@ -8,8 +8,8 @@ require 'pp'
 
 include Chimp
 
-host = "localhost"
-port = "9055"
+host = 'localhost'
+port = '9055'
 
 describe Chimp::ChimpDaemonClient do
   before :all do
@@ -28,17 +28,16 @@ describe Chimp::ChimpDaemonClient do
   #  response_code = ChimpDaemonClient.quit(host, port)
   #  response_code.should == 200
   #end
-  
+
   #
   # .submit
   #
-  it "can submit work to chimpd" do
+  it 'can submit work to chimpd' do
     c = Chimp::Chimp.new
-    c.tags = ["service:auditor=true"]
-    c.script = "SYS DNSMadeEasy Register Addresses"
+    c.tags = ['info:static_asset=true']
+    c.script = 'SYS DNSMadeEasy Register Addresses'
     c.dry_run = false
     ChimpDaemonClient.submit(host, port, c)
   end
 
 end
-

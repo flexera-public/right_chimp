@@ -10,10 +10,10 @@ require 'pp'
 include Chimp
 
 describe Chimp::ExecRightScript do
-  it "can select servers with a tag query" do
+  it 'can select servers with a tag query' do
     c = Chimp::Chimp.new
-    c.tags = ["info:deployment=moo:localring91"]
-    c.script = "SYS DNSMadeEasy Register Addresses"
+    c.tags = ['info:statics_test=true']
+    c.script = 'TEST CHIMP success'
     c.dry_run = false
     c.run
   end
