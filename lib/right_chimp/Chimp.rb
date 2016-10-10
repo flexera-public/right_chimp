@@ -920,6 +920,7 @@ module Chimp
             :inputs => @inputs,
             :timeout => @timeout,
             :delay => @delay,
+            :concurrency => @concurrency,
             :verbose => @@verbose,
             :quiet => @@quiet
           )
