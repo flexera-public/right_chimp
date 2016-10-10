@@ -38,8 +38,11 @@ module Chimp
                 if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] == 0
                   Log.debug 'Completed processing task ' + job_uuid.to_s
                   Log.debug 'Deleting ' + job_uuid.to_s
+
                   ChimpDaemon.instance.queue.processing[group].delete(job_uuid.to_sym)
+
                   Log.debug ChimpDaemon.instance.queue.processing.inspect
+
                   ChimpDaemon.instance.proc_counter -= 1
                 else
                   if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym].nil?
@@ -54,6 +57,7 @@ module Chimp
                               ') for [' + job_uuid.to_s + '] group: ' + group.to_s
                     Log.debug ChimpDaemon.instance.queue.processing[group].inspect
                     Log.debug 'Still counting down for ' + job_uuid.to_s
+
                     ChimpDaemon.instance.proc_counter -= 1
                   end
                 end
