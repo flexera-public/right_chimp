@@ -4,7 +4,7 @@
 
 module Chimp
   class Executor
-    attr_accessor :server, :array, :exec, :inputs, :template, :owner, :group, :delay,
+    attr_accessor :server, :array, :exec, :inputs, :template, :owner, :group, :delay, :concurrency,
                   :job_id, :job_uuid, :job_notes, :status, :dry_run, :verbose, :quiet, :timeout,
                   :retry_count, :retry_sleep, :time_start, :time_end, :error
 
@@ -37,6 +37,7 @@ module Chimp
       @timeout = h[:timeout].to_i         || 3600
 
       @delay = h[:delay].to_i || 0
+      @concurrency = h[:concurrency].to_i
 
       @error = nil
       @status = STATUS_NONE
@@ -108,7 +109,7 @@ module Chimp
       Log.debug "Running job '#{@job_id}' with status '#{@status}'"
       # If we are not the first job in this group, wait @delay
       ChimpDaemon.instance.semaphore.synchronize do
-        if @group.started >= ChimpQueue.instance.max_threads && @delay.nonzero?
+        if @group.started >= @concurrency && @delay.nonzero?
           Log.info "[#{@job_uuid}] Sleeping #{@delay} seconds between tasks"
           sleep @delay
         end
