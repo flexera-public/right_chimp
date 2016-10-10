@@ -35,23 +35,28 @@ module Chimp
                 # no op
               else
                 # remove from the processing queue
-                if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] == 0
+                if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym].zero?
                   Log.debug 'Completed processing task ' + job_uuid.to_s
                   Log.debug 'Deleting ' + job_uuid.to_s
                   ChimpDaemon.instance.queue.processing[group].delete(job_uuid.to_sym)
                   Log.debug ChimpDaemon.instance.queue.processing.inspect
+                  ChimpDaemon.instance.proc_counter -= 1
                 else
-                  Log.debug 'Decreasing processing counter (' + ChimpDaemon.instance.proc_counter.to_s +
-                            ') for [' + job_uuid.to_s + '] group: ' + group.to_s
+                  if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym].nil?
+                    Log.debug 'Handling a retry, job group was already deleted, no counter to decrease.'
+                  else
+                    Log.debug 'Decreasing processing counter (' + ChimpDaemon.instance.proc_counter.to_s +
+                              ') for [' + job_uuid.to_s + '] group: ' + group.to_s
 
-                  ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] -= 1
+                    ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] -= 1
 
-                  Log.debug 'Processing counter now (' + ChimpDaemon.instance.proc_counter.to_s +
-                            ') for [' + job_uuid.to_s + '] group: ' + group.to_s
-                  Log.debug ChimpDaemon.instance.queue.processing[group].inspect
-                  Log.debug 'Still counting down for ' + job_uuid.to_s
+                    Log.debug 'Processing counter now (' + ChimpDaemon.instance.proc_counter.to_s +
+                              ') for [' + job_uuid.to_s + '] group: ' + group.to_s
+                    Log.debug ChimpDaemon.instance.queue.processing[group].inspect
+                    Log.debug 'Still counting down for ' + job_uuid.to_s
+                    ChimpDaemon.instance.proc_counter -= 1
+                  end
                 end
-                ChimpDaemon.instance.proc_counter -= 1
               end
             end
 
