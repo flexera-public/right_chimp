@@ -18,7 +18,7 @@ module Chimp
         friendly_url += self.href.split(/\//).last
         friendly_url = friendly_url.gsub('ae-', '')
         raise "FATAL error, #{tasker.show.summary}\n\n Audit: #{friendly_url}\n " if self.state.match("failed")
-        sleep 30
+        sleep 30 unless ENV["TEST"]
         timeout -= 30
       end
       raise "FATAL: Timeout waiting for Executable to complete.  State was #{self.state}" if timeout <= 0
