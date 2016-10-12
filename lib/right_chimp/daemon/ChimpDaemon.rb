@@ -9,7 +9,7 @@ module Chimp
 
     attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count,
                   :dry_run, :logfile, :chimp_queue, :proc_counter, :semaphore,
-                  :bind_address
+                  :bind_address, :server
     attr_reader :queue, :running
 
     include Singleton
@@ -42,7 +42,7 @@ module Chimp
       parse_command_line
 
       #puts "chimpd #{VERSION} launching with #{@concurrency} workers"
-      puts "Loading... please wait"
+      Log.info "Loading... please wait"
       spawn_queue_runner
       spawn_webserver
       spawn_chimpd_submission_processor
@@ -96,7 +96,7 @@ module Chimp
         end
       rescue GetoptLong::InvalidOption => ex
         puts 'Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--bind-address=<addr> ] [--verbose]'
-        exit 1 unless ENV['TEST'] == 'true'
+        exit 1 unless ENV['TEST']
       end
 
       #
@@ -141,7 +141,7 @@ module Chimp
       puts
       puts  " --help                      Displays this menu"
       puts
-      exit 0
+      exit 0 unless ENV['TEST']
     end
 
     #
@@ -230,20 +230,20 @@ module Chimp
       n = 10 if n < 10
       Log.debug "Logging into API..."
 
-      #
-      # There is a race condition logging in with rest_connection.
-      # As a workaround, do a tag query first thing when chimpd starts.
-      #
-      begin
-        c = Chimp.new
-        c.interactive = false
-        c.quiet = true
-        #c.tags = ["bogus:tag=true"]
-        c.run
-      rescue StandardError
-      end
+      # #
+      # # There is a race condition logging in with rest_connection.
+      # # As a workaround, do a tag query first thing when chimpd starts.
+      # #
+      # begin
+      #   c = Chimp.new
+      #   c.interactive = false
+      #   c.quiet = true
+      #   #c.tags = ["bogus:tag=true"]
+      #   c.run
+      # rescue StandardError
+      # end
 
-      puts "chimpd #{VERSION} launched with #{@concurrency} workers"
+      Log.info "chimpd #{VERSION} launched with #{@concurrency} workers"
 
       Log.debug "Spawning #{n} submission processing threads"
 
@@ -262,7 +262,7 @@ module Chimp
               end
 
             rescue StandardError => ex
-                puts ex.backtrace
+              puts ex.backtrace
               Log.error " submission processor: group=\"#{group}\" script=\"#{queued_request.script}\": #{ex}"
             end
           end

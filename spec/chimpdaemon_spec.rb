@@ -5,6 +5,7 @@ describe Chimp::ChimpDaemon do
   let(:daemon) do
     Chimp::ChimpDaemon.instance
   end
+
   describe '#initialize' do
     it 'is a ChimpDaemon object' do
       expect(daemon).to be_a Chimp::ChimpDaemon
@@ -16,10 +17,10 @@ describe Chimp::ChimpDaemon do
   end
 
   describe '#run' do
-    it 'should be able to spawn a webserver'
-    it 'should be able to run forever'
-    it 'should spawn a queue runner'
-    it 'should run_forever'
+    # it 'should be able to spawn a webserver'
+    # it 'should be able to run forever'
+    # it 'should spawn a queue runner'
+    # it 'should run_forever'
   end
 
   describe '#parse_command_line' do
@@ -32,18 +33,13 @@ describe Chimp::ChimpDaemon do
       expect(daemon.verbose).to eq true
       expect(daemon.port).to eq '9056'
     end
-    it 'should error with wrong syntax' do
-      string = '--logfile=/tmp/test --verbose --concurrency=34 --portWRONG=9056'
-      ARGV = string.split(' ')
-      expect(STDOUT).to receive(:puts).with('Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--bind-address=<addr> ] [--verbose]')
-      daemon.parse_command_line
-    end
-  end
-
-  describe '#help' do
   end
 
   describe '#spawn_webserver' do
+    it 'should spawn a webserver' do
+      daemon.spawn_webserver
+      expect(daemon.server).to be_a WEBrick::HTTPServer
+    end
   end
 
   describe '#run_forever' do
