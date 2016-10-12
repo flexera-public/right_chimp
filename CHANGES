@@ -1,3 +1,12 @@
+Version 2.1.28
+--------------
+* Bugfix: Do not attempt to decrease the processing counter when handling a retry.
+
+Version 2.1.26
+--------------
+* Feature: Implemented the delay attribute for work_items of the Executor type, so they can be used when
+sending jobs to chimpd.
+
 Version 2.1.25.1
 --------------
 * Bugfix: Fixed standalone execution (without chimpd)

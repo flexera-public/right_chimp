@@ -22,6 +22,7 @@ module Chimp
 
         begin
           if work_item != nil
+
             job_uuid = work_item.job_uuid
             group = work_item.group.group_id
 
@@ -29,27 +30,41 @@ module Chimp
             work_item.owner = Thread.current.object_id
 
             ChimpDaemon.instance.semaphore.synchronize do
-              # remove from the processing queue
-              Log.debug 'Decreasing processing counter (' + (ChimpDaemon.instance.proc_counter-1).to_s + ') for [' + job_uuid.to_s + '] group: ' + group.to_s
               # only do this if we are running with chimpd
               if ChimpDaemon.instance.queue.processing[group].nil?
                 # no op
               else
-                ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] -= 1
-                Log.debug ChimpDaemon.instance.queue.processing[group].inspect
+                # remove from the processing queue
                 if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] == 0
                   Log.debug 'Completed processing task ' + job_uuid.to_s
+                  Log.debug 'Deleting ' + job_uuid.to_s
+
                   ChimpDaemon.instance.queue.processing[group].delete(job_uuid.to_sym)
+
                   Log.debug ChimpDaemon.instance.queue.processing.inspect
+
+                  ChimpDaemon.instance.proc_counter -= 1
                 else
-                  Log.debug 'Still counting down for ' + job_uuid.to_s
+                  if ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym].nil?
+                    Log.debug 'Job group was already deleted, no counter to decrease.'
+                  else
+                    Log.debug 'Decreasing processing counter (' + ChimpDaemon.instance.proc_counter.to_s +
+                              ') for [' + job_uuid.to_s + '] group: ' + group.to_s
+
+                    ChimpDaemon.instance.queue.processing[group][job_uuid.to_sym] -= 1
+
+                    Log.debug 'Processing counter now (' + ChimpDaemon.instance.proc_counter.to_s +
+                              ') for [' + job_uuid.to_s + '] group: ' + group.to_s
+                    Log.debug ChimpDaemon.instance.queue.processing[group].inspect
+                    Log.debug 'Still counting down for ' + job_uuid.to_s
+
+                    ChimpDaemon.instance.proc_counter -= 1
+                  end
                 end
-                ChimpDaemon.instance.proc_counter -= 1
               end
             end
 
             work_item.run
-            sleep @delay
           else
             sleep 1
           end
