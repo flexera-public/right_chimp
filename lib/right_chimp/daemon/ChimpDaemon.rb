@@ -18,7 +18,7 @@ module Chimp
       @verbose     = false
       @debug       = false
       @port        = 9055
-      @bind_address = "localhost"
+      @bind_address = 'localhost'
       @concurrency = 50
       @delay       = 0
       @retry_count = 0
@@ -55,48 +55,48 @@ module Chimp
     def parse_command_line
       begin
         opts = GetoptLong.new(
-          [ '--logfile', '-l',      GetoptLong::REQUIRED_ARGUMENT ],
-          [ '--verbose', '-v',      GetoptLong::NO_ARGUMENT ],
-          [ '--quiet',   '-q',      GetoptLong::NO_ARGUMENT ],
-          [ '--concurrency', '-c',  GetoptLong::REQUIRED_ARGUMENT ],
-          [ '--delay', '-d',        GetoptLong::REQUIRED_ARGUMENT ],
-          [ '--retry', '-y',        GetoptLong::REQUIRED_ARGUMENT ],
-          [ '--port', '-p',         GetoptLong::REQUIRED_ARGUMENT ],
-          [ '--bind-address', '-b', GetoptLong::REQUIRED_ARGUMENT ],
-          [ '--help', '-h',         GetoptLong::NO_ARGUMENT ],
-          [ '--exit', '-x', 				GetoptLong::NO_ARGUMENT ]
+          ['--logfile', '-l',      GetoptLong::REQUIRED_ARGUMENT],
+          ['--verbose', '-v',      GetoptLong::NO_ARGUMENT],
+          ['--quiet',   '-q',      GetoptLong::NO_ARGUMENT],
+          ['--concurrency', '-c',  GetoptLong::REQUIRED_ARGUMENT],
+          ['--delay', '-d',        GetoptLong::REQUIRED_ARGUMENT],
+          ['--retry', '-y',        GetoptLong::REQUIRED_ARGUMENT],
+          ['--port', '-p',         GetoptLong::REQUIRED_ARGUMENT],
+          ['--bind-address', '-b', GetoptLong::REQUIRED_ARGUMENT],
+          ['--help', '-h',         GetoptLong::NO_ARGUMENT],
+          ['--exit', '-x',         GetoptLong::NO_ARGUMENT]
         )
 
         opts.each do |opt, arg|
           case opt
-            when '--logfile', '-l'
-              @logfile = arg
-              Log.logger = Logger.new(@logfile)
-            when '--concurrency', '-c'
-              @concurrency = arg.to_i
-            when '--delay', '-d'
-              @delay = arg.to_i
-            when '--retry', '-y'
-              @retry_count = arg.to_i
-            when '--verbose', '-v'
-              @verbose = true
-            when '--quiet',   '-q'
-              @quiet = true
-            when '--port', '-p'
-              @port = arg
-            when '--bind-address', '-b'
-              @bind_address = arg.to_s
-            when '--help', '-h'
-              help
-            when '--exit', '-x'
-              uri = "http://localhost:#{@port}/admin"
-              response = RestClient.post uri, { 'shutdown' => true }.to_yaml
-              exit 0
+          when '--logfile', '-l'
+            @logfile = arg
+            Log.logger = Logger.new(@logfile)
+          when '--concurrency', '-c'
+            @concurrency = arg.to_i
+          when '--delay', '-d'
+            @delay = arg.to_i
+          when '--retry', '-y'
+            @retry_count = arg.to_i
+          when '--verbose', '-v'
+            @verbose = true
+          when '--quiet',   '-q'
+            @quiet = true
+          when '--port', '-p'
+            @port = arg
+          when '--bind-address', '-b'
+            @bind_address = arg.to_s
+          when '--help', '-h'
+            help
+          when '--exit', '-x'
+            uri = "http://localhost:#{@port}/admin"
+            RestClient.post uri, { 'shutdown' => true }.to_yaml
+            exit 0
           end
         end
       rescue GetoptLong::InvalidOption => ex
-        puts "Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--bind-address=<addr> ] [--verbose]"
-        exit 1
+        puts 'Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--bind-address=<addr> ] [--verbose]'
+        exit 1 unless ENV['TEST'] == 'true'
       end
 
       #
