@@ -416,6 +416,7 @@ module Chimp
 
       def do_POST(req, resp)
         id      = -1
+
         # we don't know the job_id because we cant guess how many tasks one call creates.
         job_id  = self.get_id(req)
         job_uuid= self.get_job_uuid(req)
