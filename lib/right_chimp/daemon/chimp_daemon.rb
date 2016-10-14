@@ -28,9 +28,9 @@ module Chimp
       @chimp_queue = Queue.new
       @semaphore   = Mutex.new
 
-      @proc_counter= 0
+      @proc_counter = 0
 
-      #Connect to the API
+      # Connect to the API
       Connection.instance
     end
 
@@ -41,8 +41,8 @@ module Chimp
       install_signal_handlers
       parse_command_line
 
-      #puts "chimpd #{VERSION} launching with #{@concurrency} workers"
-      Log.info "Loading... please wait"
+      # puts "chimpd #{VERSION} launching with #{@concurrency} workers"
+      Log.info 'Loading... please wait'
       spawn_queue_runner
       spawn_webserver
       spawn_chimpd_submission_processor
@@ -55,48 +55,48 @@ module Chimp
     def parse_command_line
       begin
         opts = GetoptLong.new(
-          ['--logfile', '-l',      GetoptLong::REQUIRED_ARGUMENT],
-          ['--verbose', '-v',      GetoptLong::NO_ARGUMENT],
-          ['--quiet',   '-q',      GetoptLong::NO_ARGUMENT],
-          ['--concurrency', '-c',  GetoptLong::REQUIRED_ARGUMENT],
-          ['--delay', '-d',        GetoptLong::REQUIRED_ARGUMENT],
-          ['--retry', '-y',        GetoptLong::REQUIRED_ARGUMENT],
-          ['--port', '-p',         GetoptLong::REQUIRED_ARGUMENT],
-          ['--bind-address', '-b', GetoptLong::REQUIRED_ARGUMENT],
-          ['--help', '-h',         GetoptLong::NO_ARGUMENT],
-          ['--exit', '-x',         GetoptLong::NO_ARGUMENT]
+          [ '--logfile', '-l',      GetoptLong::REQUIRED_ARGUMENT ],
+          [ '--verbose', '-v',      GetoptLong::NO_ARGUMENT ],
+          [ '--quiet',   '-q',      GetoptLong::NO_ARGUMENT ],
+          [ '--concurrency', '-c',  GetoptLong::REQUIRED_ARGUMENT ],
+          [ '--delay', '-d',        GetoptLong::REQUIRED_ARGUMENT ],
+          [ '--retry', '-y',        GetoptLong::REQUIRED_ARGUMENT ],
+          [ '--port', '-p',         GetoptLong::REQUIRED_ARGUMENT ],
+          [ '--bind-address', '-b', GetoptLong::REQUIRED_ARGUMENT ],
+          [ '--help', '-h',         GetoptLong::NO_ARGUMENT ],
+          [ '--exit', '-x', 				GetoptLong::NO_ARGUMENT ]
         )
 
         opts.each do |opt, arg|
           case opt
-          when '--logfile', '-l'
-            @logfile = arg
-            Log.logger = Logger.new(@logfile)
-          when '--concurrency', '-c'
-            @concurrency = arg.to_i
-          when '--delay', '-d'
-            @delay = arg.to_i
-          when '--retry', '-y'
-            @retry_count = arg.to_i
-          when '--verbose', '-v'
-            @verbose = true
-          when '--quiet',   '-q'
-            @quiet = true
-          when '--port', '-p'
-            @port = arg
-          when '--bind-address', '-b'
-            @bind_address = arg.to_s
-          when '--help', '-h'
-            help
-          when '--exit', '-x'
-            uri = "http://localhost:#{@port}/admin"
-            RestClient.post uri, { 'shutdown' => true }.to_yaml
-            exit 0
+            when '--logfile', '-l'
+              @logfile = arg
+              Log.logger = Logger.new(@logfile)
+            when '--concurrency', '-c'
+              @concurrency = arg.to_i
+            when '--delay', '-d'
+              @delay = arg.to_i
+            when '--retry', '-y'
+              @retry_count = arg.to_i
+            when '--verbose', '-v'
+              @verbose = true
+            when '--quiet',   '-q'
+              @quiet = true
+            when '--port', '-p'
+              @port = arg
+            when '--bind-address', '-b'
+              @bind_address = arg.to_s
+            when '--help', '-h'
+              help
+            when '--exit', '-x'
+              uri = "http://localhost:#{@port}/admin"
+              response = RestClient.post uri, { 'shutdown' => true }.to_yaml
+              exit 0
           end
         end
       rescue GetoptLong::InvalidOption => ex
-        puts 'Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--bind-address=<addr> ] [--verbose]'
-        exit 1 unless ENV['TEST']
+        puts "Syntax: chimpd [--logfile=<name>] [--concurrency=<c>] [--delay=<d>] [--retry=<r>] [--port=<p>] [--bind-address=<addr> ] [--verbose]"
+        exit 1
       end
 
       #
@@ -141,7 +141,7 @@ module Chimp
       puts
       puts  " --help                      Displays this menu"
       puts
-      exit 0 unless ENV['TEST']
+      exit 0
     end
 
     #
@@ -230,20 +230,20 @@ module Chimp
       n = 10 if n < 10
       Log.debug "Logging into API..."
 
-      # #
-      # # There is a race condition logging in with rest_connection.
-      # # As a workaround, do a tag query first thing when chimpd starts.
-      # #
-      # begin
-      #   c = Chimp.new
-      #   c.interactive = false
-      #   c.quiet = true
-      #   #c.tags = ["bogus:tag=true"]
-      #   c.run
-      # rescue StandardError
-      # end
+      #
+      # There is a race condition logging in with rest_connection.
+      # As a workaround, do a tag query first thing when chimpd starts.
+      #
+      begin
+        c = Chimp.new
+        c.interactive = false
+        c.quiet = true
+        #c.tags = ["bogus:tag=true"]
+        c.run
+      rescue StandardError
+      end
 
-      Log.info "chimpd #{VERSION} launched with #{@concurrency} workers"
+      puts "chimpd #{VERSION} launched with #{@concurrency} workers"
 
       Log.debug "Spawning #{n} submission processing threads"
 
@@ -262,7 +262,7 @@ module Chimp
               end
 
             rescue StandardError => ex
-              puts ex.backtrace
+                puts ex.backtrace
               Log.error " submission processor: group=\"#{group}\" script=\"#{queued_request.script}\": #{ex}"
             end
           end
@@ -416,7 +416,6 @@ module Chimp
 
       def do_POST(req, resp)
         id      = -1
-
         # we don't know the job_id because we cant guess how many tasks one call creates.
         job_id  = self.get_id(req)
         job_uuid= self.get_job_uuid(req)
