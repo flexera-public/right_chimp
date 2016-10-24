@@ -2,8 +2,8 @@
 # Run a RightScript
 #
 module Chimp
+  # Class that describes
   class ExecRightScript < Executor
-
     attr_accessor :audit_entry_data, :audit_entry_url
 
     def run
@@ -15,7 +15,7 @@ module Chimp
       end
 
       run_with_retry do
-        task=Task.new
+        task = Task.new
         task.tasker = @server.run_executable(@exec, options)
         @audit_entry_url = task.friendly_url
         task.wait_for_state('completed', @timeout)
@@ -36,6 +36,5 @@ module Chimp
     def target
       @server.nickname
     end
-
   end
 end

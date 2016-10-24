@@ -389,7 +389,6 @@ module Chimp
 
         if filter == 'create'
           ChimpQueue.instance.create_group(group_name, payload['type'], payload['concurrency'])
-
         elsif filter == 'retry'
           group = ChimpQueue[group_name.to_sym]
           raise WEBrick::HTTPStatus::NotFound, "Group not found" unless group

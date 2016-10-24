@@ -48,11 +48,36 @@ describe Chimp::ChimpDaemonClient do
     end
 
     it 'should fail if the group doesnt exist' do
-      s = Chimp::ChimpDaemonClient.retrieve_group_info('localhost', '9055', 'foobar', :running)
-      expect(s).to be_a(NilClass)
+      expect {
+        Chimp::ChimpDaemonClient.retrieve_group_info('localhost', '9055', 'foobar', :running)
+      }.to raise_error(RestClient::ResourceNotFound)
     end
   end
-  describe '#set_job_status'
-  describe '#create_group'
-  describe '#retry_group'
+
+  # # this basically tests updating the status of a job
+  # describe '#set_job_status' do
+  #   it 'should change the status of a job' do
+  #     Chimp::ChimpDaemonClient.set_job_status('localhost', '9055', '0', :running)
+  #   end
+  #
+  #   it 'should be unable to update a job that doesnt exist' do
+  #
+  #   end
+  # end
+
+  describe '#create_group' do
+    it 'should create a parallel group' do
+      expect(Chimp::ChimpDaemonClient.create_group('localhost', '9055', 'paragroup', :parallel, '3')).to eq(false)
+      expect(@daemon.queue.group['paragroup']).to be_a(Chimp::ParallelExecutionGroup)
+      expect(@daemon.queue.group['paragroup'].concurrency).to eq('3')
+    end
+
+    it 'should create a serial group' do
+      expect(Chimp::ChimpDaemonClient.create_group('localhost', '9055', 'serialgroup', :serial, '2')).to eq(false)
+      expect(@daemon.queue.group['serialgroup']).to be_a(Chimp::SerialExecutionGroup)
+      expect(@daemon.queue.group['serialgroup'].concurrency).to eq('2')
+      # FIXME: Concurrency doesnt seem to be applied correctly, serial group should have concurrency of 1
+    end
+  end
+  # describe '#retry_group'
 end
