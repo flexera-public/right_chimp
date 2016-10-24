@@ -30,3 +30,16 @@ a list of all the operational servers in your account:
 
   chimp --tag="rs_monitoring:state=active"
 
+RIGHTSCALE OAUTH SPECIFIC NOTES
+--------------------------------
+ 
+ rest_api_config.yaml should look like
+
+  :ssh_keys: 
+  - ~/.ssh/id_rsa
+  :user: <email>
+  :refresh_token: <refresh_token>
+  :api_url: https://us-3.rightscale.com
+  :account: <account>
+  :common_headers: 
+    X_API_VERSION: "1.0"
