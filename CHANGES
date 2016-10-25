@@ -1,3 +1,7 @@
+Version 2.2
+--------------
+* Feature: Starting to add proper specs that do not rely on actual-real executions.
+
 Version 2.1.28
 --------------
 * Bugfix: Do not attempt to decrease the processing counter when handling a retry.
