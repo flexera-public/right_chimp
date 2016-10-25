@@ -2,7 +2,7 @@
 # Run a RightScript
 #
 module Chimp
-  # Class that describes
+  # Class that describes the execution for a rightscript
   class ExecRightScript < Executor
     attr_accessor :audit_entry_data, :audit_entry_url
 

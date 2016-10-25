@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'pry'
 
 describe Chimp::ChimpDaemonClient do
   before(:all) do

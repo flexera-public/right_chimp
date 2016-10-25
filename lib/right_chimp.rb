@@ -17,8 +17,6 @@ require 'right_api_client'
 require 'rest-client'
 require 'logger'
 
-require 'pry'
-
 # Group all the requires for Chimp
 module Chimp
   require 'right_chimp/version'
