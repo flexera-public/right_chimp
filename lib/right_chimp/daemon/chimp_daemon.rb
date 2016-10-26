@@ -9,7 +9,7 @@ module Chimp
 
     attr_accessor :verbose, :debug, :port, :concurrency, :delay, :retry_count,
                   :dry_run, :logfile, :chimp_queue, :proc_counter, :semaphore,
-                  :bind_address
+                  :bind_address, :server
     attr_reader :queue, :running
 
     include Singleton
@@ -18,7 +18,7 @@ module Chimp
       @verbose     = false
       @debug       = false
       @port        = 9055
-      @bind_address = "localhost"
+      @bind_address = 'localhost'
       @concurrency = 50
       @delay       = 0
       @retry_count = 0
@@ -28,9 +28,9 @@ module Chimp
       @chimp_queue = Queue.new
       @semaphore   = Mutex.new
 
-      @proc_counter= 0
+      @proc_counter = 0
 
-      #Connect to the API
+      # Connect to the API
       Connection.instance
     end
 
@@ -41,8 +41,8 @@ module Chimp
       install_signal_handlers
       parse_command_line
 
-      #puts "chimpd #{VERSION} launching with #{@concurrency} workers"
-      puts "Loading... please wait"
+      # puts "chimpd #{VERSION} launching with #{@concurrency} workers"
+      Log.info 'Loading... please wait'
       spawn_queue_runner
       spawn_webserver
       spawn_chimpd_submission_processor
@@ -389,7 +389,6 @@ module Chimp
 
         if filter == 'create'
           ChimpQueue.instance.create_group(group_name, payload['type'], payload['concurrency'])
-
         elsif filter == 'retry'
           group = ChimpQueue[group_name.to_sym]
           raise WEBrick::HTTPStatus::NotFound, "Group not found" unless group

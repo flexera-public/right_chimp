@@ -5,11 +5,10 @@ module Chimp
   class ExecArray < Executor
     def run
       run_with_retry do
-        audit_entry = []
         options = @inputs
 
         if @timeout < 300
-          Log.error "timeout was less than 5 minutes! resetting to 5 minutes"
+          Log.error 'timeout was less than 5 minutes! resetting to 5 minutes'
           @timeout = 300
         end
 
@@ -17,7 +16,7 @@ module Chimp
 
         if audit_entry
           audit_entry.each do |a|
-            a.wait_for_completed("no audit link available",@timeout)
+            a.wait_for_completed('no audit link available', @timeout)
           end
         else
           Log.warn "No audit entries returned for job_id=#{@job_id}"
@@ -26,16 +25,15 @@ module Chimp
     end
 
     def describe_work
-      return "ExecArray job_id=#{@job_id} script=\"#{@exec['right_script']['name']}\" server=\"#{@server['nickname']}\""
+      "ExecArray job_id=#{@job_id} script=\"#{@exec['right_script']['name']}\" server=\"#{@server['nickname']}\""
     end
 
     def info
-      return @exec['right_script']['name']
+      @exec['right_script']['name']
     end
 
     def target
-      return @server['nickname']
+      @server['nickname']
     end
-
   end
 end

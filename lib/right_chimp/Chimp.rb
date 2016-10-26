@@ -128,13 +128,13 @@ module Chimp
       # Send the command to chimpd for execution
       #
       if @use_chimpd
-        timestamp=Time.now.to_i
-        length=6
-        self.job_uuid = (36**(length-1) + rand(36**length - 36**(length-1))).to_s(36)
-        ChimpDaemonClient.submit(@chimpd_host, @chimpd_port, self,self.job_uuid)
+        timestamp = Time.now.to_i
+        length = 6
+        self.job_uuid = (36**(length - 1) + rand(36**length - 36**(length - 1))).to_s(36)
+        ChimpDaemonClient.submit(@chimpd_host, @chimpd_port, self, job_uuid)
         exit
       else
-        #Connect to the Api
+        # Connect to the Api
         Connection.instance
         if @interactive
           Connection.connect
