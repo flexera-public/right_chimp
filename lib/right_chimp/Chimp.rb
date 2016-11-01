@@ -1,5 +1,5 @@
- #The Chimp class encapsulates the command-line program logic
 #
+# The Chimp class encapsulates the command-line program logic
 module Chimp
   class Chimp
     attr_accessor :concurrency, :delay, :retry_count, :hold, :progress, :prompt,
@@ -63,7 +63,7 @@ module Chimp
       @template         = nil
       @script           = nil
       @ssh              = nil
-      @ssh_user         = "rightscale"
+      @ssh_user         = 'rightscale'
       @report           = nil
       @inputs           = {}
       @set_tags         = []
@@ -276,14 +276,17 @@ module Chimp
             #Make an 1.5 call to extract name, by loading resource.
             Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call : client.resource(#{s.params['right_script']['href'].scan(/=(.*)/).last.last})"
             begin
+              tries ||= 3
               the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
             rescue
-              Log.error "[#{Chimp.get_job_uuid}] Failed to make 1.5 call for rightscript href"
+              Log.error "[#{Chimp.get_job_uuid}] Failed to make 1.5 call for rightscript href (retrying)"
+              retry unless (tries -= 1).zero?
+              Log.error "[#{Chimp.get_job_uuid}] Failed to make 1.5 call for rightscript href (giving up)"
             end
             s.params['right_script']['name'] = the_name
-            @executable=s
+            @executable = s
           else
-            #If its not an url, go ahead try to locate it in the ST"
+            # If its not an url, go ahead try to locate it in the ST"
             @executable = detect_right_script(@server_template, @script)
           end
         else
@@ -592,8 +595,15 @@ module Chimp
         names.each do |array_name|
           # Find if arrays exist, if not raise warning.
           # One API call per array
-          Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index(:filter => [#{array_name}])"
-          result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
+          begin
+            Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index(:filter => [#{array_name}])"
+            tries ||= 3
+            result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
+          rescue
+            Log.info "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index failed (retrying)."
+            retry unless (tries -= 1).zero?
+            Log.info "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index failed (giving up)."
+          end
           # Result is an array with all the server arrays
           if result.size != 0
             if @exact
@@ -729,9 +739,11 @@ module Chimp
       st.each do |s|
         Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource(#{s[1]['href']})"
         begin
-          temp=Connection.client.resource(s[1]['href'])
+          tries ||= 3
+          temp = Connection.client.resource(s[1]['href'])
         rescue
           Log.error "[#{Chimp.get_job_uuid}] Failed to load href for ST"
+          retry unless (tries -= 1).zero?
         end
         temp.runnable_bindings.index.each do |x|
           # Look for first match
@@ -812,18 +824,21 @@ module Chimp
         #    "href"=>"/api/server_templates/351930003"} ]
         Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (ST)"
         begin
-          temp=Connection.client.resource(s[1]['href'])
+          tries ||= 3
+          temp = Connection.client.resource(s[1]['href'])
           Log.debug "[#{Chimp.get_job_uuid}] API 1.5 call client.resource (ST) complete"
           temp.runnable_bindings.index.each do |x|
             # only add the operational ones
-            if x.sequence == "operational"
+            if x.sequence == 'operational'
               name = x.raw['right_script']['name']
               op_scripts.push([name, x])
             end
           end
         rescue  Exception => e
-          Log.error "[#{Chimp.get_job_uuid}] API 1.5 call client.resource (ST) failed"
+          Log.error "[#{Chimp.get_job_uuid}] API 1.5 call client.resource (ST) failed (retrying)"
           Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
+          retry unless (tries -= 1).zero?
+          Log.error "[#{Chimp.get_job_uuid}] API 1.5 call client.resource (ST) failed (giving up)"
         end
       end
 
@@ -902,10 +917,13 @@ module Chimp
         # This will be useful for later on when we need to run scripts
         Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER) for task creation"
         begin
+          tries ||= 3
           s.object = Connection.client.resource(server['href'])
           Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER) for task creation COMPLETE"
         rescue
-          Log.error "[#{Chimp.get_job_uuid}] Failed to load server href via API1.5 for task creation"
+          Log.error "[#{Chimp.get_job_uuid}] Failed to load server href via API1.5 for task creation (retrying)"
+          retry unless (tries -= 1).zero?
+          Log.error "[#{Chimp.get_job_uuid}] Failed to load server href via API1.5 for task creation (giving up)"
         end
 
         e = nil
