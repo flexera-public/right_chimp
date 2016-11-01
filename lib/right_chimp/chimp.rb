@@ -601,10 +601,10 @@ module Chimp
             tries ||= 3
             result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
           rescue
-            Log.info "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index failed (retrying)."
+            Log.error "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index failed (retrying)."
             sleep 30
             retry unless (tries -= 1).zero?
-            Log.info "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index failed (giving up)."
+            Log.error "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index failed (giving up)."
           end
           # Result is an array with all the server arrays
           if result.size != 0
