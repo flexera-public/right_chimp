@@ -280,6 +280,7 @@ module Chimp
               the_name = Connection.client.resource(s.params['right_script']['href'].scan(/=(.*)/).last.last).name
             rescue
               Log.error "[#{Chimp.get_job_uuid}] Failed to make 1.5 call for rightscript href (retrying)"
+              sleep 30
               retry unless (tries -= 1).zero?
               Log.error "[#{Chimp.get_job_uuid}] Failed to make 1.5 call for rightscript href (giving up)"
             end
@@ -601,6 +602,7 @@ module Chimp
             result = Connection.client.server_arrays.index(:filter => ["name==#{array_name}"])
           rescue
             Log.info "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index failed (retrying)."
+            sleep 30
             retry unless (tries -= 1).zero?
             Log.info "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.server_arrays.index failed (giving up)."
           end
@@ -743,6 +745,7 @@ module Chimp
           temp = Connection.client.resource(s[1]['href'])
         rescue
           Log.error "[#{Chimp.get_job_uuid}] Failed to load href for ST"
+          sleep 30
           retry unless (tries -= 1).zero?
         end
         temp.runnable_bindings.index.each do |x|
@@ -837,6 +840,7 @@ module Chimp
         rescue  Exception => e
           Log.error "[#{Chimp.get_job_uuid}] API 1.5 call client.resource (ST) failed (retrying)"
           Log.error "[#{Chimp.get_job_uuid}] #{e.message}"
+          sleep 30
           retry unless (tries -= 1).zero?
           Log.error "[#{Chimp.get_job_uuid}] API 1.5 call client.resource (ST) failed (giving up)"
         end
@@ -922,6 +926,7 @@ module Chimp
           Log.debug "[#{Chimp.get_job_uuid}] Making API 1.5 call: client.resource (SERVER) for task creation COMPLETE"
         rescue
           Log.error "[#{Chimp.get_job_uuid}] Failed to load server href via API1.5 for task creation (retrying)"
+          sleep 30
           retry unless (tries -= 1).zero?
           Log.error "[#{Chimp.get_job_uuid}] Failed to load server href via API1.5 for task creation (giving up)"
         end
