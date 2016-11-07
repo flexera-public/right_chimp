@@ -1,3 +1,7 @@
+Version 2.2.2
+-------------
+* Feature: Now compatible with RightLink10 task states.
+
 Version 2.2
 --------------
 * Feature: Starting to add proper specs that do not rely on actual-real executions.
