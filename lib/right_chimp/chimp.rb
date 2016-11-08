@@ -1059,7 +1059,7 @@ module Chimp
         elsif command =~ /^r/i
           puts "Retrying..."
           ChimpQueue.instance.group[group].requeue_failed_jobs!
-          return "retry"
+          return 'retry'
         end
       end
     end
@@ -1112,6 +1112,8 @@ module Chimp
 
         if @interactive and @verify
           done = verify_results(@group)
+          # a retry means we are not done yet.
+          done = false if done == 'retry'
         else
           done = true
         end
@@ -1122,7 +1124,7 @@ module Chimp
         exit 1 if failed_workers.size > 0
       end
 
-      puts "chimp run complete"
+      puts 'chimp run complete'
     end
 
     #
