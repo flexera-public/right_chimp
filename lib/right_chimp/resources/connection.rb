@@ -51,10 +51,17 @@ module Chimp
         @endpoint = URI.parse(creds[:api_url]).host
 
         Log.debug "Logging into Api 1.5 right_api_client"
-
-        @client = RightApi::Client.new(:email => creds[:user], :password => creds[:pass],
-                                        :account_id => creds[:account], :api_url => creds[:api_url],
-                                        :timeout => 60, :enable_retry => true)
+        if creds[:refresh_token] then
+          # no account id extraction, must be specified in config file
+          # refresh_token must be specified in config
+          @client = RightApi::Client.new(refresh_token: creds[:refresh_token],
+                                         account_id: creds[:account], api_url: creds[:api_url],
+                                         timeout: 60, enable_retry: true)
+        else
+          @client = RightApi::Client.new(email: creds[:user], password: creds[:pass],
+                                         account_id: creds[:account], api_url: creds[:api_url],
+                                         timeout: 60, enable_retry: true)
+        end
       rescue
         puts "##############################################################################"
         puts "Error: "
@@ -125,7 +132,6 @@ module Chimp
     # Provides a way to make an api1.6 call directly
     #
     def Connection.api16_call(query)
-
       Thread.current[:retry] = true
       Thread.current[:response] = nil
       retries = 5
@@ -133,8 +139,13 @@ module Chimp
       sleep_for = 20
 
       begin
-        get  = Net::HTTP::Get.new(query)
-        get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
+        get = Net::HTTP::Get.new(query)
+        if @client.access_token
+          # auth using oauth access token
+          get['Authorization'] = 'Bearer ' + @client.access_token
+        else
+          get['Cookie']        = @client.cookies.map { |key, value| "%s=%s" % [key, value] }.join(';')
+        end
         get['X-Api_Version'] = '1.6'
         get['X-Account']     = @client.account_id
 

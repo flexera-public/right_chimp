@@ -1,7 +1,11 @@
+Version 2.3
+-----------
+* Feature: Allow authentication via OAuth token.
+
 Version 2.2.2
 -------------
 * Feature: Now compatible with RightLink10 task states.
-* Bugfix: Fixes standalone retry execution. 
+* Bugfix: Fixes standalone retry execution.
 
 Version 2.2
 --------------
