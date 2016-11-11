@@ -12,17 +12,17 @@ creds. First create a directory for the configuration file:
 
   mkdir ~/.rest_connection
 
-Next create the configuration file. Name it rest_api_config.yaml and place it in the 
-.rest_connection folder. Use the following YAML as a template, replacing <email>, <password> 
+Next create the configuration file. Name it rest_api_config.yaml and place it in the
+.rest_connection folder. Use the following YAML as a template, replacing <email>, <password>
 and <account> with your email address, RightScale password, and account number.
 
-  --- 
-  :ssh_keys: 
+  ---
+  :ssh_keys:
   - ~/.ssh/id_rsa
   :pass: <password>
   :user: <email>
   :api_url: https://my.rightscale.com/api/acct/<account>
-  :common_headers: 
+  :common_headers:
     X_API_VERSION: "1.0"
 
 Now you're ready to run a test query. The following chimp command should return
@@ -30,3 +30,16 @@ a list of all the operational servers in your account:
 
   chimp --tag="rs_monitoring:state=active"
 
+  RIGHTSCALE OAUTH SPECIFIC NOTES
+  --------------------------------
+
+   rest_api_config.yaml should look like
+
+    :ssh_keys:
+    - ~/.ssh/id_rsa
+    :user: <email>
+    :refresh_token: <refresh_token>
+    :api_url: https://us-3.rightscale.com
+    :account: <account>
+    :common_headers:
+      X_API_VERSION: "1.0"
