@@ -22,8 +22,6 @@ and <account> with your email address, RightScale password, and account number.
   :pass: <password>
   :user: <email>
   :api_url: https://my.rightscale.com/api/acct/<account>
-  :common_headers:
-    X_API_VERSION: "1.0"
 
 Now you're ready to run a test query. The following chimp command should return
 a list of all the operational servers in your account:
@@ -41,5 +39,3 @@ a list of all the operational servers in your account:
     :refresh_token: <refresh_token>
     :api_url: https://us-3.rightscale.com
     :account: <account>
-    :common_headers:
-      X_API_VERSION: "1.0"
