@@ -12,18 +12,18 @@ module Chimp
     def wait_for_state(desired_state, timeout = 900)
       while timeout > 0
         # Make compatible with RL10.
-        state = tasker.show.summary.downcase
-        return true if state.match(desired_state)
+        status = state
+        return true if status.match(desired_state)
         friendly_url = Connection.audit_url + '/audit_entries/'
         friendly_url += href.split(/\//).last
         friendly_url = friendly_url.gsub('ae-', '')
-        if state.match('failed') || state.match('aborted')
-          raise "FATAL error, #{tasker.show.summary}\n\n Audit: #{friendly_url}\n "
+        if status.match('failed') || status.match('aborted')
+          raise "FATAL error, #{status}\n\n Audit: #{friendly_url}\n "
         end
         sleep 30
         timeout -= 30
       end
-      raise "FATAL: Timeout waiting for Executable to complete.  State was #{self.state}" if timeout <= 0
+      raise "FATAL: Timeout waiting for Executable to complete.  State was #{status}" if timeout <= 0
     end
 
     def wait_for_completed(timeout = 900)
