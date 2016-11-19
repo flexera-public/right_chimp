@@ -12,7 +12,7 @@ module Chimp
     def wait_for_state(desired_state, timeout = 900)
       while timeout > 0
         # Make compatible with RL10.
-        status = state
+        status = state.downcase
         return true if status.match(desired_state)
         friendly_url = Connection.audit_url + '/audit_entries/'
         friendly_url += href.split(/\//).last
