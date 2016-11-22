@@ -1,3 +1,7 @@
+Version 2.3.2
+-------------
+* Bugfix: Previous version broke compatibility with RL10. Now fixed. 
+
 Version 2.3.1
 -------------
 * Bugfix: We do not requery for task state when raising an error. 
