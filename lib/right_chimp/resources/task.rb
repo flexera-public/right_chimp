@@ -9,9 +9,8 @@ module Chimp
     attr_writer :tasker
     attr_reader :tasker
 
-    attr_accessor :api_polling_rate
     def initialize
-      self.api_polling_rate = ENV['API_POLLING_RATE'].to_i || 30
+      @api_polling_rate = ENV['API_POLLING_RATE'].to_i || 30
     end
 
     def wait_for_state(desired_state, timeout = 900)
@@ -25,9 +24,9 @@ module Chimp
         if status.match('failed') || status.match('aborted')
           raise "FATAL error, #{status}\n\n Audit: #{friendly_url}\n "
         end
-        Log.debug "Polling again in #{self.api_polling_rate}"
-        sleep self.api_polling_rate
-        timeout -= self.api_polling_rate
+        Log.debug "Polling again in #{#@api_polling_rate}"
+        sleep @api_polling_rate
+        timeout -= @api_polling_rate
       end
       raise "FATAL: Timeout waiting for Executable to complete.  State was #{status}" if timeout <= 0
     end
