@@ -10,7 +10,8 @@ module Chimp
     attr_reader :tasker
 
     def initialize
-      @api_polling_rate = ENV['API_POLLING_RATE'].to_i || 30
+      rate = ENV['API_POLLING_RATE'] || 30
+      @api_polling_rate = rate.to_i
     end
 
     def wait_for_state(desired_state, timeout = 900)
