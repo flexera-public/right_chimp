@@ -1,3 +1,7 @@
+Version 2.4
+-------------
+* Feature: We now allow to customize the polling rate for checking on tasks status. 
+
 Version 2.3.2
 -------------
 * Bugfix: Previous version broke compatibility with RL10. Now fixed. 
