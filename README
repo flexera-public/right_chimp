@@ -3,6 +3,10 @@ Chimp: a command-line tool for remote command execution using the RightScale pla
 The goal of the Chimp is to provide a simple command line utility for
 performing bulk operations on servers managed on the RightScale platform.
 
+INSTALLATION
+------------
+Installation and authentication instructions are available [here](INSTALLATION)
+
 EXAMPLE USAGE
 -------------
 
