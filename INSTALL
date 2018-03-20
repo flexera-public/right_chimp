@@ -38,3 +38,4 @@ a list of all the operational servers in your account:
     :user: <email>
     :refresh_token: <refresh_token>
     :api_url: https://us-3.rightscale.com/api/acct/<account>
+    :account: <account>
