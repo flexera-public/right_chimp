@@ -69,6 +69,7 @@ module Chimp
         puts "or                           "
         puts " - connection couldnt be established"
         puts "##############################################################################"
+        puts error.message
         puts error.backtrace
         puts "##############################################################################"
         exit -1
