@@ -62,12 +62,14 @@ module Chimp
                                          account_id: creds[:account], api_url: creds[:api_url],
                                          timeout: 60, enable_retry: true)
         end
-      rescue
+      rescue => error
         puts "##############################################################################"
         puts "Error: "
         puts " - credentials file could not be loaded correctly"
         puts "or                           "
-        puts " - connection couldnt be establishhed"
+        puts " - connection couldnt be established"
+        puts "##############################################################################"
+        puts error.backtrace
         puts "##############################################################################"
         exit -1
       end
